@@ -104,6 +104,11 @@ _G.packer_plugins = {
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/harpoon",
     url = "https://github.com/theprimeagen/harpoon"
   },
+  jester = {
+    loaded = true,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/jester",
+    url = "https://github.com/David-Kunz/jester"
+  },
   ["lsp-zero.nvim"] = {
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/lsp-zero.nvim",
