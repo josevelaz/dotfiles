@@ -11,6 +11,7 @@ lsp.ensure_installed({
   'tsserver',
   'eslint',
   'svelte',
+  'lua_ls',
   'tailwindcss',
   'yamlls',
   'sqlls',
