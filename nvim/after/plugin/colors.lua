@@ -3,4 +3,5 @@ function ColorMyPencils(color)
    vim.cmd.colorscheme(color)
 
 end
-vim.g.mapleader = " "
+
+ColorMyPencils()

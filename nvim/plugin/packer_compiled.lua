@@ -84,10 +84,20 @@ _G.packer_plugins = {
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/cmp-nvim-lsp",
     url = "https://github.com/hrsh7th/cmp-nvim-lsp"
   },
+  ["codeium.vim"] = {
+    loaded = true,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/codeium.vim",
+    url = "https://github.com/Exafunction/codeium.vim"
+  },
   embark = {
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/embark",
     url = "https://github.com/embark-theme/vim"
+  },
+  ["feline.nvim"] = {
+    loaded = true,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/feline.nvim",
+    url = "https://github.com/freddiehaddad/feline.nvim"
   },
   harpoon = {
     loaded = true,
@@ -124,6 +134,11 @@ _G.packer_plugins = {
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/nvim-treesitter",
     url = "https://github.com/nvim-treesitter/nvim-treesitter"
   },
+  ["nvim-web-devicons"] = {
+    loaded = true,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/nvim-web-devicons",
+    url = "https://github.com/nvim-tree/nvim-web-devicons"
+  },
   ["packer.nvim"] = {
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/packer.nvim",
@@ -143,6 +158,11 @@ _G.packer_plugins = {
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/undotree",
     url = "https://github.com/mbbill/undotree"
+  },
+  ["vgit.nvim"] = {
+    loaded = true,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/vgit.nvim",
+    url = "https://github.com/tanvirtin/vgit.nvim"
   },
   ["vim-fugitive"] = {
     loaded = true,
