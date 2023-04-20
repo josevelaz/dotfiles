@@ -79,6 +79,11 @@ _G.packer_plugins = {
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/LuaSnip",
     url = "https://github.com/L3MON4D3/LuaSnip"
   },
+  ["autoclose.nvim"] = {
+    loaded = true,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/autoclose.nvim",
+    url = "https://github.com/m4xshen/autoclose.nvim"
+  },
   ["cmp-nvim-lsp"] = {
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/cmp-nvim-lsp",
@@ -124,10 +129,21 @@ _G.packer_plugins = {
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/mason.nvim",
     url = "https://github.com/williamboman/mason.nvim"
   },
+  ["null-ls.nvim"] = {
+    loaded = true,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/null-ls.nvim",
+    url = "https://github.com/jose-elias-alvarez/null-ls.nvim"
+  },
   ["nvim-cmp"] = {
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/nvim-cmp",
     url = "https://github.com/hrsh7th/nvim-cmp"
+  },
+  ["nvim-coverage"] = {
+    config = { "\27LJ\2\n6\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\rcoverage\frequire\0" },
+    loaded = true,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/nvim-coverage",
+    url = "https://github.com/andythigpen/nvim-coverage"
   },
   ["nvim-lspconfig"] = {
     loaded = true,
@@ -154,6 +170,11 @@ _G.packer_plugins = {
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/plenary.nvim",
     url = "https://github.com/nvim-lua/plenary.nvim"
   },
+  ["prettier.nvim"] = {
+    loaded = true,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/prettier.nvim",
+    url = "https://github.com/MunifTanjim/prettier.nvim"
+  },
   ["telescope.nvim"] = {
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/telescope.nvim",
@@ -165,6 +186,7 @@ _G.packer_plugins = {
     url = "https://github.com/mbbill/undotree"
   },
   ["vgit.nvim"] = {
+    config = { "\27LJ\2\n2\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\tvgit\frequire\0" },
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/vgit.nvim",
     url = "https://github.com/tanvirtin/vgit.nvim"
@@ -177,6 +199,14 @@ _G.packer_plugins = {
 }
 
 time([[Defining packer_plugins]], false)
+-- Config for: vgit.nvim
+time([[Config for vgit.nvim]], true)
+try_loadstring("\27LJ\2\n2\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\tvgit\frequire\0", "config", "vgit.nvim")
+time([[Config for vgit.nvim]], false)
+-- Config for: nvim-coverage
+time([[Config for nvim-coverage]], true)
+try_loadstring("\27LJ\2\n6\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\rcoverage\frequire\0", "config", "nvim-coverage")
+time([[Config for nvim-coverage]], false)
 
 _G._packer.inside_compile = false
 if _G._packer.needs_bufread == true then

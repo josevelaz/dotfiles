@@ -27,12 +27,12 @@ local cmp_action = require('lsp-zero').cmp_action()
 local cmp_select = {behavior = cmp.SelectBehavior.Select}
 
 cmp.setup({
-  mapping = {
-    -- `Enter` key to confirm completion
-    ['<C-y>'] = cmp.mapping.confirm({select = true}),
-
-    -- Ctrl+Space to trigger completion menu
-    ['<C-Space>'] = cmp.mapping.complete(),
+    mapping = {
+        -- `Enter` key to confirm completion
+        ['<C-y>'] = cmp.mapping.confirm({select = true}),
+        ['<Tab>'] = cmp_action.tab_complete(),
+        -- Ctrl+Space to trigger completion menu
+        ['<C-Space>'] = cmp.mapping.complete(),
 
     ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),
     ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
