@@ -23,14 +23,12 @@ lsp.ensure_installed({
 -- Make sure you setup `cmp` after lsp-zero
 
 local cmp = require('cmp')
-local cmp_action = require('lsp-zero').cmp_action()
 local cmp_select = {behavior = cmp.SelectBehavior.Select}
 
 cmp.setup({
     mapping = {
         -- `Enter` key to confirm completion
-        ['<C-y>'] = cmp.mapping.confirm({select = true}),
-        ['<Tab>'] = cmp_action.tab_complete(),
+        ['<CR>'] = cmp.mapping.confirm({select = true}),
         -- Ctrl+Space to trigger completion menu
         ['<C-Space>'] = cmp.mapping.complete(),
 

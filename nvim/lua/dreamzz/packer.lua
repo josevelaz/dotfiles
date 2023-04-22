@@ -16,6 +16,22 @@ return require('packer').startup(function(use)
           require("coverage").setup()
       end,
   })
+  use {
+      "nvim-neotest/neotest",
+      requires = {
+          "nvim-lua/plenary.nvim",
+          "nvim-treesitter/nvim-treesitter",
+          "antoinemadec/FixCursorHold.nvim",
+          "haydenmeade/neotest-jest",
+      },
+      config = function ()
+          require("neotest").setup({
+              adapters = {
+                  require("neotest-jest")
+              }
+          })
+      end
+  }
 
   use {
       'tanvirtin/vgit.nvim',
@@ -27,7 +43,6 @@ return require('packer').startup(function(use)
       end,
   }
   use 'm4xshen/autoclose.nvim'
-  use 'David-Kunz/jester'
   use 'nvim-tree/nvim-web-devicons'
   use 'freddiehaddad/feline.nvim'
   use 'Exafunction/codeium.vim'
