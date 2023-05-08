@@ -59,6 +59,10 @@ return require('packer').startup(function(use)
     use 'nvim-tree/nvim-web-devicons'
     use 'freddiehaddad/feline.nvim'
     use 'Exafunction/codeium.vim'
+    require('packer').use({
+        'weilbith/nvim-code-action-menu',
+        cmd = 'CodeActionMenu',
+    })
     use {
         'nvim-telescope/telescope.nvim', tag = '0.1.1',
         -- or                            , branch = '0.1.x',

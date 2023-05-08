@@ -166,6 +166,14 @@ _G.packer_plugins = {
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/nvim-cmp",
     url = "https://github.com/hrsh7th/nvim-cmp"
   },
+  ["nvim-code-action-menu"] = {
+    commands = { "CodeActionMenu" },
+    loaded = false,
+    needs_bufread = true,
+    only_cond = false,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/opt/nvim-code-action-menu",
+    url = "https://github.com/weilbith/nvim-code-action-menu"
+  },
   ["nvim-coverage"] = {
     config = { "\27LJ\2\n6\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\rcoverage\frequire\0" },
     loaded = true,
@@ -232,26 +240,38 @@ _G.packer_plugins = {
 }
 
 time([[Defining packer_plugins]], false)
--- Config for: neotest
-time([[Config for neotest]], true)
-try_loadstring("\27LJ\2\np\0\0\a\0\6\1\r6\0\0\0'\2\1\0B\0\2\0029\0\2\0005\2\4\0004\3\3\0006\4\0\0'\6\3\0B\4\2\0?\4\0\0=\3\5\2B\0\2\1K\0\1\0\radapters\1\0\0\17neotest-jest\nsetup\fneotest\frequire\3€€À™\4\0", "config", "neotest")
-time([[Config for neotest]], false)
--- Config for: auto-save.nvim
-time([[Config for auto-save.nvim]], true)
-try_loadstring("\27LJ\2\n7\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\14auto-save\frequire\0", "config", "auto-save.nvim")
-time([[Config for auto-save.nvim]], false)
--- Config for: nvim-coverage
-time([[Config for nvim-coverage]], true)
-try_loadstring("\27LJ\2\n6\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\rcoverage\frequire\0", "config", "nvim-coverage")
-time([[Config for nvim-coverage]], false)
--- Config for: vgit.nvim
-time([[Config for vgit.nvim]], true)
-try_loadstring("\27LJ\2\n2\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\tvgit\frequire\0", "config", "vgit.nvim")
-time([[Config for vgit.nvim]], false)
 -- Config for: which-key.nvim
 time([[Config for which-key.nvim]], true)
 try_loadstring("\27LJ\2\nt\0\0\3\0\a\0\0156\0\0\0009\0\1\0+\1\2\0=\1\2\0006\0\0\0009\0\1\0)\1,\1=\1\3\0006\0\4\0'\2\5\0B\0\2\0029\0\6\0004\2\0\0B\0\2\1K\0\1\0\nsetup\14which-key\frequire\15timeoutlen\ftimeout\6o\bvim\0", "config", "which-key.nvim")
 time([[Config for which-key.nvim]], false)
+-- Config for: vgit.nvim
+time([[Config for vgit.nvim]], true)
+try_loadstring("\27LJ\2\n2\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\tvgit\frequire\0", "config", "vgit.nvim")
+time([[Config for vgit.nvim]], false)
+-- Config for: nvim-coverage
+time([[Config for nvim-coverage]], true)
+try_loadstring("\27LJ\2\n6\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\rcoverage\frequire\0", "config", "nvim-coverage")
+time([[Config for nvim-coverage]], false)
+-- Config for: auto-save.nvim
+time([[Config for auto-save.nvim]], true)
+try_loadstring("\27LJ\2\n7\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\14auto-save\frequire\0", "config", "auto-save.nvim")
+time([[Config for auto-save.nvim]], false)
+-- Config for: neotest
+time([[Config for neotest]], true)
+try_loadstring("\27LJ\2\np\0\0\a\0\6\1\r6\0\0\0'\2\1\0B\0\2\0029\0\2\0005\2\4\0004\3\3\0006\4\0\0'\6\3\0B\4\2\0?\4\0\0=\3\5\2B\0\2\1K\0\1\0\radapters\1\0\0\17neotest-jest\nsetup\fneotest\frequire\3€€À™\4\0", "config", "neotest")
+time([[Config for neotest]], false)
+
+-- Command lazy-loads
+time([[Defining lazy-load commands]], true)
+pcall(vim.api.nvim_create_user_command, 'CodeActionMenu', function(cmdargs)
+          require('packer.load')({'nvim-code-action-menu'}, { cmd = 'CodeActionMenu', l1 = cmdargs.line1, l2 = cmdargs.line2, bang = cmdargs.bang, args = cmdargs.args, mods = cmdargs.mods }, _G.packer_plugins)
+        end,
+        {nargs = '*', range = true, bang = true, complete = function()
+          require('packer.load')({'nvim-code-action-menu'}, {}, _G.packer_plugins)
+          return vim.fn.getcompletion('CodeActionMenu ', 'cmdline')
+      end})
+time([[Defining lazy-load commands]], false)
+
 
 _G._packer.inside_compile = false
 if _G._packer.needs_bufread == true then
