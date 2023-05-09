@@ -10,7 +10,7 @@ end, { desc = "Grep" })
 command_center.add({
     {
         desc = "Run the nearest test",
-        cmd = "<CMD>lua require('neotest').run.run()<CR>",
+        cmd = "<CMD>lua require('neotest').run.run({ jestCommand = 'jest --watch --runInBand'})<CR>",
     },
     {
         desc = "Run the current file",

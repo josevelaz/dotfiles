@@ -110,6 +110,11 @@ _G.packer_plugins = {
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/command_center.nvim",
     url = "https://github.com/FeiyouG/command_center.nvim"
   },
+  ["cspell.nvim"] = {
+    loaded = true,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/cspell.nvim",
+    url = "https://github.com/davidmh/cspell.nvim"
+  },
   embark = {
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/embark",
@@ -121,6 +126,7 @@ _G.packer_plugins = {
     url = "https://github.com/freddiehaddad/feline.nvim"
   },
   ["hardtime.nvim"] = {
+    config = { "\27LJ\2\n’\3\0\0\4\0\14\0\0176\0\0\0'\2\1\0B\0\2\0029\0\2\0005\2\3\0005\3\4\0=\3\5\0025\3\6\0=\3\a\0025\3\b\0=\3\t\0025\3\n\0=\3\v\0025\3\f\0=\3\r\2B\0\2\1K\0\1\0\23disabled_filetypes\1\6\0\0\aqf\nnetrw\rNvimTree\tlazy\nmason\18disabled_keys\1\5\0\0\t<UP>\v<DOWN>\v<LEFT>\f<RIGHT>\14hint_keys\1\f\0\0\6k\6j\6^\6$\6a\6x\6i\6d\6y\6c\6l\20restricted_keys\1\v\0\0\6h\6j\6k\6l\6-\6+\t<UP>\v<DOWN>\v<LEFT>\f<RIGHT>\19resetting_keys\1\r\0\0\0060\0061\0062\0063\0064\0065\0066\0067\0068\0069\6c\6d\1\0\5\rmax_time\3è\a\14max_count\3\20\18disable_mouse\2\24allow_different_key\1\thint\2\nsetup\rhardtime\frequire\0" },
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/hardtime.nvim",
     url = "https://github.com/m4xshen/hardtime.nvim"
@@ -146,7 +152,7 @@ _G.packer_plugins = {
     url = "https://github.com/williamboman/mason.nvim"
   },
   neotest = {
-    config = { "\27LJ\2\np\0\0\a\0\6\1\r6\0\0\0'\2\1\0B\0\2\0029\0\2\0005\2\4\0004\3\3\0006\4\0\0'\6\3\0B\4\2\0?\4\0\0=\3\5\2B\0\2\1K\0\1\0\radapters\1\0\0\17neotest-jest\nsetup\fneotest\frequire\3€€À™\4\0" },
+    config = { "\27LJ\2\n©\1\0\0\b\0\t\1\0176\0\0\0'\2\1\0B\0\2\0029\0\2\0005\2\a\0004\3\3\0006\4\0\0'\6\3\0B\4\2\0025\6\4\0005\a\5\0=\a\6\6B\4\2\0?\4\0\0=\3\b\2B\0\2\1K\0\1\0\radapters\1\0\0\benv\1\0\1\ttest\2\1\0\1\16jestCommand\17jest --watch\17neotest-jest\nsetup\fneotest\frequire\3€€À™\4\0" },
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/neotest",
     url = "https://github.com/nvim-neotest/neotest"
@@ -179,6 +185,11 @@ _G.packer_plugins = {
     loaded = true,
     path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/nvim-coverage",
     url = "https://github.com/andythigpen/nvim-coverage"
+  },
+  ["nvim-dap"] = {
+    loaded = true,
+    path = "/Users/josevelazquez/.local/share/nvim/site/pack/packer/start/nvim-dap",
+    url = "https://github.com/mfussenegger/nvim-dap"
   },
   ["nvim-lspconfig"] = {
     loaded = true,
@@ -240,14 +251,14 @@ _G.packer_plugins = {
 }
 
 time([[Defining packer_plugins]], false)
+-- Config for: hardtime.nvim
+time([[Config for hardtime.nvim]], true)
+try_loadstring("\27LJ\2\n’\3\0\0\4\0\14\0\0176\0\0\0'\2\1\0B\0\2\0029\0\2\0005\2\3\0005\3\4\0=\3\5\0025\3\6\0=\3\a\0025\3\b\0=\3\t\0025\3\n\0=\3\v\0025\3\f\0=\3\r\2B\0\2\1K\0\1\0\23disabled_filetypes\1\6\0\0\aqf\nnetrw\rNvimTree\tlazy\nmason\18disabled_keys\1\5\0\0\t<UP>\v<DOWN>\v<LEFT>\f<RIGHT>\14hint_keys\1\f\0\0\6k\6j\6^\6$\6a\6x\6i\6d\6y\6c\6l\20restricted_keys\1\v\0\0\6h\6j\6k\6l\6-\6+\t<UP>\v<DOWN>\v<LEFT>\f<RIGHT>\19resetting_keys\1\r\0\0\0060\0061\0062\0063\0064\0065\0066\0067\0068\0069\6c\6d\1\0\5\rmax_time\3è\a\14max_count\3\20\18disable_mouse\2\24allow_different_key\1\thint\2\nsetup\rhardtime\frequire\0", "config", "hardtime.nvim")
+time([[Config for hardtime.nvim]], false)
 -- Config for: which-key.nvim
 time([[Config for which-key.nvim]], true)
 try_loadstring("\27LJ\2\nt\0\0\3\0\a\0\0156\0\0\0009\0\1\0+\1\2\0=\1\2\0006\0\0\0009\0\1\0)\1,\1=\1\3\0006\0\4\0'\2\5\0B\0\2\0029\0\6\0004\2\0\0B\0\2\1K\0\1\0\nsetup\14which-key\frequire\15timeoutlen\ftimeout\6o\bvim\0", "config", "which-key.nvim")
 time([[Config for which-key.nvim]], false)
--- Config for: vgit.nvim
-time([[Config for vgit.nvim]], true)
-try_loadstring("\27LJ\2\n2\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\tvgit\frequire\0", "config", "vgit.nvim")
-time([[Config for vgit.nvim]], false)
 -- Config for: nvim-coverage
 time([[Config for nvim-coverage]], true)
 try_loadstring("\27LJ\2\n6\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\rcoverage\frequire\0", "config", "nvim-coverage")
@@ -258,8 +269,12 @@ try_loadstring("\27LJ\2\n7\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K
 time([[Config for auto-save.nvim]], false)
 -- Config for: neotest
 time([[Config for neotest]], true)
-try_loadstring("\27LJ\2\np\0\0\a\0\6\1\r6\0\0\0'\2\1\0B\0\2\0029\0\2\0005\2\4\0004\3\3\0006\4\0\0'\6\3\0B\4\2\0?\4\0\0=\3\5\2B\0\2\1K\0\1\0\radapters\1\0\0\17neotest-jest\nsetup\fneotest\frequire\3€€À™\4\0", "config", "neotest")
+try_loadstring("\27LJ\2\n©\1\0\0\b\0\t\1\0176\0\0\0'\2\1\0B\0\2\0029\0\2\0005\2\a\0004\3\3\0006\4\0\0'\6\3\0B\4\2\0025\6\4\0005\a\5\0=\a\6\6B\4\2\0?\4\0\0=\3\b\2B\0\2\1K\0\1\0\radapters\1\0\0\benv\1\0\1\ttest\2\1\0\1\16jestCommand\17jest --watch\17neotest-jest\nsetup\fneotest\frequire\3€€À™\4\0", "config", "neotest")
 time([[Config for neotest]], false)
+-- Config for: vgit.nvim
+time([[Config for vgit.nvim]], true)
+try_loadstring("\27LJ\2\n2\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\tvgit\frequire\0", "config", "vgit.nvim")
+time([[Config for vgit.nvim]], false)
 
 -- Command lazy-loads
 time([[Defining lazy-load commands]], true)

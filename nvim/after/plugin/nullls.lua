@@ -1,4 +1,5 @@
 local null_ls = require("null-ls")
+local cspell = require("cspell")
 
 local formatting = null_ls.builtins.formatting
 local diagnostics = null_ls.builtins.diagnostics
@@ -13,29 +14,10 @@ null_ls.setup({
             extra_filetypes = { "svelte" },
             prefer_local = "node_modules/.bin",
         }),
+        diagnostics.codespell,
         formatting.sqlfmt,
         formatting.gofmt,
-        -- diagnostics
-        diagnostics.cspell.with({
-            -- Force the severity to be HINT
-            diagnostics_postprocess = function(diagnostic)
-                diagnostic.severity = vim.diagnostic.severity.HINT
-            end,
-            config = {
-                find_json = function(cwd)
-                    return vim.fn.expand("~/dotfiles/nvim/cspell.json")
-                end
-            },
-        }),
-
         -- code_actions
         code_actions.eslint_d,
-        code_actions.cspell.with({
-            config = {
-                find_json = function(cwd)
-                    return vim.fn.expand("~/dotfiles/nvim/cspell.json")
-                end
-            },
-        })
     }
 })
