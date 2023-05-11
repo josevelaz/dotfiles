@@ -20,6 +20,7 @@ return require('packer').startup({
             end,
         })
         -- Lua
+        use "folke/neodev.nvim"
         use {
             "folke/which-key.nvim",
             config = function()
