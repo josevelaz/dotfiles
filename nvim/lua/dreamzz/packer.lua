@@ -65,7 +65,6 @@ return require('packer').startup({
         }
         use 'm4xshen/autoclose.nvim'
         use 'nvim-tree/nvim-web-devicons'
-        use 'freddiehaddad/feline.nvim'
         use 'Exafunction/codeium.vim'
         require('packer').use({
             'weilbith/nvim-code-action-menu',
@@ -78,8 +77,9 @@ return require('packer').startup({
         }
 
         use('tpope/vim-fugitive')
-        use { 'embark-theme/vim', as = 'embark' }
         use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
+        use 'folke/tokyonight.nvim'
+        use("rebelot/heirline.nvim")
         use('theprimeagen/harpoon')
         use('mbbill/undotree')
         use {
