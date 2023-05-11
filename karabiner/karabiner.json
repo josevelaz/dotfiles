@@ -12,112 +12,11 @@
         "parameters": {
           "basic.simultaneous_threshold_milliseconds": 50,
           "basic.to_delayed_action_delay_milliseconds": 500,
-          "basic.to_if_alone_timeout_milliseconds": 1000,
+          "basic.to_if_alone_timeout_milliseconds": 500,
           "basic.to_if_held_down_threshold_milliseconds": 500,
           "mouse_motion_to_scroll.speed": 100
         },
         "rules": [
-          {
-            "description": "Remap Caps Lock to Escape in iTerm2",
-            "manipulators": [
-              {
-                "conditions": [
-                  {
-                    "type": "frontmost_application_if",
-                    "bundle_identifiers": ["^com\\.googlecode\\.iterm2$"]
-                  }
-                ],
-                "from": {
-                  "key_code": "caps_lock"
-                },
-                "to": [
-                  {
-                    "key_code": "escape"
-                  }
-                ],
-                "type": "basic"
-              }
-            ]
-          },
-          {
-            "description": "Press twice caps_lock to activate caps_lock & otherwise held_down and use as CTRL (for iTerm2)",
-            "manipulators": [
-              {
-                "conditions": [
-                  {
-                    "type": "frontmost_application_if",
-                    "bundle_identifiers": ["^com\\.googlecode\\.iterm2$"]
-                  },
-                  {
-                    "name": "caps_lock pressed",
-                    "type": "variable_if",
-                    "value": 1
-                  }
-                ],
-                "from": {
-                  "key_code": "caps_lock",
-                  "modifiers": {
-                    "optional": ["any"]
-                  }
-                },
-                "to": [
-                  {
-                    "key_code": "caps_lock"
-                  }
-                ],
-                "type": "basic"
-              },
-              {
-                "conditions": [
-                  {
-                    "type": "frontmost_application_if",
-                    "bundle_identifiers": ["^com\\.googlecode\\.iterm2$"]
-                  }
-                ],
-                "from": {
-                  "key_code": "caps_lock",
-                  "modifiers": {
-                    "optional": ["any"]
-                  }
-                },
-                "parameters": {
-                  "basic.to_if_held_down_threshold_milliseconds": 0
-                },
-                "to": [
-                  {
-                    "set_variable": {
-                      "name": "caps_lock pressed",
-                      "value": 1
-                    }
-                  }
-                ],
-                "to_delayed_action": {
-                  "to_if_canceled": [
-                    {
-                      "set_variable": {
-                        "name": "caps_lock pressed",
-                        "value": 0
-                      }
-                    }
-                  ],
-                  "to_if_invoked": [
-                    {
-                      "set_variable": {
-                        "name": "caps_lock pressed",
-                        "value": 0
-                      }
-                    }
-                  ]
-                },
-                "to_if_held_down": [
-                  {
-                    "key_code": "left_control"
-                  }
-                ],
-                "type": "basic"
-              }
-            ]
-          }
         ]
       },
       "devices": [

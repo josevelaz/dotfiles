@@ -6,7 +6,14 @@ local code_actions = null_ls.builtins.code_actions
 null_ls.setup({
     sources = {
         -- Diagnostics
-        cspell.diagnostics,
+        cspell.diagnostics.with({
+            diagnostics_postprocess = function(diagnostic)
+                diagnostic.severity = vim.diagnostic.severity.HINT
+            end,
+            find_json = function(cwd)
+                return "~/dotfiles/"
+            end
+        }),
         -- formatting
         formatting.stylua,
         formatting.eslint_d,
@@ -20,7 +27,7 @@ null_ls.setup({
         code_actions.eslint_d,
         cspell.code_actions.with({
             find_json = function(cwd)
-
+                return "~/dotfiles/"
             end
         })
     }
