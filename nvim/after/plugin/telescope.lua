@@ -24,6 +24,10 @@ command_center.add({
         desc = "Debug Nearest Test",
         cmd = "<CMD>require('neotest').run.run({strategy = 'dap'})<CR>",
     },
+    {
+        desc = "Open Icon Picker",
+        cmd = "<CMD>NerdIcons<CR>"
+    }
 })
 
 tl.load_extension("command_center")

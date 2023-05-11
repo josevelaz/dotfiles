@@ -79,7 +79,11 @@ return require('packer').startup({
         use('tpope/vim-fugitive')
         use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
         use 'folke/tokyonight.nvim'
-        use("rebelot/heirline.nvim")
+        use {
+            'nvim-lualine/lualine.nvim',
+            requires = { 'nvim-tree/nvim-web-devicons', opt = true }
+        }
+        use({ 'glepnir/nerdicons.nvim', cmd = 'NerdIcons', config = function() require('nerdicons').setup({}) end })
         use('theprimeagen/harpoon')
         use('mbbill/undotree')
         use {
@@ -98,9 +102,9 @@ return require('packer').startup({
                 { 'williamboman/mason-lspconfig.nvim' }, -- Optional
 
                 -- Autocompletion
-                { 'hrsh7th/nvim-cmp' }, -- Required
+                { 'hrsh7th/nvim-cmp' },     -- Required
                 { 'hrsh7th/cmp-nvim-lsp' }, -- Required
-                { 'L3MON4D3/LuaSnip' }, -- Required
+                { 'L3MON4D3/LuaSnip' },     -- Required
             }
         }
         use('jose-elias-alvarez/null-ls.nvim')
