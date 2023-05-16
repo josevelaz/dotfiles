@@ -10,6 +10,14 @@ return require('packer').startup({
 
         use 'davidmh/cspell.nvim'
 
+        use 'christoomey/vim-tmux-navigator'
+
+        use {
+            "folke/trouble.nvim",
+            requires = "nvim-tree/nvim-web-devicons",
+        }
+        
+
         use({
             "andythigpen/nvim-coverage",
             requires = "nvim-lua/plenary.nvim",
