@@ -6,7 +6,7 @@ alias push="git push origin"
 alias zshconfig=“mate ~/.zshrc”
 alias itermgeneratetouchbar="cd $ANTIGEN/bundles/zsh-users/zsh-apple-touchbar/ && ruby generate.rb"
 alias itermedittouchbar="cd $ANTIGEN/bundles/zsh-users/zsh-apple-touchbar/ && code config.yaml"
-alias pip=pip3
+alias godotfiles="cd ~/dotfiles"
 alias nvim="nvim ."
 
 export VOLTA_HOME="$HOME/.volta"
