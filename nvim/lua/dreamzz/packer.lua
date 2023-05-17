@@ -16,7 +16,6 @@ return require('packer').startup({
             "folke/trouble.nvim",
             requires = "nvim-tree/nvim-web-devicons",
         }
-        
 
         use({
             "andythigpen/nvim-coverage",
