@@ -86,6 +86,7 @@ return require('packer').startup({
 
         use('tpope/vim-fugitive')
         use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
+        use 'nvim-treesitter/nvim-treesitter-context'
         use 'folke/tokyonight.nvim'
         use {
             'nvim-lualine/lualine.nvim',
@@ -128,23 +129,6 @@ return require('packer').startup({
             end
         }
         use 'mfussenegger/nvim-dap'
-        use {
-            'm4xshen/hardtime.nvim',
-            config = function()
-                require("hardtime").setup({
-                    max_time = 1000,
-                    max_count = 20,
-                    disable_mouse = true,
-                    hint = true,
-                    allow_different_key = false,
-                    resetting_keys = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "c", "d" },
-                    restricted_keys = { "h", "j", "k", "l", "-", "+", "<UP>", "<DOWN>", "<LEFT>", "<RIGHT>" },
-                    hint_keys = { "k", "j", "^", "$", "a", "x", "i", "d", "y", "c", "l" },
-                    disabled_keys = { "<UP>", "<DOWN>", "<LEFT>", "<RIGHT>" },
-                    disabled_filetypes = { "qf", "netrw", "NvimTree", "lazy", "mason" }
-                })
-            end
-        }
     end,
     config = {
         luarocks = {
