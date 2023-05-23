@@ -71,6 +71,19 @@ return require('packer').startup({
                 require('vgit').setup()
             end,
         }
+        use {
+            "epwalsh/obsidian.nvim",
+            requires = {
+                -- Required.
+                "nvim-lua/plenary.nvim",
+
+                -- Optional, for completion.
+                "hrsh7th/nvim-cmp",
+
+                "nvim-telescope/telescope.nvim",
+            }
+        }
+        use "lukas-reineke/indent-blankline.nvim"
         use 'm4xshen/autoclose.nvim'
         use 'nvim-tree/nvim-web-devicons'
         use 'Exafunction/codeium.vim'
