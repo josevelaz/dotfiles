@@ -9,6 +9,10 @@ end, { desc = "Grep" })
 
 command_center.add({
     {
+        desc = "Resart LSP Server",
+        cmd = "<CMD>LspRestart<CR>",
+    },
+    {
         desc = "Run the nearest test",
         cmd = "<CMD>lua require('neotest').run.run({ jestCommand = 'jest --watch --runInBand'})<CR>",
     },

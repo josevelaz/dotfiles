@@ -10,6 +10,14 @@ return require('packer').startup({
 
         use 'davidmh/cspell.nvim'
 
+        use {
+            'windwp/nvim-ts-autotag',
+            config = function()
+                require('nvim-ts-autotag').setup()
+            end
+
+        }
+
         use 'christoomey/vim-tmux-navigator'
 
         use {
