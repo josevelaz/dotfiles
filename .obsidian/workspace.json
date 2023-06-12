@@ -1,0 +1,174 @@
+{
+  "main": {
+    "id": "7cdf70369523fa93",
+    "type": "split",
+    "children": [
+      {
+        "id": "5778a53136dce745",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "6834cea7f8b40030",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "f5aa5080d05de25c",
+    "type": "split",
+    "children": [
+      {
+        "id": "277af5fae9f42776",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "63cd6c074b848cee",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "93170100dfdff414",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "\"\t- READ\"",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "c9177efbfb49cfa2",
+            "type": "leaf",
+            "state": {
+              "type": "starred",
+              "state": {}
+            }
+          },
+          {
+            "id": "0ebe0bf931f97762",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "right": {
+    "id": "0f1eb808ab7ce07a",
+    "type": "split",
+    "children": [
+      {
+        "id": "9f1a846361d419d0",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "93ac85d3a39d9a09",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "4d94dbfbf7dd012f",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "e0e0ebcf56cf0df1",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "330be030329be5fe",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "6834cea7f8b40030",
+  "lastOpenFiles": [
+    "Day Planners/2023-06-13.md",
+    "2023-06-12.md",
+    "Day Planners/Day Planner-20230612.md",
+    "Day Planners",
+    "Personal/S8/RLS.md",
+    "Work/Todo.md",
+    "Personal/S8/Todo Participants.md",
+    "Work/Open PRs.md",
+    "Untitled.md",
+    "Personal/Home Stuff/Morning Checklist.md",
+    "Personal/Projects/Dotfiles computer synchronization.md",
+    "Personal/Projects",
+    "Personal/Home Stuff/Groceries.md",
+    "Personal/Home Stuff",
+    "Personal/Home Stuff/Todo.md",
+    "Personal/Personal",
+    "().md",
+    "Personal/Untitled.md",
+    "Personal/Morning Checklist.md",
+    "Personal/S8"
+  ]
+}
