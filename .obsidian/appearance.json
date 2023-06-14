@@ -3,5 +3,6 @@
   "interfaceFontFamily": "",
   "textFontFamily": "FiraCode Nerd Font",
   "cssTheme": "Tokyo Night",
-  "theme": "obsidian"
+  "theme": "obsidian",
+  "nativeMenus": true
 }
