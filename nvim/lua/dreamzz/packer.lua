@@ -116,6 +116,8 @@ return require('packer').startup({
         use({ 'glepnir/nerdicons.nvim', cmd = 'NerdIcons', config = function() require('nerdicons').setup({}) end })
         use('theprimeagen/harpoon')
         use('mbbill/undotree')
+
+        use('jose-elias-alvarez/typescript.nvim')
         use {
             'VonHeikemen/lsp-zero.nvim',
             branch = 'v2.x',
