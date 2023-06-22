@@ -117,6 +117,8 @@ return require('packer').startup({
         use('theprimeagen/harpoon')
         use('mbbill/undotree')
 
+        use 'jose-elias-alvarez/typescript.nvim'
+
         use {
             'VonHeikemen/lsp-zero.nvim',
             branch = 'v2.x',

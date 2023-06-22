@@ -16,7 +16,7 @@ lsp.ensure_installed({
     'svelte',
     'lua_ls',
     'tailwindcss',
-    'yamlls',lsp
+    'yamlls',
     'sqlls',
     'jsonls',
     'html',
@@ -121,13 +121,7 @@ lsp.on_attach(function(client, bufnr)
         { buffer = bufnr, remap = false, desc = "Signature Help" })
 end)
 
-require("typescript").setup({
-    disable_commands = false, -- prevent the plugin from creating Vim commands
-    debug = false, -- enable debug logging for commands
-    go_to_source_definition = {
-        fallback = true, -- fall back to standard LSP definition on failure
-    },
-    server = { -- pass options to lspconfig's setup method
-        on_attach = ...,
-    },
+local ts = require('typescript')
+
+ts.setup({
 })
