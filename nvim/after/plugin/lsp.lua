@@ -16,7 +16,7 @@ lsp.ensure_installed({
     'svelte',
     'lua_ls',
     'tailwindcss',
-    'yamlls',
+    'yamlls',lsp
     'sqlls',
     'jsonls',
     'html',
@@ -120,3 +120,14 @@ lsp.on_attach(function(client, bufnr)
     vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end,
         { buffer = bufnr, remap = false, desc = "Signature Help" })
 end)
+
+require("typescript").setup({
+    disable_commands = false, -- prevent the plugin from creating Vim commands
+    debug = false, -- enable debug logging for commands
+    go_to_source_definition = {
+        fallback = true, -- fall back to standard LSP definition on failure
+    },
+    server = { -- pass options to lspconfig's setup method
+        on_attach = ...,
+    },
+})
