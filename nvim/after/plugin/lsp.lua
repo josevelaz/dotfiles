@@ -7,7 +7,7 @@ end)
 -- (Optional) Configure lua language server for neovim
 require('lspconfig').lua_ls.setup(lsp.nvim_lua_ls())
 
-require'lspconfig'.phpactor.setup{}
+require 'lspconfig'.phpactor.setup {}
 
 lsp.ensure_installed({
     'tsserver',
@@ -124,4 +124,35 @@ end)
 local ts = require('typescript')
 
 ts.setup({
+    disable_commands = false, -- prevent the plugin from creating Vim commands
+    debug = false,            -- enable debug logging for commands
+    go_to_source_definition = {
+        fallback = true,      -- fall back to standard LSP definition on failure
+    },
+    server = {
+        settings = {
+            javascript = {
+                inlayHints = {
+                    includeInlayEnumMemberValueHints = false,
+                    includeInlayFunctionLikeReturnTypeHints = true,
+                    includeInlayFunctionParameterTypeHints = true,
+                    includeInlayParameterNameHints = "all", -- 'none' | 'literals' | 'all';
+                    includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+                    includeInlayPropertyDeclarationTypeHints = false,
+                    includeInlayVariableTypeHints = false,
+                },
+            },
+            typescript = {
+                inlayHints = {
+                    includeInlayEnumMemberValueHints = false,
+                    includeInlayFunctionLikeReturnTypeHints = true,
+                    includeInlayFunctionParameterTypeHints = true,
+                    includeInlayParameterNameHints = "all", -- 'none' | 'literals' | 'all';
+                    includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+                    includeInlayPropertyDeclarationTypeHints = false,
+                    includeInlayVariableTypeHints = false,
+                },
+            },
+        }
+    }
 })
