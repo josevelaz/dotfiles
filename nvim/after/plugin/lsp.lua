@@ -104,6 +104,7 @@ cmp.setup.cmdline('/', {
 lsp.on_attach(function(client, bufnr)
     local opts = { buffer = bufnr, remap = false }
 
+    vim.lsp.buf.inlay_hint(bufnr, true)
     vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end,
         { buffer = bufnr, remap = false, desc = "Go To Definition" })
     vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, { buffer = bufnr, remap = false, desc = "Hover" })
