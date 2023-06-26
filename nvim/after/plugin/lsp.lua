@@ -30,7 +30,7 @@ lsp.set_sign_icons({
     info = '»'
 })
 
-lsp.skip_server_setup({'tsserver'})
+lsp.skip_server_setup({ 'tsserver' })
 
 lsp.setup()
 -- Make sure you setup `cmp` after lsp-zero
@@ -106,7 +106,6 @@ cmp.setup.cmdline('/', {
 lsp.on_attach(function(client, bufnr)
     local opts = { buffer = bufnr, remap = false }
 
-    -- vim.keymap.set("n", "K", vim.lsp.buf.inlay_hint(bufnr, true), opts)
     vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end,
         { buffer = bufnr, remap = false, desc = "Go To Definition" })
     vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, { buffer = bufnr, remap = false, desc = "Hover" })
@@ -132,6 +131,9 @@ require("typescript").setup({
         fallback = true,      -- fall back to standard LSP definition on failure
     },
     server = {
+        on_attach = function(client, bufnr)
+            vim.lsp.buf.inlay_hint(bufnr, true)
+        end,
         settings = {
             javascript = {
                 inlayHints = {
