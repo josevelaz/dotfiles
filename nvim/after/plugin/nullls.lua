@@ -7,6 +7,9 @@ null_ls.setup({
     sources = {
         require("typescript.extensions.null-ls.code-actions"), -- Diagnostics
         cspell.diagnostics.with({
+            diagnostic_config = {
+                virtual_text = false,
+            },
             diagnostics_postprocess = function(diagnostic)
                 diagnostic.severity = vim.diagnostic.severity.HINT
             end,

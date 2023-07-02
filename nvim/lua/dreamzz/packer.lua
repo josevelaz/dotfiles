@@ -118,6 +118,7 @@ return require('packer').startup({
         use('mbbill/undotree')
 
         use 'jose-elias-alvarez/typescript.nvim'
+        use 'ray-x/go.nvim'
 
         use {
             'VonHeikemen/lsp-zero.nvim',
@@ -146,12 +147,8 @@ return require('packer').startup({
             "FeiyouG/command_center.nvim",
             requires = { "nvim-telescope/telescope.nvim" }
         }
-        use {
-            "https://git.sr.ht/~nedia/auto-save.nvim",
-            config = function()
-                require("auto-save").setup()
-            end
-        }
+        use "Pocco81/auto-save.nvim"
+
         use 'mfussenegger/nvim-dap'
     end,
     config = {

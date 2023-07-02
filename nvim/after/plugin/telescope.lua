@@ -13,6 +13,10 @@ command_center.add({
         cmd = "<CMD>LspRestart<CR>",
     },
     {
+        desc = "Toggle Auto Save",
+        cmd = "<CMD>ASToggle<CR>",
+    },
+    {
         desc = "Run the nearest test",
         cmd = "<CMD>lua require('neotest').run.run({ jestCommand = 'jest --watch --runInBand'})<CR>",
     },
