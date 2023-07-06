@@ -194,10 +194,7 @@ require("typescript").setup({
     },
     server = {
         on_attach = function(client, bufnr)
-            local client = vim.lsp.get_client_by_id(client)
-            if client.server_capabilities.hoverProvider then
-              vim.lsp.buf.inlay_hint(bufnr, true)
-            end
+            vim.lsp.buf.inlay_hint(bufnr, true)
         end,
         settings = {
             javascript = {
