@@ -194,14 +194,10 @@ require("typescript").setup({
     },
     server = {
         on_attach = function(client, bufnr)
-            vim.lsp.buf_request(bufnr, 'version', {}, function(err, _, result)
-                if err then
-                    echo 'Error getting version: ' .. err.message
-                else
-                    print('Server version: ' .. result)
-                end
-            end)
-            vim.lsp.buf.inlay_hint(bufnr, true)
+            local client = vim.lsp.get_client_by_id(client)
+            if client.server_capabilities.hoverProvider then
+              vim.lsp.buf.inlay_hint(bufnr, true)
+            end
         end,
         settings = {
             javascript = {
