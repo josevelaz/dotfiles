@@ -128,6 +128,7 @@ local cmp_select = { behavior = cmp.SelectBehavior.Select }
 
 vim.api.nvim_set_hl(0, 'CmpItemAbbrMatch', { fg = '#FFE6B3' })
 vim.api.nvim_set_hl(0, 'CmpItemAbbrMatchFuzzy', { fg = '#F02E6E' })
+vim.cmd.highlight('DiagnosticUnderlineError guisp=#ff0000 gui=undercurl')
 
 cmp.setup({
     formatting = {

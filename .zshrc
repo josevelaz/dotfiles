@@ -13,6 +13,8 @@ export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
 export PATH="/usr/local/opt/mysql@5.7/bin:$PATH"
 export ANTIGEN="$HOME/.antigen"
+export TERM="xterm-256color"
+[[ -n $TMUX ]] && export TERM="screen-256color"
 
 source $HOME/antigen.zsh
 
