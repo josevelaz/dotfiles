@@ -1,9 +1,9 @@
-local null_ls = require("null-ls")
+local nls = require("null-ls")
 local cspell = require("cspell")
 
-local formatting = null_ls.builtins.formatting
-local code_actions = null_ls.builtins.code_actions
-null_ls.setup({
+local formatting = nls.builtins.formatting
+local code_actions = nls.builtins.code_actions
+nls.setup({
     sources = {
         require("typescript.extensions.null-ls.code-actions"), -- Diagnostics
         cspell.diagnostics.with({
@@ -25,6 +25,7 @@ null_ls.setup({
             prefer_local = "node_modules/.bin",
         }),
         formatting.sqlfmt,
+        formatting.goimports,
         formatting.gofmt,
         -- code_actions
         code_actions.eslint_d,
