@@ -75,7 +75,7 @@ return {
 
         }
     },
-    'kosayoda/nvim-lightbulb',
+    { 'kosayoda/nvim-lightbulb', opts = {autocmd = { enabled = true }  } },
     "m4xshen/autoclose.nvim",
     "nvim-tree/nvim-web-devicons",
     "Exafunction/codeium.vim",
