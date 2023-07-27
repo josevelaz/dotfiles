@@ -1,4 +1,7 @@
-local plugins = {
+require("plugins.remap")
+require("plugins.set")
+
+return {
     {
         "windwp/nvim-ts-autotag",
         lazy = true,
@@ -30,14 +33,7 @@ local plugins = {
     },
     -- Lua
     "folke/neodev.nvim",
-    {
-        "folke/which-key.nvim",
-        event = "VeryLazy",
-        init = function()
-            vim.o.timeout = true
-            vim.o.timeoutlen = 300
-        end,
-    },
+    "folke/which-key.nvim",
     {
         "nvim-neotest/neotest",
         dependencies = {
@@ -77,7 +73,15 @@ local plugins = {
         "tpope/vim-fugitive",
         lazy = true,
     },
-    "folke/tokyonight.nvim",
+    {
+        "folke/tokyonight.nvim",
+        lazy = false,    -- make sure we load this during startup if it is your main colorscheme
+        priority = 1000, -- make sure to load this before all the other start plugins
+        config = function()
+            -- load the colorscheme here
+            vim.cmd([[colorscheme tokyonight]])
+        end,
+    },
     {
         "nvim-lualine/lualine.nvim",
         dependencies = { "nvim-tree/nvim-web-devicons", opt = true },
@@ -94,7 +98,7 @@ local plugins = {
 
     "jose-elias-alvarez/typescript.nvim",
     "ray-x/go.nvim",
-
+    "nvim-treesitter/nvim-treesitter-context",
     {
         "VonHeikemen/lsp-zero.nvim",
         branch = "v2.x",
@@ -130,5 +134,3 @@ local plugins = {
         lazy = true,
     },
 }
-
-require("lazy").setup(plugins)
