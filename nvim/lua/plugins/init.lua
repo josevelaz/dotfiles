@@ -1,6 +1,3 @@
-require("plugins.remap")
-require("plugins.set")
-
 return {
     {
         "windwp/nvim-ts-autotag",
@@ -33,7 +30,19 @@ return {
     },
     -- Lua
     "folke/neodev.nvim",
-    "folke/which-key.nvim",
+    {
+        "folke/which-key.nvim",
+        event = "VeryLazy",
+        init = function()
+            vim.o.timeout = true
+            vim.o.timeoutlen = 300
+        end,
+        opts = {
+            -- your configuration comes here
+            -- or leave it empty to use the default settings
+            -- refer to the configuration section below
+        }
+    },
     {
         "nvim-neotest/neotest",
         dependencies = {
@@ -57,7 +66,16 @@ return {
             "nvim-telescope/telescope.nvim",
         },
     },
-    "lukas-reineke/indent-blankline.nvim",
+    {
+        "lukas-reineke/indent-blankline.nvim",
+        opts = {
+            space_char_blankline = " ",
+            show_current_context = true,
+            show_current_context_start = true,
+
+        }
+    },
+    'kosayoda/nvim-lightbulb',
     "m4xshen/autoclose.nvim",
     "nvim-tree/nvim-web-devicons",
     "Exafunction/codeium.vim",
@@ -69,10 +87,7 @@ return {
         dependencies = { { "nvim-lua/plenary.nvim" } },
     },
 
-    {
-        "tpope/vim-fugitive",
-        lazy = true,
-    },
+    "tpope/vim-fugitive",
     {
         "folke/tokyonight.nvim",
         lazy = false,    -- make sure we load this during startup if it is your main colorscheme
@@ -84,6 +99,9 @@ return {
     },
     {
         "nvim-lualine/lualine.nvim",
+        opts = {
+            theme = "tokyonight",
+        },
         dependencies = { "nvim-tree/nvim-web-devicons", opt = true },
     },
     {
