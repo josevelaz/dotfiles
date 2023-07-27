@@ -32,6 +32,7 @@ local plugins = {
     "folke/neodev.nvim",
     {
         "folke/which-key.nvim",
+        event = "VeryLazy",
         init = function()
             vim.o.timeout = true
             vim.o.timeoutlen = 300
@@ -64,12 +65,7 @@ local plugins = {
     "m4xshen/autoclose.nvim",
     "nvim-tree/nvim-web-devicons",
     "Exafunction/codeium.vim",
-    {
-        "aznhe21/actions-preview.nvim",
-        init = function()
-            vim.keymap.set({ "n", "<leader>oca", desc = "Code Actions" }, require("actions-preview").code_actions)
-        end
-    },
+    'weilbith/nvim-code-action-menu',
     {
         "nvim-telescope/telescope.nvim",
         tag = "0.1.1",
@@ -81,8 +77,6 @@ local plugins = {
         "tpope/vim-fugitive",
         lazy = true,
     },
-    "nvim-treesitter/nvim-treesitter",
-    "nvim-treesitter/nvim-treesitter-context",
     "folke/tokyonight.nvim",
     {
         "nvim-lualine/lualine.nvim",
