@@ -13,9 +13,6 @@ local plugins = {
                 "javascriptreact",
             },
         },
-        config = function()
-            require("nvim-ts-autotag").setup()
-        end,
     },
 
     "christoomey/vim-tmux-navigator",
@@ -30,22 +27,14 @@ local plugins = {
         dependencies = "nvim-lua/plenary.nvim",
         -- Optional: needed for PHP when using the cobertura parser
         rocks = { "lua-xmlreader" },
-        config = function()
-            require("coverage").setup()
-        end,
     },
     -- Lua
     "folke/neodev.nvim",
     {
         "folke/which-key.nvim",
-        config = function()
+        init = function()
             vim.o.timeout = true
             vim.o.timeoutlen = 300
-            require("which-key").setup({
-                -- your configuration comes here
-                -- or leave it empty to the default settings
-                -- refer to the configuration section below
-            })
         end,
     },
     {
@@ -57,18 +46,6 @@ local plugins = {
             "haydenmeade/neotest-jest",
         },
         lazy = true,
-        config = function()
-            require("neotest").setup({
-                adapters = {
-                    require("neotest-jest")({
-                        jestCommand = "jest --watch",
-                        env = {
-                            test = true,
-                        },
-                    }),
-                },
-            })
-        end,
     },
     {
         "epwalsh/obsidian.nvim",
@@ -88,8 +65,10 @@ local plugins = {
     "nvim-tree/nvim-web-devicons",
     "Exafunction/codeium.vim",
     {
-        "weilbith/nvim-code-action-menu",
-        cmd = "CodeActionMenu",
+        "aznhe21/actions-preview.nvim",
+        init = function()
+            vim.keymap.set({ "n", "<leader>oca", desc = "Code Actions" }, require("actions-preview").code_actions)
+        end
     },
     {
         "nvim-telescope/telescope.nvim",
@@ -112,9 +91,6 @@ local plugins = {
     {
         "glepnir/nerdicons.nvim",
         cmd = "NerdIcons",
-        config = function()
-            require("nerdicons").setup({})
-        end,
     },
     "theprimeagen/harpoon",
     {
@@ -141,9 +117,9 @@ local plugins = {
             { "williamboman/mason-lspconfig.nvim" }, -- Optional
 
             -- Autocompletion
-            { "hrsh7th/nvim-cmp" }, -- Required
+            { "hrsh7th/nvim-cmp" },     -- Required
             { "hrsh7th/cmp-nvim-lsp" }, -- Required
-            { "L3MON4D3/LuaSnip" }, -- Required
+            { "L3MON4D3/LuaSnip" },     -- Required
         },
     },
     "jose-elias-alvarez/null-ls.nvim",
