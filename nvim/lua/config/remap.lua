@@ -39,6 +39,8 @@ vim.keymap.set("n", "<C-j>", "<cmd>cprev<CR>zz")
 vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
 vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
 
+vim.keymap.set("n", "<leader>ds", "<cmd>!cp '%:p' '%:p:h/%:t:r-copy.%:e'", { desc = "duplicate current file" })
+
 -- search all and replace
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "search and replace" })
 -- make bash executable
