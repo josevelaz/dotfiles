@@ -9,6 +9,14 @@ end, { desc = "Grep" })
 
 command_center.add({
     {
+        desc = "Obsidian Quick Switch",
+        cmd = "<CMD>ObsidianQuickSwitch<CR>",
+    },
+    {
+        desc = "Obsidian New Note",
+        cmd = "<CMD>ObsidianNew<CR>",
+    },
+    {
         desc = "Resart LSP Server",
         cmd = "<CMD>LspRestart<CR>",
     },

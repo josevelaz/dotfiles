@@ -17,6 +17,7 @@ return {
 
     "christoomey/vim-tmux-navigator",
 
+    "cohama/lexima.vim",
     {
         "folke/trouble.nvim",
         dependencies = "nvim-tree/nvim-web-devicons",
@@ -52,19 +53,6 @@ return {
             "haydenmeade/neotest-jest",
         },
         lazy = true,
-    },
-    {
-        "epwalsh/obsidian.nvim",
-        lazy = true,
-        dependencies = {
-            -- Required.
-            "nvim-lua/plenary.nvim",
-
-            -- Optional, for completion.
-            "hrsh7th/nvim-cmp",
-
-            "nvim-telescope/telescope.nvim",
-        },
     },
     {
         "lukas-reineke/indent-blankline.nvim",

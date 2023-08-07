@@ -48,6 +48,8 @@ vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
 
 vim.keymap.set("n", "<leader>vpp", "<cmd>e ~/.dotfiles/nvim/.config/nvim/lua/dreamzz/packer.lua<CR>", { desc = "packer" });
 
+vim.keymap.set("v", "c", [["_di]])
+
 vim.keymap.set("n", "<leader><leader>", function()
     vim.cmd("so")
 end, { desc = "reload file" })

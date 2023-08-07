@@ -42,7 +42,9 @@ lsp.setup()
 lsp.on_attach(function(client, bufnr)
     local opts = { buffer = bufnr, remap = false }
 
-    vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end,
+    vim.keymap.set("n", "gd", function() 
+        vim.lsp.buf.definition()
+    end,
         { buffer = bufnr, remap = false, desc = "Go To Definition" })
     vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, { buffer = bufnr, remap = false, desc = "Hover" })
     vim.keymap.set("n", "<leader>vws", function() vim.lsp.buf.workspace_symbol() end,
