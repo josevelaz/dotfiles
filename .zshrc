@@ -11,6 +11,7 @@ alias godotfiles="cd ~/dotfiles"
 export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
 export PATH="/usr/local/opt/mysql@5.7/bin:$PATH"
+export PATH="$PATH:/usr/local/bin/.local"
 export ANTIGEN="$HOME/.antigen"
 
 source $HOME/antigen.zsh
