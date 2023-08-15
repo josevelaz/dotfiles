@@ -1,5 +1,12 @@
 return {
 	{
+		"braxtons12/blame_line.nvim",
+		opts = {
+			prefix = "\t ",
+			delay = 2100,
+		},
+	},
+	{
 		"windwp/nvim-ts-autotag",
 		lazy = true,
 		opts = {

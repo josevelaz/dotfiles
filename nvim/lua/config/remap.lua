@@ -14,16 +14,16 @@ vim.keymap.set("n", "n", "nzzzv")
 vim.keymap.set("n", "N", "Nzzzv")
 
 -- greatest remap ever
--- delete selection into void and paste buffer 
+-- delete selection into void and paste buffer
 vim.keymap.set("x", "<leader>p", [["_dP]], { desc = "delete selection into void and paste" })
 
 -- next greatest remap ever : asbjornHaland
 -- copy into clipboard
-vim.keymap.set({"n", "v"}, "<leader>y", [["+y]], { desc = "copy into clipboard" })
+vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]], { desc = "copy into clipboard" })
 vim.keymap.set("n", "<leader>Y", [["+Y]])
 
 -- delete into void
-vim.keymap.set({"n", "v"}, "<leader>d", [["_d]], { desc = "delete into void" })
+vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "delete into void" })
 
 -- This is going to get me cancelled
 vim.keymap.set("i", "<C-c>", "<Esc>")
@@ -42,36 +42,58 @@ vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
 vim.keymap.set("n", "<leader>ds", "<cmd>!cp '%:p' '%:p:h/%:t:r-copy.%:e'", { desc = "duplicate current file" })
 
 -- search all and replace
-vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "search and replace" })
+vim.keymap.set(
+	{ "n", "v" },
+	"<leader>s",
+	[[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
+	{ desc = "search and replace" }
+)
 -- make bash executable
 vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
 
-vim.keymap.set("n", "<leader>vpp", "<cmd>e ~/.dotfiles/nvim/.config/nvim/lua/dreamzz/packer.lua<CR>", { desc = "packer" });
+vim.keymap.set(
+	"n",
+	"<leader>vpp",
+	"<cmd>e ~/.dotfiles/nvim/.config/nvim/lua/dreamzz/packer.lua<CR>",
+	{ desc = "packer" }
+)
 
 vim.keymap.set("v", "c", [["_di]])
 
 vim.keymap.set("n", "<leader><leader>", function()
-    vim.cmd("so")
+	vim.cmd("so")
 end, { desc = "reload file" })
 
 vim.keymap.set("n", "<leader>fc", "<CMD>Telescope command_center<CR>", { desc = "command center" })
 
-vim.keymap.set("n", "<leader>xx", "<cmd>TroubleToggle<cr>",
-  {silent = true, noremap = true, desc = "Toggle Trouble"}
+vim.keymap.set("n", "<leader>xx", "<cmd>TroubleToggle<cr>", { silent = true, noremap = true, desc = "Toggle Trouble" })
+vim.keymap.set(
+	"n",
+	"<leader>xw",
+	"<cmd>TroubleToggle workspace_diagnostics<cr>",
+	{ silent = true, noremap = true, desc = "Toggle Trouble Workspace Diagnostics" }
 )
-vim.keymap.set("n", "<leader>xw", "<cmd>TroubleToggle workspace_diagnostics<cr>",
-  {silent = true, noremap = true, desc = "Toggle Trouble Workspace Diagnostics"}
+vim.keymap.set(
+	"n",
+	"<leader>xd",
+	"<cmd>TroubleToggle document_diagnostics<cr>",
+	{ silent = true, noremap = true, desc = "Toggle Trouble Document Diagnostics" }
 )
-vim.keymap.set("n", "<leader>xd", "<cmd>TroubleToggle document_diagnostics<cr>",
-  {silent = true, noremap = true , desc = "Toggle Trouble Document Diagnostics"}
+vim.keymap.set(
+	"n",
+	"<leader>xl",
+	"<cmd>TroubleToggle loclist<cr>",
+	{ silent = true, noremap = true, desc = "Toggle Trouble Location List" }
 )
-vim.keymap.set("n", "<leader>xl", "<cmd>TroubleToggle loclist<cr>",
-  {silent = true, noremap = true, desc = "Toggle Trouble Location List"}
+vim.keymap.set(
+	"n",
+	"<leader>xq",
+	"<cmd>TroubleToggle quickfix<cr>",
+	{ silent = true, noremap = true, desc = "Toggle Trouble Quickfix" }
 )
-vim.keymap.set("n", "<leader>xq", "<cmd>TroubleToggle quickfix<cr>",
-  {silent = true, noremap = true, desc = "Toggle Trouble Quickfix"}
+vim.keymap.set(
+	"n",
+	"gR",
+	"<cmd>TroubleToggle lsp_references<cr>",
+	{ silent = true, noremap = true, desc = "Toggle Trouble References" }
 )
-vim.keymap.set("n", "gR", "<cmd>TroubleToggle lsp_references<cr>",
-  {silent = true, noremap = true, desc = "Toggle Trouble References"}
-)
-

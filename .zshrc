@@ -34,4 +34,7 @@ antigen theme robbyrussell
 
 antigen apply
 
+bindkey '\t'   complete-word       # tab          | complete
+bindkey '\t\t' autosuggest-accept  # shift + tab  | autosuggest
+
 # alias ohmyzsh=“mate ~/.oh-my-zsh”

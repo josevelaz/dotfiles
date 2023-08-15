@@ -12,10 +12,6 @@ return {
 				lualine_b = { { "branch", icon = "" }, "diff", "diagnostics" },
 				lualine_c = {
 					{
-						"filename",
-						path = 1,
-					},
-					{
 						"filetype",
 						icon_only = true,
 					},
@@ -56,8 +52,18 @@ return {
 				lualine_b = {},
 				lualine_c = {
 					{
+						"filename",
+						path = 1,
+						fmt = function(str)
+							return str:gsub("/", " 󰅂 ")
+						end,
+					},
+					{
 						"navic",
-						draw_empty = true,
+						separator = { left = "󰅂" },
+						navic_opts = {
+							seperator = " 󰅂 ",
+						},
 					},
 				},
 				lualine_x = {},
