@@ -18,8 +18,6 @@ local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 
 nls.setup({
 	sources = {
-		-- Diagnostics
-		diagnostics.eslint_d,
 		-- formatting
 		formatting.stylua,
 		formatting.prettierd.with({

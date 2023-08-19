@@ -10,12 +10,7 @@ return {
 			sections = {
 				lualine_a = { "mode" },
 				lualine_b = { { "branch", icon = "" }, "diff", "diagnostics" },
-				lualine_c = {
-					{
-						"filetype",
-						icon_only = true,
-					},
-				},
+				lualine_c = {},
 				lualine_x = {
 					{
 						function()
@@ -57,6 +52,10 @@ return {
 						fmt = function(str)
 							return str:gsub("/", " 󰅂 ")
 						end,
+					},
+					{
+						"filetype",
+						icon_only = true,
 					},
 					{
 						"navic",

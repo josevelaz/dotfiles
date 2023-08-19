@@ -69,7 +69,6 @@ return {
 			show_current_context_start = true,
 		},
 	},
-	{ "kosayoda/nvim-lightbulb", opts = { autocmd = { enabled = true } } },
 	"m4xshen/autoclose.nvim",
 	"nvim-tree/nvim-web-devicons",
 	"Exafunction/codeium.vim",
@@ -88,7 +87,7 @@ return {
 		priority = 1000, -- make sure to load this before all the other start plugins
 		config = function()
 			-- load the colorscheme here
-			vim.cmd([[colorscheme tokyonight]])
+			vim.cmd([[colorscheme tokyonight-night]])
 		end,
 	},
 	{
@@ -135,10 +134,7 @@ return {
 		lazy = true,
 		dependencies = { "nvim-telescope/telescope.nvim" },
 	},
-	"Pocco81/auto-save.nvim",
+	{ "Pocco81/auto-save.nvim", opts = { trigger_events = { "InsertLeave", "BufLeave" } } },
 
-	{
-		"mfussenegger/nvim-dap",
-		lazy = true,
-	},
+	{ "mfussenegger/nvim-dap", lazy = true },
 }
