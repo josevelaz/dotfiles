@@ -3,22 +3,7 @@ return {
 		"braxtons12/blame_line.nvim",
 		opts = {
 			prefix = "\t ",
-			delay = 2100,
-		},
-	},
-	{
-		"windwp/nvim-ts-autotag",
-		lazy = true,
-		opts = {
-			filetypes = {
-				"html",
-				"tsx",
-				"jsx",
-				"vue",
-				"svelte",
-				"typescriptreact",
-				"javascriptreact",
-			},
+			delay = 200,
 		},
 	},
 	"christoomey/vim-tmux-navigator",
@@ -105,7 +90,6 @@ return {
 
 	"jose-elias-alvarez/typescript.nvim",
 	"ray-x/go.nvim",
-	"nvim-treesitter/nvim-treesitter-context",
 	{
 		"VonHeikemen/lsp-zero.nvim",
 		branch = "v2.x",
@@ -134,7 +118,5 @@ return {
 		lazy = true,
 		dependencies = { "nvim-telescope/telescope.nvim" },
 	},
-	{ "Pocco81/auto-save.nvim", opts = { trigger_events = { "InsertLeave", "BufLeave" } } },
-
-	{ "mfussenegger/nvim-dap", lazy = true },
+	{ "Pocco81/auto-save.nvim", opts = { trigger_events = { "BufLeave", "VimLeavePre" } } },
 }

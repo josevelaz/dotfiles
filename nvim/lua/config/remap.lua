@@ -1,4 +1,4 @@
-vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
+vim.keymap.set("n", "<leader>pv", "<cmd>Oil --float<cr>")
 
 -- Move selection up and down
 -- Like alt + ^/˅
