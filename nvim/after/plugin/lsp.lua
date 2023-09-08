@@ -197,44 +197,6 @@ require("go").setup({
 	iferr_vertical_shift = 4, -- defines where the cursor will end up vertically from the begining of if err statement
 })
 
-require("typescript").setup({
-	disable_commands = false, -- prevent the plugin from creating Vim commands
-	debug = false, -- enable debug logging for commands
-	go_to_source_definition = {
-		fallback = true, -- fall back to standard LSP definition on failure
-	},
-	server = {
-		on_attach = function(client, bufnr)
-			print(client)
-			vim.lsp.buf.inlay_hint(bufnr, true)
-		end,
-		settings = {
-			javascript = {
-				inlayHints = {
-					includeInlayEnumMemberValueHints = false,
-					includeInlayFunctionLikeReturnTypeHints = true,
-					includeInlayFunctionParameterTypeHints = true,
-					includeInlayParameterNameHints = "all", -- 'none' | 'literals' | 'all';
-					includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-					includeInlayPropertyDeclarationTypeHints = false,
-					includeInlayVariableTypeHints = false,
-				},
-			},
-			typescript = {
-				inlayHints = {
-					includeInlayEnumMemberValueHints = false,
-					includeInlayFunctionLikeReturnTypeHints = true,
-					includeInlayFunctionParameterTypeHints = true,
-					includeInlayParameterNameHints = "all", -- 'none' | 'literals' | 'all';
-					includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-					includeInlayPropertyDeclarationTypeHints = false,
-					includeInlayVariableTypeHints = false,
-				},
-			},
-		},
-	},
-})
-
 -- Make sure you setup `cmp` after lsp-zero
 local cmp = require("cmp")
 local cmp_select = { behavior = cmp.SelectBehavior.Select }

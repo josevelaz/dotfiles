@@ -37,21 +37,9 @@ return {
 		},
 	},
 	{
-		"nvim-neotest/neotest",
-		dependencies = {
-			"nvim-lua/plenary.nvim",
-			"nvim-treesitter/nvim-treesitter",
-			"antoinemadec/FixCursorHold.nvim",
-			"haydenmeade/neotest-jest",
-		},
-		lazy = true,
-	},
-	{
 		"lukas-reineke/indent-blankline.nvim",
 		opts = {
 			space_char_blankline = " ",
-			show_current_context = true,
-			show_current_context_start = true,
 		},
 	},
 	"m4xshen/autoclose.nvim",
@@ -75,16 +63,6 @@ return {
 			vim.cmd.colorscheme("night-owl")
 		end,
 	},
-	--	{
-	--		"glyh/oxocarbon.nvim",
-	--		branch = "lualine-support",
-	--		lazy = false, -- make sure we load this during startup if it is your main colorscheme
-	--		priority = 1000, -- make sure to load this before all the other start plugins
-	--		config = function()
-	--			-- load the colorscheme here
-	--			vim.cmd.colorscheme("oxocarbon")
-	--		end,
-	--	},
 	{
 		"glepnir/nerdicons.nvim",
 		cmd = "NerdIcons",
@@ -97,8 +75,6 @@ return {
 		"mbbill/undotree",
 		lazy = true,
 	},
-
-	"jose-elias-alvarez/typescript.nvim",
 	"ray-x/go.nvim",
 	{
 		"VonHeikemen/lsp-zero.nvim",
@@ -121,7 +97,6 @@ return {
 			{ "L3MON4D3/LuaSnip" }, -- Required
 		},
 	},
-	"jose-elias-alvarez/null-ls.nvim",
 	"RRethy/vim-illuminate",
 	{
 		"FeiyouG/command_center.nvim",
