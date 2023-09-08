@@ -24,6 +24,7 @@ nls.setup({
 			extra_filetypes = { "svelte" },
 			prefer_local = "node_modules/.bin",
 		}),
+		diagnostics.eslint_d,
 		formatting.sqlfmt,
 		formatting.goimports,
 		formatting.gofmt,
@@ -33,8 +34,7 @@ nls.setup({
 	},
 	on_attach = function(client, bufnr)
 		if client.supports_method("textDocument/formatting") then
-			vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
-			vim.api.nvim_create_autocmd("BufWritePre", {
+			local opts = {
 				group = augroup,
 				buffer = bufnr,
 				callback = function()
@@ -42,7 +42,10 @@ nls.setup({
 					-- on later neovim version, you should use vim.lsp.buf.format({ async = false }) instead
 					lsp_formatting(bufnr)
 				end,
-			})
+			}
+			vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+			vim.api.nvim_create_autocmd("BufLeave", opts)
+			--			vim.api.nvim_create_autocmd("InsertLeave", opts)
 		end
 	end,
 })
