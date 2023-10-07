@@ -33,7 +33,6 @@ antigen bundles <<EOBUNDLES
     zsh-users/zsh-completions
     egyptianbman/zsh-git-worktrees@main
     MichaelAquilina/zsh-auto-notify
-    zsh-users/zsh-apple-touchbar
 EOBUNDLES
 
 antigen theme robbyrussell

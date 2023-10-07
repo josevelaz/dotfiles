@@ -1,11 +1,11 @@
 return {
-	{
-		"braxtons12/blame_line.nvim",
-		opts = {
-			prefix = "\t ",
-			delay = 200,
-		},
-	},
+	--	{
+	--		"braxtons12/blame_line.nvim",
+	--		opts = {
+	--			prefix = "\t ",
+	--			delay = 200,
+	--		},
+	--	},
 	"christoomey/vim-tmux-navigator",
 
 	"cohama/lexima.vim",
