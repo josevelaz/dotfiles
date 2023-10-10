@@ -36,13 +36,7 @@ return {
 			-- refer to the configuration section below
 		},
 	},
-	{
-		"lukas-reineke/indent-blankline.nvim",
-		opts = {
-			space_char_blankline = " ",
-		},
-	},
-	"m4xshen/autoclose.nvim",
+    "m4xshen/autoclose.nvim",
 	"nvim-tree/nvim-web-devicons",
 	"Exafunction/codeium.vim",
 	"weilbith/nvim-code-action-menu",
