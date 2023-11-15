@@ -40,12 +40,6 @@ return {
 	"nvim-tree/nvim-web-devicons",
 	"Exafunction/codeium.vim",
 	"weilbith/nvim-code-action-menu",
-	{
-		"nvim-telescope/telescope.nvim",
-		tag = "0.1.4",
-		-- or                            , branch = "0.1.x",
-		dependencies = { { "nvim-lua/plenary.nvim" } },
-	},
 
 	"tpope/vim-fugitive",
 	{
@@ -64,33 +58,14 @@ return {
 			require("nerdicons").setup({})
 		end,
 	},
-	"theprimeagen/harpoon",
 	{
 		"mbbill/undotree",
 		lazy = true,
+        config = function()
+            vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
+        end
 	},
 	"ray-x/go.nvim",
-	{
-		"VonHeikemen/lsp-zero.nvim",
-		branch = "v2.x",
-		dependencies = {
-			-- LSP Support
-			{ "neovim/nvim-lspconfig" }, -- Required
-			{
-				-- Optional
-				"williamboman/mason.nvim",
-				run = function()
-					pcall(vim.cmd, "MasonUpdate")
-				end,
-			},
-			{ "williamboman/mason-lspconfig.nvim" }, -- Optional
-
-			-- Autocompletion
-			{ "hrsh7th/nvim-cmp" }, -- Required
-			{ "hrsh7th/cmp-nvim-lsp" }, -- Required
-			{ "L3MON4D3/LuaSnip" }, -- Required
-		},
-	},
 	"RRethy/vim-illuminate",
 	{
 		"FeiyouG/command_center.nvim",

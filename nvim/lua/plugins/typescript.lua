@@ -4,10 +4,11 @@ return {
 		dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
 		opts = {
 			on_attach = function(client, bufnr)
-				vim.lsp.inlay_hint.enable(bufnr, true)
+                if client.supports_method("textDocument/inlayHint") then
+                    vim.lsp.inlay_hint.enable(bufnr, true)
+                end
 			end,
 			expose_as_code_action = { "all" },
-			tsserver_format_options = {},
 			tsserver_file_preferences = {
 				includeInlayFunctionLikeReturnTypeHints = true,
 				includeInlayFunctionParameterTypeHints = true,
