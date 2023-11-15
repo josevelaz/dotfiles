@@ -25,14 +25,21 @@ return {
 					formatting.stylua,
 					formatting.prettierd.with({
 						extra_filetypes = { "svelte" },
-						prefer_local = "node_modules/.bin",
 					}),
-					diagnostics.eslint_d,
+					diagnostics.eslint_d.with({
+						condition = function(utils)
+							return utils.root_has_file({ ".eslintrc.js" })
+						end,
+					}),
 					formatting.sqlfmt,
 					formatting.goimports,
 					formatting.gofmt,
 					-- code_actions
-					code_actions.eslint_d,
+					code_actions.eslint_d.with({
+						condition = function(utils)
+							return utils.root_has_file({ ".eslintrc.js" })
+						end,
+					}),
 				},
 				on_attach = function(client, bufnr)
 					if client.supports_method("textDocument/formatting") then

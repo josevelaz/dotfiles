@@ -36,25 +36,25 @@ return {
 			-- refer to the configuration section below
 		},
 	},
-    "m4xshen/autoclose.nvim",
+	"m4xshen/autoclose.nvim",
 	"nvim-tree/nvim-web-devicons",
 	"Exafunction/codeium.vim",
 	"weilbith/nvim-code-action-menu",
 	{
 		"nvim-telescope/telescope.nvim",
-		tag = "0.1.1",
+		tag = "0.1.4",
 		-- or                            , branch = "0.1.x",
 		dependencies = { { "nvim-lua/plenary.nvim" } },
 	},
 
 	"tpope/vim-fugitive",
 	{
-		"oxfist/night-owl.nvim",
-		lazy = false, -- make sure we load this during startup if it is your main colorscheme
-		priority = 1000, -- make sure to load this before all the other start plugins
+		"folke/tokyonight.nvim",
+		lazy = false,
+		priority = 1000,
+		opts = {},
 		config = function()
-			-- load the colorscheme here
-			vim.cmd.colorscheme("night-owl")
+			vim.cmd([[colorscheme tokyonight-night]])
 		end,
 	},
 	{

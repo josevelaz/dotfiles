@@ -6,7 +6,7 @@ return {
 		requires = "neovim/nvim-lspconfig",
 		opts = {
 			icons = symbols,
-			highlight = true,
+			highlight = false,
 		},
 	},
 }
