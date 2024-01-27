@@ -19,6 +19,7 @@ return {
 
 			-- if you want to set up formatting on save, you can use this as a callback
 			local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+			local eslint_file_config = { ".eslintrc.js", ".eslintrc.json" }
 			return {
 				sources = {
 					-- formatting
@@ -28,7 +29,7 @@ return {
 					}),
 					diagnostics.eslint_d.with({
 						condition = function(utils)
-							return utils.root_has_file({ ".eslintrc.js" })
+							return utils.root_has_file(eslint_file_config)
 						end,
 					}),
 					formatting.sqlfmt,
@@ -37,7 +38,7 @@ return {
 					-- code_actions
 					code_actions.eslint_d.with({
 						condition = function(utils)
-							return utils.root_has_file({ ".eslintrc.js" })
+							return utils.root_has_file(eslint_file_config)
 						end,
 					}),
 				},

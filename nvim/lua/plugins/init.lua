@@ -41,7 +41,6 @@ return {
 	"Exafunction/codeium.vim",
 	"weilbith/nvim-code-action-menu",
 
-	"tpope/vim-fugitive",
 	{
 		"folke/tokyonight.nvim",
 		lazy = false,
@@ -61,9 +60,9 @@ return {
 	{
 		"mbbill/undotree",
 		lazy = true,
-        config = function()
-            vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
-        end
+		config = function()
+			vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
+		end,
 	},
 	"ray-x/go.nvim",
 	"RRethy/vim-illuminate",

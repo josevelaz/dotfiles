@@ -66,7 +66,12 @@ end, { desc = "reload file" })
 
 vim.keymap.set("n", "<leader>fc", "<CMD>Telescope command_center<CR>", { desc = "command center" })
 
-vim.keymap.set("n", "<leader>xx", "<cmd>TroubleToggle<cr>", { silent = true, noremap = true, desc = "Toggle Trouble" })
+vim.keymap.set(
+	"n",
+	"<leader>k",
+	"<cmd>lua vim.diagnostic.open_float()<CR>",
+	{ silent = true, noremap = true, desc = "Toggle Trouble" }
+)
 vim.keymap.set(
 	"n",
 	"<leader>xw",

@@ -1,6 +1,10 @@
 return {
-
-	"nvim-treesitter/nvim-treesitter-context",
+	{
+		"nvim-treesitter/nvim-treesitter-context",
+		opts = {
+			multiline_threshold = 2,
+		},
+	},
 	{
 		"windwp/nvim-ts-autotag",
 		lazy = true,
