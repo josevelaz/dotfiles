@@ -5,13 +5,7 @@ if [[ $# -eq 1 ]]; then
 else
     device_name=$(hostname)
 
-    if [[ "$device_name" == "JV-ST-C02FD0SZML86.local" ]]; then
-        selected=$(find ~/repos ~/dotfiles -mindepth 1 -maxdepth 1 -type d 2>/dev/null | fzf)
-    fi
-
-    if [[ "$device_name" == "Joses-MacBook-Pro-2.local" ]]; then
-        selected=$(find ~/work ~/sites ~/dotfiles ~/projects -mindepth 1 -maxdepth 1 -type d 2>/dev/null | fzf)
-    fi
+    selected=$(find ~/work/itemize ~/sites ~/dotfiles ~/projects -mindepth 1 -maxdepth 1 -type d 2>/dev/null | fzf)
 fi
 
 if [[ -z $selected ]]; then
