@@ -1433,7 +1433,7 @@
 			<key>Text</key>
 			<string></string>
 		</dict>
-		<key>0x54-0x60000-0x11</key>
+		<key>0x53-0x60000-0x1</key>
 		<dict>
 			<key>Action</key>
 			<integer>12</integer>

@@ -31,7 +31,6 @@ vim.keymap.set("i", "<C-c>", "<Esc>")
 vim.keymap.set("n", "Q", "<nop>")
 -- switch projects in on window
 vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
-vim.keymap.set("n", "<leader>f", vim.lsp.buf.format)
 
 -- navigation stuff?
 vim.keymap.set("n", "<C-k>", "<cmd>cnext<CR>zz")
