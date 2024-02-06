@@ -39,7 +39,6 @@ return {
 	"m4xshen/autoclose.nvim",
 	"nvim-tree/nvim-web-devicons",
 	"Exafunction/codeium.vim",
-	"weilbith/nvim-code-action-menu",
 
 	{
 		"folke/tokyonight.nvim",

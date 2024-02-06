@@ -2,10 +2,10 @@ return {
   {
     "mfussenegger/nvim-lint",
     config = function()
-      local lint = require("lint")
+      local linter = require("lint")
       local js_configuration = { "eslint_d", "cspell" }
 
-      lint.linters_by_ft = {
+      linter.linters_by_ft = {
         lua = { "luacheck", "cspell" },
         markdown = { "vale" },
         json = { "jsonlint", "cspell" },
