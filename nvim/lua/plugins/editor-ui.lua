@@ -1,18 +1,13 @@
 return {
   {
-    "aznhe21/actions-preview.nvim",
-    config = function()
-      vim.keymap.set({ "v", "n" }, "gf", require("actions-preview").code_actions)
-    end,
-  }, {
-  "lukas-reineke/indent-blankline.nvim",
-  main = "ibl",
-  opts = {
-    indent = {
-      char = "¦",
+    "lukas-reineke/indent-blankline.nvim",
+    main = "ibl",
+    opts = {
+      indent = {
+        char = "¦",
+      },
     },
   },
-},
   {
     "theprimeagen/harpoon",
     config = function()
