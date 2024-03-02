@@ -101,3 +101,11 @@ vim.keymap.set(
 	"<cmd>TroubleToggle lsp_references<cr>",
 	{ silent = true, noremap = true, desc = "Toggle Trouble References" }
 )
+
+vim.keymap.set("n", "<leader>w", "<cmd>w<cr>", { desc = "Save Buffer", noremap = true })
+
+vim.keymap.set("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit Neovim", noremap = true })
+
+vim.keymap.set("n", "<leader>c", "<cmd>bd<cr>", { desc = "Quit Buffer", noremap = true })
+
+vim.keymap.set("i", "jk", "<esc>")

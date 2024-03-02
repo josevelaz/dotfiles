@@ -19,7 +19,6 @@ return {
 		cmd = { "LspInfo", "LspInstall", "LspStart" },
 		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
-			{ "hrsh7th/cmp-nvim-lsp" },
 			{ "williamboman/mason-lspconfig.nvim" },
 		},
 		config = function()
@@ -156,55 +155,4 @@ return {
 		end,
 	},
 	-- Autocompletion
-	{
-		"hrsh7th/nvim-cmp",
-		dependencies = {
-			{ "L3MON4D3/LuaSnip" },
-		},
-		config = function()
-			local cmp = require("cmp")
-			local cmp_select = { behavior = cmp.SelectBehavior.Select }
-			local cmp_format = require("lsp-zero").cmp_format()
-			local symbols = require("util.symbols")
-
-			vim.api.nvim_set_hl(0, "CmpItemAbbrMatch", { fg = "#FFE6B3" })
-			vim.api.nvim_set_hl(0, "CmpItemAbbrMatchFuzzy", { fg = "#F02E6E" })
-
-			cmp.setup({
-				formatting = {
-					cmp_format,
-					fields = { "abbr", "kind" },
-					format = function(_, vim_item)
-						vim_item.kind = (symbols[vim_item.kind] or "") .. vim_item.kind
-						return vim_item
-					end,
-				},
-				window = {
-					completion = cmp.config.window.bordered(),
-					documentation = cmp.config.window.bordered(),
-				},
-				mapping = {
-					-- `Enter` key to confirm completion
-					["<CR>"] = cmp.mapping.confirm({ select = true }),
-					-- Ctrl+Space to trigger completion menu
-					["<C-Space>"] = cmp.mapping.complete(),
-					["<C-p>"] = cmp.mapping.select_prev_item(cmp_select),
-					["<C-n>"] = cmp.mapping.select_next_item(cmp_select),
-				},
-				sources = cmp.config.sources({
-					{ name = "nvim_lsp" },
-					{ name = "nvim_lsp_signature_help" },
-					{ name = "async_path" },
-				}),
-			})
-
-			cmp.setup.cmdline("/", {
-				sources = cmp.config.sources({
-					{ name = "nvim_lsp_document_symbol" },
-				}, {
-					{ name = "buffer" },
-				}),
-			})
-		end,
-	},
 }
