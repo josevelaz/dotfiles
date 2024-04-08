@@ -15,6 +15,7 @@ export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
 export PATH="/usr/local/opt/mysql@5.7/bin:$PATH"
 export PATH="$PATH:/usr/local/bin/.local"
+export PATH=$PATH:$HOME/go/bin
 export ANTIGEN="$HOME/.antigen"
 export TERM="xterm-256color"
 [[ -n $TMUX ]] && export TERM="screen-256color"
@@ -51,3 +52,5 @@ bindkey '\t\t' autosuggest-accept  # shift + tab  | autosuggest
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
+export _ZO_EXCLUDE_DIRS="$_ZO_EXCLUDE_DIRS:node_modules/*"
+eval "$(zoxide init --cmd cd zsh)"
