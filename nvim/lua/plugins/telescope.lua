@@ -1,4 +1,9 @@
 return {
+	{
+		"FeiyouG/commander.nvim",
+		lazy = true,
+		dependencies = { "nvim-telescope/telescope.nvim" },
+	},
   {
     "nvim-telescope/telescope.nvim",
     branch = "0.1.x",

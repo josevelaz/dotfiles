@@ -8,7 +8,7 @@ return {
 			linter.linters_by_ft = {
 				lua = { "luacheck", "cspell" },
 				markdown = { "vale" },
-				json = { "jsonlint", "cspell" },
+				json = { "cspell" },
 				javascript = js_configuration,
 				javascriptreact = js_configuration,
 				typescript = js_configuration,
@@ -30,7 +30,6 @@ return {
 	},
 	{
 		"stevearc/conform.nvim",
-		event = { "InsertLeave" },
 		cmd = { "ConformInfo" },
 		keys = {
 			{

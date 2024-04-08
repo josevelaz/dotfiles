@@ -4,11 +4,6 @@ return {
 	"cohama/lexima.vim",
 
 	{
-		"folke/trouble.nvim",
-		dependencies = "nvim-tree/nvim-web-devicons",
-	},
-
-	{
 		"andythigpen/nvim-coverage",
 		dependencies = "nvim-lua/plenary.nvim",
 		-- Optional: needed for PHP when using the cobertura parser
@@ -16,14 +11,6 @@ return {
 	},
 	-- Lua
 	"folke/neodev.nvim",
-	{
-		"folke/which-key.nvim",
-		event = "VeryLazy",
-		init = function()
-			vim.o.timeout = true
-			vim.o.timeoutlen = 300
-		end,
-	},
 	"m4xshen/autoclose.nvim",
 	"nvim-tree/nvim-web-devicons",
 	{
@@ -42,7 +29,7 @@ return {
 	},
 	"RRethy/vim-illuminate",
 	{
-		"FeiyouG/command_center.nvim",
+		"FeiyouG/commander.nvim",
 		lazy = true,
 		dependencies = { "nvim-telescope/telescope.nvim" },
 	},

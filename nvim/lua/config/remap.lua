@@ -32,12 +32,6 @@ vim.keymap.set("n", "Q", "<nop>")
 -- switch projects in on window
 vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
 
--- navigation stuff?
-vim.keymap.set("n", "<C-k>", "<cmd>cnext<CR>zz")
-vim.keymap.set("n", "<C-j>", "<cmd>cprev<CR>zz")
-vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
-vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
-
 vim.keymap.set("n", "<leader>ds", "<cmd>!cp '%:p' '%:p:h/%:t:r-copy.%:e'", { desc = "duplicate current file" })
 
 -- search all and replace
@@ -50,20 +44,7 @@ vim.keymap.set(
 -- make bash executable
 vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
 
-vim.keymap.set(
-	"n",
-	"<leader>vpp",
-	"<cmd>e ~/.dotfiles/nvim/.config/nvim/lua/dreamzz/packer.lua<CR>",
-	{ desc = "packer" }
-)
-
 vim.keymap.set("v", "c", [["_di]])
-
-vim.keymap.set("n", "<leader><leader>", function()
-	vim.cmd("so")
-end, { desc = "reload file" })
-
-vim.keymap.set("n", "<leader>fc", "<CMD>Telescope command_center<CR>", { desc = "command center" })
 
 vim.keymap.set(
 	"n",
@@ -102,10 +83,14 @@ vim.keymap.set(
 	{ silent = true, noremap = true, desc = "Toggle Trouble References" }
 )
 
-vim.keymap.set("n", "<leader>w", "<cmd>w<cr>", { desc = "Save Buffer", noremap = true })
+vim.keymap.set("n", "<leader><leader>", "<cmd>w<cr>", { desc = "Save Buffer", noremap = true })
 
 vim.keymap.set("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit Neovim", noremap = true })
 
 vim.keymap.set("n", "<leader>c", "<cmd>bd<cr>", { desc = "Quit Buffer", noremap = true })
+
+vim.keymap.set("n", "<leader>l", "<cmd>bnext<cr>")
+
+vim.keymap.set("n", "<leader>h", "<cmd>bprev<cr>")
 
 vim.keymap.set("i", "jk", "<esc>")

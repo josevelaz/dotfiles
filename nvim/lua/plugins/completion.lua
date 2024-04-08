@@ -23,6 +23,7 @@ return {
 						require("luasnip").lsp_expand(args.body)
 					end,
 				},
+				preselect = cmp.PreselectMode.None,
 				formatting = {
 					cmp_format,
 					fields = { "abbr", "kind" },
@@ -36,20 +37,20 @@ return {
 					documentation = cmp.config.window.bordered(),
 				},
 				mapping = {
-					-- `Enter` key to confirm completion
-					["<CR>"] = cmp.mapping.confirm({ select = true }),
-					-- Ctrl+Space to trigger completion menu
+					["<CR>"] = cmp.mapping.confirm(),
+					["<C-b>"] = cmp.mapping.scroll_docs(-4),
+					["<C-f>"] = cmp.mapping.scroll_docs(4),
 					["<C-Space>"] = cmp.mapping.complete(),
 					["<C-p>"] = cmp.mapping.select_prev_item(cmp_select),
 					["<C-n>"] = cmp.mapping.select_next_item(cmp_select),
 				},
 				sources = cmp.config.sources({
 					{ name = "nvim_lsp" },
-					{ name = "nvim_lua" },
 					{ name = "nvim_lsp_signature_help" },
-					{ name = "async_path" },
+					{ name = "nvim_lua" },
+					{ name = "path" },
 					{ name = "luasnip" },
-					{ name = "buffer", keyword_lenght = 5 },
+					{ name = "buffer", keyword_length = 3 },
 				}),
 			})
 
