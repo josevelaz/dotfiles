@@ -1,29 +1,19 @@
 return {
 	{
-		"zaldih/themery.nvim",
-		opts = {
-			themes = { "tokyonight-night", "catppuccin-mocha" },
-			themeConfigFile = "~/.config/nvim/lua/plugins/theming.lua",
-		},
-		init = function()
-			-- Themery block
-			-- This block will be replaced by Themery.
-			vim.cmd("colorscheme catppuccin-mocha")
-			vim.g.theme_id = 2
-			-- end themery block
-		end,
-	},
-	{ "folke/tokyonight.nvim", priority = 1000 },
-	{
 		"catppuccin/nvim",
 		name = "catppuccin",
-		priority = 1000,
+		priority = 999,
+		init = function()
+			vim.cmd.colorscheme("catppuccin")
+		end,
 		opts = {
 			custom_highlights = function(colors)
 				return {
 					LineNr = { fg = colors.blue },
+					CursorLineNr = { fg = colors.green },
 				}
 			end,
+			transparent_background = true,
 			integrations = {
 				cmp = true,
 				gitsigns = true,
@@ -32,7 +22,6 @@ return {
 				harpoon = true,
 				indent_blankline = {
 					enabled = true,
-					scope_color = "lavender",
 				},
 				mason = true,
 			},

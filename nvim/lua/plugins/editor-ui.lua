@@ -1,34 +1,27 @@
 return {
-  {
-    "lukas-reineke/indent-blankline.nvim",
-    main = "ibl",
-    opts = {
-      indent = {
-        char = "¦",
-      },
-    },
-  },
-  {
-    "theprimeagen/harpoon",
-    config = function()
-      local mark = require("harpoon.mark")
-      local ui = require("harpoon.ui")
+	{
+		"j-hui/fidget.nvim",
+	},
+	{
+		"lukas-reineke/indent-blankline.nvim",
+		main = "ibl",
+		opts = {
+			indent = {
+				char = "¦",
+			},
+		},
+	},
+	{
+		"cbochs/grapple.nvim",
+		opts = {
+			scope = "git_branch", -- also try out "git_branch"
+		},
+		keys = {
+			{ "<leader>a", "<cmd>Grapple toggle<cr>", desc = "Tag a file" },
+			{ "<c-e>", "<cmd>Grapple toggle_tags<cr>", desc = "Toggle tags menu" },
 
-      vim.keymap.set("n", "<leader>a", mark.add_file, { desc = "Add file to harpoon" })
-      vim.keymap.set("n", "<C-e>", ui.toggle_quick_menu, { desc = "Toggle quick menu" })
-
-      vim.keymap.set("n", "<C-t>", function()
-        ui.nav_file(1)
-      end, { desc = "Harpoon Index 1" })
-      vim.keymap.set("n", "<C-h>", function()
-        ui.nav_file(2)
-      end, { desc = "Harpoon Index 2" })
-      vim.keymap.set("n", "<C-n>", function()
-        ui.nav_file(3)
-      end, { desc = "Harpoon Index 3" })
-      vim.keymap.set("n", "<C-s>", function()
-        ui.nav_file(4)
-      end, { desc = "Harpoon Index 4" })
-    end,
-  }
+			{ "<c-s-p>", "<cmd>Grapple cycle backward<cr>", desc = "Go to previous tag" },
+			{ "<c-s-n>", "<cmd>Grapple cycle forward<cr>", desc = "Go to next tag" },
+		},
+	},
 }

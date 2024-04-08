@@ -1,11 +1,5 @@
 return {
 	{
-		"nvim-treesitter/nvim-treesitter-context",
-		opts = {
-			multiline_threshold = 2,
-		},
-	},
-	{
 		"windwp/nvim-ts-autotag",
 		lazy = true,
 		opts = {
@@ -33,6 +27,7 @@ return {
 			ensure_installed = {
 				"typescript",
 				"javascript",
+				"jsdoc",
 				"svelte",
 				"tsx",
 				"yaml",
