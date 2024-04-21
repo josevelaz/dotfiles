@@ -1,5 +1,5 @@
 {
-    "title": "Caps Lock to ESC on tap/Left Control on hold",
+    "title": "Caps Lock to ESC on tap/Left Control on hold - New",
     "rules": [
         {
             "description": "Caps Lock to ESC on tap/Left Alt on hold",
@@ -18,16 +18,6 @@
                     "to_if_alone": [
                         {
                             "key_code": "escape"
-                        }
-                    ],
-                    "conditions": [
-                        {
-                            "type": "frontmost_application_if",
-                            "bundle_identifiers": [
-                                "md.obsidian",
-                                "com.googlecode.iterm2"
-
-                            ]
                         }
                     ]
                 }
