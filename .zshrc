@@ -1,24 +1,30 @@
-alias fattcli="cd ~/repos/fatt-scripts/fatt &&"
-alias qabuild="fattcli && ./bin/run qa:build-make"
-alias qalist="fattcli && ./bin/run qa:build-list"
-alias runcli="fattcli && ./bin/run"
-alias push="git push origin"
 alias zshconfig=“mate ~/.zshrc”
-alias itermgeneratetouchbar="cd $ANTIGEN/bundles/zsh-users/zsh-apple-touchbar/ && ruby generate.rb"
-alias itermedittouchbar="cd $ANTIGEN/bundles/zsh-users/zsh-apple-touchbar/ && code config.yaml"
-alias godotfiles="cd ~/dotfiles"
-alias nv="nvim"
-alias v="nvim"
-alias vim="nvim"
 
+alias nv="nvim"
+alias vim="nvim"
+alias nvime="NVIM_APPNAME=nvim-experimental nvim"
+
+# Volta
 export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
-export PATH="/usr/local/opt/mysql@5.7/bin:$PATH"
+
+# Local bin
 export PATH="$PATH:/usr/local/bin/.local"
+
+# Go bin
+export PATH=$PATH:$HOME/go/bin
+
 export ANTIGEN="$HOME/.antigen"
+
 export TERM="xterm-256color"
+
+# Kitty EDITOR env var - https://sw.kovidgoyal.net/kitty/glossary/#envvar-EDITOR
+export EDITOR="nvim"
+
+# Set TERM if tmux
 [[ -n $TMUX ]] && export TERM="screen-256color"
 
+# FZF styling
 export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
 --color=fg:#c0caf5,bg:#1a1b26,hl:#ff9e64
 --color=fg+:#c0caf5,bg+:#1a1b26,hl+:#ff9e64
@@ -51,3 +57,5 @@ bindkey '\t\t' autosuggest-accept  # shift + tab  | autosuggest
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
+export _ZO_EXCLUDE_DIRS="$_ZO_EXCLUDE_DIRS:node_modules/*"
+eval "$(zoxide init --cmd cd zsh)"
