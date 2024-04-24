@@ -29,8 +29,6 @@ vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "delete into void" }
 vim.keymap.set("i", "<C-c>", "<Esc>")
 
 vim.keymap.set("n", "Q", "<nop>")
--- switch projects in on window
-vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
 
 vim.keymap.set("n", "<leader>ds", "<cmd>!cp '%:p' '%:p:h/%:t:r-copy.%:e'", { desc = "duplicate current file" })
 
@@ -41,17 +39,9 @@ vim.keymap.set(
 	[[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
 	{ desc = "search and replace" }
 )
--- make bash executable
-vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
 
 vim.keymap.set("v", "c", [["_di]])
 
-vim.keymap.set(
-	"n",
-	"<leader>k",
-	"<cmd>lua vim.diagnostic.open_float()<CR>",
-	{ silent = true, noremap = true, desc = "Toggle Trouble" }
-)
 vim.keymap.set(
 	"n",
 	"<leader>xw",
@@ -75,12 +65,6 @@ vim.keymap.set(
 	"<leader>xq",
 	"<cmd>TroubleToggle quickfix<cr>",
 	{ silent = true, noremap = true, desc = "Toggle Trouble Quickfix" }
-)
-vim.keymap.set(
-	"n",
-	"gR",
-	"<cmd>TroubleToggle lsp_references<cr>",
-	{ silent = true, noremap = true, desc = "Toggle Trouble References" }
 )
 
 vim.keymap.set("n", "<leader><leader>", "<cmd>w<cr>", { desc = "Save Buffer", noremap = true })
