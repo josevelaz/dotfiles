@@ -9,13 +9,13 @@ return {
 
 		init = function()
 			local map = function(keys, func, desc)
-				vim.keymap.set("n", keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
+				vim.keymap.set("n", keys, func, { desc = desc })
 			end
 
 			map("zR", require("ufo").openAllFolds, "Expand All Folds")
 			map("zM", require("ufo").closeAllFolds, "Collapse All Folds")
-			map("zr", require("ufo").openFoldsExceptKinds)
-			map("zm", require("ufo").closeFoldsWith)
+			map("zr", require("ufo").openFoldsExceptKinds, "")
+			map("zm", require("ufo").closeFoldsWith, "")
 		end,
 	},
 	-- Folding preview, by default h and l keys are used.
