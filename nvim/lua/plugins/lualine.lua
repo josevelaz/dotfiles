@@ -42,33 +42,6 @@ return {
 				lualine_y = { "progress" },
 				lualine_z = { "location" },
 			},
-			winbar = {
-				lualine_a = {},
-				lualine_b = {},
-				lualine_c = {
-					{
-						"filename",
-						path = 1,
-						fmt = function(str)
-							return str:gsub("/", " 󰅂 ")
-						end,
-					},
-					{
-						"filetype",
-						icon_only = true,
-					},
-					{
-						"navic",
-						separator = { left = "󰅂" },
-						navic_opts = {
-							seperator = " 󰅂 ",
-						},
-					},
-				},
-				lualine_x = {},
-				lualine_y = {},
-				lualine_z = {},
-			},
 		},
 		dependencies = { "nvim-tree/nvim-web-devicons", opt = true },
 	},
