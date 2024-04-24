@@ -1,8 +1,13 @@
 return {
-	"christoomey/vim-tmux-navigator",
-
 	"cohama/lexima.vim",
-
+  {
+    'knubie/vim-kitty-navigator',
+    build = "cp ./*.py ~/.config/kitty/"
+  },
+	{
+		"fladson/vim-kitty",
+    ft = "kitty"
+	},
 	{
 		"andythigpen/nvim-coverage",
 		dependencies = "nvim-lua/plenary.nvim",
