@@ -13,11 +13,9 @@ vim.keymap.set("n", "<C-u>", "<C-u>zz")
 vim.keymap.set("n", "n", "nzzzv")
 vim.keymap.set("n", "N", "Nzzzv")
 
--- greatest remap ever
 -- delete selection into void and paste buffer
 vim.keymap.set("x", "<leader>p", [["_dP]], { desc = "delete selection into void and paste" })
 
--- next greatest remap ever : asbjornHaland
 -- copy into clipboard
 vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]], { desc = "copy into clipboard" })
 vim.keymap.set("n", "<leader>Y", [["+Y]])
@@ -25,7 +23,6 @@ vim.keymap.set("n", "<leader>Y", [["+Y]])
 -- delete into void
 vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "delete into void" })
 
--- This is going to get me cancelled
 vim.keymap.set("i", "<C-c>", "<Esc>")
 
 vim.keymap.set("n", "Q", "<nop>")
@@ -40,7 +37,7 @@ vim.keymap.set(
 	{ desc = "search and replace" }
 )
 
-vim.keymap.set("v", "c", [["_di]])
+-- vim.keymap.set("v", "c", [["_di]])
 
 vim.keymap.set(
 	"n",
