@@ -53,6 +53,7 @@ config.window_padding = {
 	left = 0,
 	right = 0,
 	bottom = "-1cell",
+  top = "1cell"
 }
 
 config.font_size = 14
@@ -90,8 +91,8 @@ config.keys = {
 	{ key = "x", mods = "LEADER", action = wezterm.action({ CloseCurrentPane = { confirm = true } }) },
 
 	bind_if(is_outside_vim, "h", "CTRL", a.ActivatePaneDirection("Left")),
-	bind_if(is_outside_vim, "j", "CTRL", a.ActivatePaneDirection("Up")),
-	bind_if(is_outside_vim, "k", "CTRL", a.ActivatePaneDirection("Down")),
+	bind_if(is_outside_vim, "k", "CTRL", a.ActivatePaneDirection("Up")),
+	bind_if(is_outside_vim, "j", "CTRL", a.ActivatePaneDirection("Down")),
 	bind_if(is_outside_vim, "l", "CTRL", a.ActivatePaneDirection("Right")),
 
 	{

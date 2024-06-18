@@ -1,5 +1,6 @@
 return {
 	"numToStr/Navigator.nvim",
+  opts = {},
 	init = function()
 		vim.keymap.set({ "n", "t" }, "<C-h>", "<CMD>NavigatorLeft<CR>")
 		vim.keymap.set({ "n", "t" }, "<C-l>", "<CMD>NavigatorRight<CR>")

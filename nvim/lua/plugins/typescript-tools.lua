@@ -5,7 +5,7 @@ return {
 		opts = {
 			on_attach = function(client, bufnr)
 				if client.supports_method("textDocument/inlayHint") then
-					vim.lsp.inlay_hint.enable(bufnr, true)
+					vim.lsp.inlay_hint.enable(true)
 				end
 			end,
 			settings = {
