@@ -11,6 +11,9 @@ export PATH="$VOLTA_HOME/bin:$PATH"
 # Local bin
 export PATH="$PATH:/usr/local/bin/.local"
 
+# mysql-client
+export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
+
 # Go bin
 export PATH=$PATH:$HOME/go/bin
 

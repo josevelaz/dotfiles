@@ -4,13 +4,27 @@ return {
 		opts = {
 			options = {
 				theme = "catppuccin-macchiato",
-				section_separators = "",
+				section_separators = { left = "", right = "" },
 				component_separators = "",
 			},
 			sections = {
 				lualine_a = { "mode" },
 				lualine_b = { { "branch", icon = "" }, "diff", "diagnostics" },
-				lualine_c = { "grapple" },
+				lualine_c = {
+					{
+						"filename",
+						file_status = true,
+						newfile_status = false,
+						path = 1,
+						symbols = {
+							modified = "●", -- Text to show when the file is modified.
+							readonly = "[-]", -- Text to show when the file is non-modifiable or readonly.
+							unnamed = "[No Name]", -- Text to show for unnamed buffers.
+							newfile = "", -- Text to show for newly created file before first write
+						},
+					},
+					{ "grapple" },
+				},
 				lualine_x = {
 					{
 						function()

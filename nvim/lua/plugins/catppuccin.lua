@@ -4,13 +4,13 @@ return {
 		name = "catppuccin",
 		priority = 999,
 		init = function()
-			vim.cmd.colorscheme("catppuccin-mocha")
+			vim.cmd.colorscheme("catppuccin-macchiato")
 		end,
 		opts = {
 			custom_highlights = function(colors)
 				return {
 					LineNr = { fg = colors.blue },
-					CursorLineNr = { fg = colors.green },
+					CursorLineNr = { fg = colors.green},
 
 					DiagnosticUnderlineError = { undercurl = true, sp = colors.red }, -- Used to underline "Error" diagnostics
 					DiagnosticUnderlineWarn = { undercurl = true, sp = colors.yellow }, -- Used to underline "Warning" diagnostics
@@ -23,7 +23,6 @@ return {
 					SpellRare = { sp = colors.hint, undercurl = true },
 				}
 			end,
-			transparent_background = true,
 			integrations = {
 				cmp = true,
 				gitsigns = true,

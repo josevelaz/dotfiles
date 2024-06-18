@@ -18,6 +18,8 @@ return {
 					},
 				},
 			},
+			"onsails/lspkind.nvim",
+
 			"saadparwaiz1/cmp_luasnip",
 
 			"hrsh7th/cmp-nvim-lsp",
@@ -28,7 +30,11 @@ return {
 		config = function()
 			-- See `:help cmp`
 			local cmp = require("cmp")
+
+			local lsp_kind = require("lspkind")
+
 			local luasnip = require("luasnip")
+
 			luasnip.config.setup({})
 
 			cmp.setup({
@@ -36,6 +42,9 @@ return {
 					expand = function(args)
 						luasnip.lsp_expand(args.body)
 					end,
+				},
+				formatting = {
+					format = lsp_kind.cmp_format(),
 				},
 				completion = { completeopt = "menu,menuone,noinsert" },
 
@@ -91,6 +100,32 @@ return {
 					{ name = "luasnip" },
 					{ name = "path" },
 					{ name = "buffer", keyword_length = 4 },
+				},
+
+				sorting = {
+					comparators = {
+						cmp.config.compare.offset,
+						cmp.config.compare.exact,
+						cmp.config.compare.score,
+
+						-- copied from cmp-under
+						function(entry1, entry2)
+							local _, entry1_under = entry1.completion_item.label:find("^_+")
+							local _, entry2_under = entry2.completion_item.label:find("^_+")
+							entry1_under = entry1_under or 0
+							entry2_under = entry2_under or 0
+							if entry1_under > entry2_under then
+								return false
+							elseif entry1_under < entry2_under then
+								return true
+							end
+						end,
+
+						cmp.config.compare.kind,
+						cmp.config.compare.sort_text,
+						cmp.config.compare.length,
+						cmp.config.compare.order,
+					},
 				},
 			})
 		end,
