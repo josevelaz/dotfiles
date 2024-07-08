@@ -2,7 +2,7 @@
 
 # Rewrite with fd to respect fd/ignore and git/ignore
 
-dirs=$(find -L ~/work/itemize ~/dotfiles ~/projects  -mindepth 1 -maxdepth 1 -type d)
+dirs=$(find -L ~/work/itemize ~/dotfiles/ ~/projects ~/Exercism  -mindepth 1 -maxdepth 1 -type d)
 nice_dirs=$(echo "$dirs" | sed -r 's/\/Users\/josevelaz/~/g')
 
 prev_dirs=$(echo "$nice_dirs" | xargs dirname | xargs basename)
