@@ -39,6 +39,15 @@ vim.keymap.set(
 
 -- vim.keymap.set("v", "c", [["_di]])
 
+vim.keymap.set("n", "<leader>k", function()
+	vim.diagnostic.open_float({
+		border = "rounded",
+		scope = "cursor",
+		prefix = " ",
+		source = true,
+	})
+end)
+
 vim.keymap.set(
 	"n",
 	"<leader>xw",

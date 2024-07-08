@@ -1,4 +1,5 @@
 local wezterm = require("wezterm")
+local sessionizer = require("sessionizer")
 
 local config = wezterm.config_builder()
 
@@ -53,7 +54,7 @@ config.window_padding = {
 	left = 0,
 	right = 0,
 	bottom = "-1cell",
-  top = "1cell"
+	top = "1cell",
 }
 
 config.font_size = 14
@@ -95,56 +96,17 @@ config.keys = {
 	bind_if(is_outside_vim, "k", "CTRL", a.ActivatePaneDirection("Up")),
 	bind_if(is_outside_vim, "j", "CTRL", a.ActivatePaneDirection("Down")),
 	bind_if(is_outside_vim, "l", "CTRL", a.ActivatePaneDirection("Right")),
-
-	{
-		key = "f",
-		mods = "CTRL",
-		action = wezterm.action_callback(function(window, pane)
-			local success, stdout, stderr = wezterm.run_child_process({
-				"/Users/josevelazquez/dotfiles/bin/.local/wezterm-workspaces.sh",
-			})
-			local workspaces = {}
-
-			if success then
-				for line in stdout:gmatch("[^\r\n]+") do
-					-- match on the '$' symbol
-					for line_id, line_label in line:gmatch("(.+) %$ (.+)") do
-						table.insert(workspaces, { id = line_id, label = line_label })
-					end
-				end
-			else
-				wezterm.log_info("stderr:", stderr)
-			end
-
-			window:perform_action(
-				a.InputSelector({
-					action = wezterm.action_callback(function(inner_window, inner_pane, id, label)
-						if not id and not label then
-							-- wezterm.log_info 'Cancelled'
-						else
-							-- wezterm.log_info('You selected id(' .. id .. ') and label(' .. label ..')')
-							inner_window:perform_action(
-								a.SwitchToWorkspace({
-									name = label,
-									spawn = {
-										label = "Workspace: " .. label,
-										cwd = id,
-									},
-								}),
-								inner_pane
-							)
-						end
-					end),
-					title = "Choose Workspace",
-          fuzzy_description = "  Search for Workspace: ",
-					choices = workspaces,
-          fuzzy = true
-				}),
-				pane
-			)
-		end),
-	},
 }
+
+local workspaces = {
+	"~/dotfiles",
+	"~/work/itemize",
+	"~/projects",
+	"~/Exercism",
+}
+
+sessionizer.set_workspaces(workspaces)
+sessionizer.configure(config)
 
 wezterm.plugin.require("https://github.com/nekowinston/wezterm-bar").apply_to_config(config, {
 	position = "bottom",
