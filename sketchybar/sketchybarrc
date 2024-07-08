@@ -46,7 +46,7 @@ sketchybar --default "${default[@]}"
 # https://felixkratz.github.io/SketchyBar/config/components#space----associate-mission-control-spaces-with-an-item
 # to indicate active and available mission control spaces.
 
-SPACE_ICONS=("" "󰈹" "󰆼" "" "" "" "󰩃" "8" "9" "10")
+SPACE_ICONS=("" "󰈹" "󱞁" "󰆼" "" "" "" "󰩃" "9" "10")
 for i in "${!SPACE_ICONS[@]}"
 do
   sid="$(($i+1))"
@@ -99,7 +99,7 @@ sketchybar --add item clock right \
            --add alias "Dato,UpcomingEvent" right \
            --set "Dato,UpcomingEvent" background.padding_left=-10 background.padding_right=-10 \
            --add alias Tunnelblick right \
-           --set Tunnelblick background.padding_left=-10 background.padding_right=-10
+           --set Tunnelblick background.padding_left=-10 background.padding_right=-10 click_script="$PLUGIN_DIR/vpn.sh"
 
 ##### Force all scripts to run the first time (never do this in a script) #####
 sketchybar --update
