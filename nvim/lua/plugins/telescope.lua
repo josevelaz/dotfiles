@@ -51,15 +51,20 @@ return {
 				--
 				-- defaults = {
 				--   mappings = {
-				--     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+				--     i = { ['<CR>'] = "select_vertical"},
 				--   },
 				-- },
 				pickers = {
-          find_files = {
-            hidden = true
-          }
-
-        },
+					find_files = {
+						hidden = true,
+					},
+					help_tags = {
+						mappings = {
+							i = { ["<CR>"] = "select_vertical" },
+							n = { ["<CR>"] = "select_vertical" },
+						},
+					},
+				},
 				extensions = {
 					["ui-select"] = {
 						require("telescope.themes").get_dropdown(),
@@ -67,12 +72,11 @@ return {
 				},
 			})
 
-      -- Enable Telescope extensions if they are installed
-      local extensions = {"fzf", "ui-select", "git_worktree"}
-      for _, extension in ipairs(extensions)do
-        pcall(require("telescope").load_extension, extension)
-      end
-
+			-- Enable Telescope extensions if they are installed
+			local extensions = { "fzf", "ui-select", "git_worktree" }
+			for _, extension in ipairs(extensions) do
+				pcall(require("telescope").load_extension, extension)
+			end
 
 			-- See `:help telescope.builtin`
 			local builtin = require("telescope.builtin")

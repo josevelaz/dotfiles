@@ -16,7 +16,7 @@ sketchybar --bar \
   position=top \
   height=32 \
   blur_radius=30 \
-  color=0x40000000 \
+  color=0xbf1e2124 \
   margin=8 \
   corner_radius=10 \
   y_offset=4

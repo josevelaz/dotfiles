@@ -4,6 +4,8 @@ return {
 		config = function()
 			local nmap = function(keymap, cmd, desc) end
 
+      require("mini.indentscope").setup()
+
 			-- Better Around/Inside textobjects
 			--
 			-- Examples:

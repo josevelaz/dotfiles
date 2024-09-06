@@ -1,5 +1,3 @@
-vim.keymap.set("n", "<leader>pv", "<cmd>Oil<cr>")
-
 -- Move selection up and down
 -- Like alt + ^/˅
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "move line down" })
@@ -32,9 +30,9 @@ vim.keymap.set("n", "<leader>ds", "<cmd>!cp '%:p' '%:p:h/%:t:r-copy.%:e'", { des
 -- search all and replace
 vim.keymap.set(
 	{ "n", "v" },
-	"<leader>s",
+	"<leader>rs",
 	[[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
-	{ desc = "search and replace" }
+	{ desc = "[S]elected" }
 )
 
 -- vim.keymap.set("v", "c", [["_di]])
@@ -48,36 +46,36 @@ vim.keymap.set("n", "<leader>k", function()
 	})
 end)
 
-vim.keymap.set(
-	"n",
-	"<leader>xw",
-	"<cmd>TroubleToggle workspace_diagnostics<cr>",
-	{ silent = true, noremap = true, desc = "Toggle Trouble Workspace Diagnostics" }
-)
-vim.keymap.set(
-	"n",
-	"<leader>xd",
-	"<cmd>TroubleToggle document_diagnostics<cr>",
-	{ silent = true, noremap = true, desc = "Toggle Trouble Document Diagnostics" }
-)
-vim.keymap.set(
-	"n",
-	"<leader>xl",
-	"<cmd>TroubleToggle loclist<cr>",
-	{ silent = true, noremap = true, desc = "Toggle Trouble Location List" }
-)
-vim.keymap.set(
-	"n",
-	"<leader>xq",
-	"<cmd>TroubleToggle quickfix<cr>",
-	{ silent = true, noremap = true, desc = "Toggle Trouble Quickfix" }
-)
+-- vim.keymap.set(
+-- 	"n",
+-- 	"<leader>xw",
+-- 	"<cmd>TroubleToggle workspace_diagnostics<cr>",
+-- 	{ silent = true, noremap = true, desc = "Toggle Trouble Workspace Diagnostics" }
+-- )
+-- vim.keymap.set(
+-- 	"n",
+-- 	"<leader>xd",
+-- 	"<cmd>TroubleToggle document_diagnostics<cr>",
+-- 	{ silent = true, noremap = true, desc = "Toggle Trouble Document Diagnostics" }
+-- )
+-- vim.keymap.set(
+-- 	"n",
+-- 	"<leader>xl",
+-- 	"<cmd>TroubleToggle loclist<cr>",
+-- 	{ silent = true, noremap = true, desc = "Toggle Trouble Location List" }
+-- )
+-- vim.keymap.set(
+-- 	"n",
+-- 	"<leader>xq",
+-- 	"<cmd>TroubleToggle quickfix<cr>",
+-- 	{ silent = true, noremap = true, desc = "Toggle Trouble Quickfix" }
+-- )
 
 vim.keymap.set("n", "<leader><leader>", "<cmd>w<cr>", { desc = "Save Buffer", noremap = true })
 
 vim.keymap.set("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit Neovim", noremap = true })
 
-vim.keymap.set("n", "<leader>c", "<cmd>bd<cr>", { desc = "Quit Buffer", noremap = true })
+vim.keymap.set("n", "<leader>bd", "<cmd>bd<cr>", { desc = "Quit Buffer", noremap = true })
 
 vim.keymap.set("n", "<leader>l", "<cmd>bnext<cr>")
 

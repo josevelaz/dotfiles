@@ -1,5 +1,6 @@
 local wezterm = require("wezterm")
 local sessionizer = require("sessionizer")
+-- local cyberdream = require("cyberdream")
 
 local config = wezterm.config_builder()
 
@@ -39,7 +40,9 @@ local function bind_if(cond, key, mods, action)
 	return { key = key, mods = mods, action = wezterm.action_callback(callback) }
 end
 
-config.color_scheme = "Catppuccin Macchiato"
+config.color_scheme = "tokyonight_night"
+
+-- config.colors = cyberdream
 
 config.window_decorations = "RESIZE"
 
@@ -50,9 +53,11 @@ config.font = wezterm.font("IosevkaTerm Nerd Font Mono", { weight = "Medium" })
 config.underline_position = "200%"
 config.underline_thickness = "250%"
 
+local xWindowPadding = "1cell"
+
 config.window_padding = {
-	left = 0,
-	right = 0,
+	left = xWindowPadding,
+	right = xWindowPadding,
 	bottom = "-1cell",
 	top = "1cell",
 }
@@ -70,10 +75,6 @@ config.keys = {
 	{ key = "m", mods = "LEADER", action = "TogglePaneZoomState" },
 	{ key = "z", mods = "LEADER", action = "TogglePaneZoomState" },
 	{ key = "c", mods = "LEADER", action = wezterm.action({ SpawnTab = "CurrentPaneDomain" }) },
-	-- { key = "j", mods = "CTRL", action = wezterm.action({ ActivatePaneDirection = "Down" }) },
-	--  { key = "h", mods = "CTRL", action = wezterm.action({ ActivatePaneDirection = "Left" }) },
-	-- { key = "k", mods = "CTRL", action = wezterm.action({ ActivatePaneDirection = "Up" }) },
-	-- { key = "l", mods = "CTRL", action = wezterm.action({ ActivatePaneDirection = "Right" }) },
 	{ key = "H", mods = "LEADER|SHIFT", action = wezterm.action({ AdjustPaneSize = { "Left", 5 } }) },
 	{ key = "J", mods = "LEADER|SHIFT", action = wezterm.action({ AdjustPaneSize = { "Down", 5 } }) },
 	{ key = "K", mods = "LEADER|SHIFT", action = wezterm.action({ AdjustPaneSize = { "Up", 5 } }) },
@@ -111,7 +112,7 @@ sessionizer.configure(config)
 wezterm.plugin.require("https://github.com/nekowinston/wezterm-bar").apply_to_config(config, {
 	position = "bottom",
 	max_width = 32,
-	dividers = "rounded", -- or "slant_left", "arrows", "rounded", false
+	dividers = false, -- or "slant_left", "arrows", "rounded", false
 	indicator = {
 		leader = {
 			enabled = true,
