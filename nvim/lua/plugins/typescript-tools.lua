@@ -9,6 +9,7 @@ return {
 				end
 			end,
 			settings = {
+        separate_diagnostic_server = false,
 				tsserver_file_preferences = {
 					includeInlayParameterNameHints = "all",
 					includeInlayFunctionLikeReturnTypeHints = true,

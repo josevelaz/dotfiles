@@ -7,7 +7,7 @@ return {
 				-- Customize or remove this keymap to your liking
 				"<leader>f",
 				function()
-					require("conform").format({ async = true, lsp_fallback = true })
+					require("conform").format({ async = true, stop_after_first = true })
 				end,
 				mode = "",
 				desc = "[F]ormat buffer",

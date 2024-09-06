@@ -3,9 +3,10 @@ return {
 		"catppuccin/nvim",
 		name = "catppuccin",
 		priority = 999,
-		init = function()
-			vim.cmd.colorscheme("catppuccin-macchiato")
-		end,
+    lazy = true,
+		-- init = function()
+		-- 	vim.cmd.colorscheme("catppuccin-macchiato")
+		-- end,
 		opts = {
 			custom_highlights = function(colors)
 				return {

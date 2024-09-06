@@ -26,10 +26,12 @@ return {
 						-- See the configuration section for more details
 						-- Load luvit types when the `vim.uv` word is found
 						{ path = "luvit-meta/library", words = { "vim%.uv" } },
+						{ path = "wezterm-types", mods = { "wezterm" } },
 					},
 				},
 			},
 			{ "Bilal2453/luvit-meta", lazy = true },
+			{ "justinsgithub/wezterm-types", lazy = true },
 		},
 		config = function()
 			vim.api.nvim_create_autocmd("LspAttach", {
@@ -121,18 +123,6 @@ return {
 			--        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
 			local servers = {
 				lua_ls = {
-					-- cmd = {...},
-					-- filetypes = { ...},
-					-- capabilities = {},
-					settings = {
-						Lua = {
-							completion = {
-								callSnippet = "Replace",
-							},
-							-- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-							diagnostics = { disable = { "missing-fields" } },
-						},
-					},
 				},
 			}
 

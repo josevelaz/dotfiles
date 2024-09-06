@@ -3,6 +3,7 @@ return {
 		"hrsh7th/nvim-cmp",
 		event = "InsertEnter",
 		dependencies = {
+			"f3fora/cmp-spell",
 			{
 				"L3MON4D3/LuaSnip",
 				build = "make install_jsregexp",
@@ -45,8 +46,15 @@ return {
 				},
 				formatting = {
 					format = lsp_kind.cmp_format(),
+          fields = {'abbr', 'kind', 'menu'},
+          expandable_indicator = true
 				},
 				completion = { completeopt = "menu,menuone,noinsert" },
+
+        window = {
+          documentation = cmp.config.window.bordered(),
+          -- completion = cmp.config.window.bordered()
+        },
 
 				-- For an understanding of why these mappings were
 				-- chosen, you will need to read `:help ins-completion`
@@ -98,11 +106,13 @@ return {
 					{ name = "nvim_lsp" },
 					{ name = "nvim_lua" },
 					{ name = "luasnip" },
+					{ name = "spell" },
 					{ name = "path" },
 					{ name = "buffer", keyword_length = 4 },
 				},
 
 				sorting = {
+					priority_weight = 1,
 					comparators = {
 						cmp.config.compare.offset,
 						cmp.config.compare.exact,

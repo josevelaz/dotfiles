@@ -28,13 +28,11 @@ local get_directories = function()
 
 	for _, base_path in ipairs(workspaces) do
 		local command = "find " .. base_path .. " -mindepth 1 -maxdepth 1 -type d"
+		local out = command_run(command)
 
-		if command ~= nil then
-			local out = command_run(command)
-			for _, path in ipairs(wezterm.split_by_newlines(out)) do
-				local updated_path = string.gsub(path, wezterm.home_dir, "~")
-				table.insert(folders, { id = path, label = updated_path })
-			end
+		for _, path in ipairs(wezterm.split_by_newlines(out)) do
+			local updated_path = string.gsub(path, wezterm.home_dir, "~")
+			table.insert(folders, { id = path, label = updated_path })
 		end
 	end
 
@@ -78,6 +76,7 @@ function M.switch_workspace()
 				title = "Wezterm Sessionizer",
 				choices = workspaces,
 				fuzzy = true,
+				fuzzy_description = "Switch To Workspace: ",
 			}),
 			pane
 		)
@@ -100,7 +99,7 @@ function M.configure(config)
 
 	table.insert(config.keys, {
 		key = "s",
-		mods = "CTRL",
+		mods = "LEADER",
 		action = M.active_workspaces(),
 	})
 end
