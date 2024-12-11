@@ -1,9 +1,9 @@
 return {
 	{
-		"hrsh7th/nvim-cmp",
+		"iguanacucumber/magazine.nvim",
+		name = "nvim-cmp",
 		event = "InsertEnter",
 		dependencies = {
-			"f3fora/cmp-spell",
 			{
 				"L3MON4D3/LuaSnip",
 				build = "make install_jsregexp",
@@ -22,23 +22,18 @@ return {
 			"onsails/lspkind.nvim",
 
 			"saadparwaiz1/cmp_luasnip",
-
-			"hrsh7th/cmp-nvim-lsp",
+			{ "iguanacucumber/mag-nvim-lsp", name = "cmp-nvim-lsp", opts = {} },
+			{ "iguanacucumber/mag-nvim-lua", name = "cmp-nvim-lua" },
+			{ "iguanacucumber/mag-buffer", name = "cmp-buffer" },
+			{ "iguanacucumber/mag-cmdline", name = "cmp-cmdline" },
 			"hrsh7th/cmp-path",
-			"hrsh7th/cmp-nvim-lua",
-			"hrsh7th/cmp-buffer",
 		},
-		config = function()
-			-- See `:help cmp`
+		opts = function()
+			local luasnip = require("luasnip")
+			local lsp_kind = require("lspkind")
 			local cmp = require("cmp")
 
-			local lsp_kind = require("lspkind")
-
-			local luasnip = require("luasnip")
-
-			luasnip.config.setup({})
-
-			cmp.setup({
+			return {
 				snippet = {
 					expand = function(args)
 						luasnip.lsp_expand(args.body)
@@ -46,15 +41,15 @@ return {
 				},
 				formatting = {
 					format = lsp_kind.cmp_format(),
-          fields = {'abbr', 'kind', 'menu'},
-          expandable_indicator = true
+					fields = { "abbr", "kind", "menu" },
+					expandable_indicator = true,
 				},
-				completion = { completeopt = "menu,menuone,noinsert" },
+				completion = { completeopt = "menu,menuone,noinsert,noselect" },
+				preselect = cmp.PreselectMode.None,
 
-        window = {
-          documentation = cmp.config.window.bordered(),
-          -- completion = cmp.config.window.bordered()
-        },
+				window = {
+					documentation = cmp.config.window.bordered({ scrollbar = true }),
+				},
 
 				-- For an understanding of why these mappings were
 				-- chosen, you will need to read `:help ins-completion`
@@ -78,7 +73,7 @@ return {
 					-- Manually trigger a completion from nvim-cmp.
 					--  Generally you don't need this, because nvim-cmp will display
 					--  completions whenever it has completion options available.
-					["<C-Space>"] = cmp.mapping.complete({}),
+					["<C-Space>"] = cmp.mapping.complete(),
 
 					-- Think of <c-l> as moving to the right of your snippet expansion.
 					--  So if you have a snippet that's like:
@@ -102,23 +97,50 @@ return {
 					-- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
 					--    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
 				}),
-				sources = {
-					{ name = "nvim_lsp" },
-					{ name = "nvim_lua" },
-					{ name = "luasnip" },
-					{ name = "spell" },
-					{ name = "path" },
-					{ name = "buffer", keyword_length = 4 },
-				},
+				sources = cmp.config.sources({
+					{ name = "nvim_lsp", keyword_length = 2 },
+					{
+						name = "luasnip",
+						-- Don't show snippet completions in comments or strings.
+						entry_filter = function()
+							local ctx = require("cmp.config.context")
+							local in_string = ctx.in_syntax_group("String") or ctx.in_treesitter_capture("string")
+							local in_comment = ctx.in_syntax_group("Comment") or ctx.in_treesitter_capture("comment")
 
+							return not in_string and not in_comment
+						end,
+					},
+				}, { name = "nvim_lua" }, {
+					{ name = "path" },
+					{
+						name = "buffer",
+						keyword_length = 3,
+						option = {
+							-- Buffer completions from all visible buffers (that aren't huge).
+							get_bufnrs = function()
+								local bufs = {}
+
+								for _, win in ipairs(vim.api.nvim_list_wins()) do
+									local buf = vim.api.nvim_win_get_buf(win)
+									if vim.bo[buf].filetype ~= "bigfile" then
+										table.insert(bufs, buf)
+									end
+								end
+
+								return bufs
+							end,
+						},
+					},
+				}),
 				sorting = {
-					priority_weight = 1,
+					priority_weight = 2,
 					comparators = {
 						cmp.config.compare.offset,
 						cmp.config.compare.exact,
 						cmp.config.compare.score,
 
-						-- copied from cmp-under
+						-- copied from cmp-under, but I don't think I need the plugin for this.
+						-- I might add some more of my own.
 						function(entry1, entry2)
 							local _, entry1_under = entry1.completion_item.label:find("^_+")
 							local _, entry2_under = entry2.completion_item.label:find("^_+")
@@ -137,6 +159,39 @@ return {
 						cmp.config.compare.order,
 					},
 				},
+				performance = {
+					max_view_entries = 30,
+				},
+			}
+		end,
+		config = function(_, opts)
+			-- See `:help cmp`
+			local cmp = require("cmp")
+
+			local luasnip = require("luasnip")
+
+			luasnip.config.setup({})
+
+			cmp.setup(opts)
+
+			cmp.setup.cmdline({ "/", "?" }, {
+				mapping = cmp.mapping.preset.cmdline(),
+				-- window = { completion = cmp.config.window.bordered({ col_offset = 0 }) },
+				sources = {
+					{ name = "buffer" },
+				},
+			})
+
+			cmp.setup.cmdline(":", {
+				mapping = cmp.mapping.preset.cmdline(),
+				-- window = { completion = cmp.config.window.bordered({ col_offset = 0 }) },
+				sources = cmp.config.sources({
+					{ name = "path" },
+				}, {
+					{ name = "cmdline", option = {
+						ignore_cmds = { "Man", "!" },
+					} },
+				}),
 			})
 		end,
 	},

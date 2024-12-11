@@ -1,25 +1,21 @@
-# =========== ZCOMET ================
-if [[ ! -f ${ZDOTDIR:-${HOME}}/.zcomet/bin/zcomet.zsh ]]; then
-  command git clone https://github.com/agkozak/zcomet.git ${ZDOTDIR:-${HOME}}/.zcomet/bin
-fi
+# Add deno completions to search path
+if [[ ":$FPATH:" != *":/Users/josevelazquez/.zsh/completions:"* ]]; then export FPATH="/Users/josevelazquez/.zsh/completions:$FPATH"; fi
 
-source ${ZDOTDIR:-${HOME}}/.zcomet/bin/zcomet.zsh
+# =========== ANTIDOTE ================
+source /opt/homebrew/opt/antidote/share/antidote/antidote.zsh
 
 
+antidote load
+# =========== END ANTIDOTE ================
+
+
+# =========== OH MY POSH ================
 if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
   eval "$(oh-my-posh init zsh --config ~/.bubblestheme.omp.yaml)"
 fi
 
-
-zcomet load marlonrichert/zsh-autocomplete@main
-zcomet load zsh-users/zsh-completions
-zcomet load MichaelAquilina/zsh-auto-notify
-zcomet load egyptianbman/zsh-git-worktrees@main
-zcomet load zsh-users/zsh-syntax-highlighting
-zcomet load zsh-users/zsh-autosuggestions
-zcomet compinit
-# =========== END ZCOMET ================
-
+# =========== END OH MY POSH ================
+export EDITOR=$(which nvim)
 
 alias vim="nvim"
 alias nvime="NVIM_APPNAME=nvim-experimental nvim"
@@ -55,3 +51,4 @@ export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
 # Go bin
 export PATH=$PATH:$HOME/go/bin
 # =========== END PATHS================
+. "/Users/josevelazquez/.deno/env"

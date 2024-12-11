@@ -27,6 +27,9 @@ vim.keymap.set("n", "Q", "<nop>")
 
 vim.keymap.set("n", "<leader>ds", "<cmd>!cp '%:p' '%:p:h/%:t:r-copy.%:e'", { desc = "duplicate current file" })
 
+vim.keymap.set("n", "<leader>cn", "<cmd>cnext<cr>zz")
+vim.keymap.set("n", "<leader>cp", "<cmd>cprev<cr>zz")
+
 -- search all and replace
 vim.keymap.set(
 	{ "n", "v" },
@@ -73,7 +76,7 @@ end)
 
 vim.keymap.set("n", "<leader><leader>", "<cmd>w<cr>", { desc = "Save Buffer", noremap = true })
 
-vim.keymap.set("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit Neovim", noremap = true })
+vim.keymap.set("n", "<leader>q", "<cmd>qa<cr>", { desc = "Quit Neovim", noremap = true })
 
 vim.keymap.set("n", "<leader>bd", "<cmd>bd<cr>", { desc = "Quit Buffer", noremap = true })
 
@@ -82,3 +85,7 @@ vim.keymap.set("n", "<leader>l", "<cmd>bnext<cr>")
 vim.keymap.set("n", "<leader>h", "<cmd>bprev<cr>")
 
 vim.keymap.set("i", "jk", "<esc>")
+
+vim.keymap.set("n", "<leader>dvo", "<cmd>DiffviewOpen<cr>")
+vim.keymap.set("n", "<leader>dvc", "<cmd>DiffviewClose<cr>")
+vim.keymap.set("n", "<leader>dvh", "<cmd>DiffviewFileHistory %<cr>")

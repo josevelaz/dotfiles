@@ -28,9 +28,9 @@ return {
 				lualine_x = {
 					{
 						function()
-							local msg = "No Active Lsp"
-							local buf_ft = vim.api.nvim_buf_get_option(0, "filetype")
-							local clients = vim.lsp.get_active_clients()
+							local msg = "No Active LSP"
+							local current_bufnr = vim.fn.bufnr("%")
+							local clients = vim.lsp.get_clients()
 							local client_list = {}
 
 							if next(clients) == nil then
@@ -38,8 +38,8 @@ return {
 							end
 
 							for _, client in ipairs(clients) do
-								local filetypes = client.config.filetypes
-								if filetypes and vim.fn.index(filetypes, buf_ft) ~= -1 then
+								local attached_buffers = client.attached_buffers
+								if attached_buffers and attached_buffers[current_bufnr] then
 									table.insert(client_list, client.name)
 								end
 							end
