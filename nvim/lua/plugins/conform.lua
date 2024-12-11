@@ -7,16 +7,15 @@ return {
 				-- Customize or remove this keymap to your liking
 				"<leader>f",
 				function()
-					require("conform").format({ async = true, stop_after_first = true })
+					require("conform").format()
 				end,
 				mode = "",
 				desc = "[F]ormat buffer",
 			},
 		},
 		opts = function()
-			local js_configuration = { { "prettierd", "prettier" }, { "eslint_d", "eslint" } }
+			local js_configuration = { "prettierd", "eslint_d" }
 			return {
-				notify_on_error = false,
 				formatters_by_ft = {
 					javascript = js_configuration,
 					javascriptreact = js_configuration,
@@ -25,7 +24,9 @@ return {
 					lua = { "stylua" },
 					go = { "goimports", "gofmt" },
 				},
-				format_on_save = { timeout_ms = 500, lsp_fallback = true },
+				default_format_ops = {
+					lsp_format = "fallback",
+				},
 			}
 		end,
 	},
