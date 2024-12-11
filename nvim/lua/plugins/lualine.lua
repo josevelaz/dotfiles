@@ -3,20 +3,34 @@ return {
 		"nvim-lualine/lualine.nvim",
 		opts = {
 			options = {
-				theme = "catppuccin-macchiato",
-				section_separators = "",
+				theme = "auto",
+				section_separators = { left = "", right = "" },
 				component_separators = "",
 			},
 			sections = {
 				lualine_a = { "mode" },
 				lualine_b = { { "branch", icon = "" }, "diff", "diagnostics" },
-				lualine_c = { "grapple", "buffers" },
+				lualine_c = {
+					{
+						"filename",
+						file_status = true,
+						newfile_status = false,
+						path = 1,
+						symbols = {
+							modified = "●", -- Text to show when the file is modified.
+							readonly = "[-]", -- Text to show when the file is non-modifiable or readonly.
+							unnamed = "[No Name]", -- Text to show for unnamed buffers.
+							newfile = "", -- Text to show for newly created file before first write
+						},
+					},
+					{ "grapple" },
+				},
 				lualine_x = {
 					{
 						function()
-							local msg = "No Active Lsp"
-							local buf_ft = vim.api.nvim_buf_get_option(0, "filetype")
-							local clients = vim.lsp.get_active_clients()
+							local msg = "No Active LSP"
+							local current_bufnr = vim.fn.bufnr("%")
+							local clients = vim.lsp.get_clients()
 							local client_list = {}
 
 							if next(clients) == nil then
@@ -24,8 +38,8 @@ return {
 							end
 
 							for _, client in ipairs(clients) do
-								local filetypes = client.config.filetypes
-								if filetypes and vim.fn.index(filetypes, buf_ft) ~= -1 then
+								local attached_buffers = client.attached_buffers
+								if attached_buffers and attached_buffers[current_bufnr] then
 									table.insert(client_list, client.name)
 								end
 							end
@@ -41,33 +55,6 @@ return {
 				},
 				lualine_y = { "progress" },
 				lualine_z = { "location" },
-			},
-			winbar = {
-				lualine_a = {},
-				lualine_b = {},
-				lualine_c = {
-					{
-						"filename",
-						path = 1,
-						fmt = function(str)
-							return str:gsub("/", " 󰅂 ")
-						end,
-					},
-					{
-						"filetype",
-						icon_only = true,
-					},
-					{
-						"navic",
-						separator = { left = "󰅂" },
-						navic_opts = {
-							seperator = " 󰅂 ",
-						},
-					},
-				},
-				lualine_x = {},
-				lualine_y = {},
-				lualine_z = {},
 			},
 		},
 		dependencies = { "nvim-tree/nvim-web-devicons", opt = true },

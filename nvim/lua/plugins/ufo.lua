@@ -8,14 +8,14 @@ return {
 		opts = {},
 
 		init = function()
-			vim.keymap.set("n", "zR", function()
-				require("ufo").openAllFolds()
-			end)
-			vim.keymap.set("n", "zM", function()
-				require("ufo").closeAllFolds()
-			end)
-			vim.keymap.set("n", "zr", require("ufo").openFoldsExceptKinds)
-			vim.keymap.set("n", "zm", require("ufo").closeFoldsWith)
+			local map = function(keys, func, desc)
+				vim.keymap.set("n", keys, func, { desc = desc })
+			end
+
+			map("zR", require("ufo").openAllFolds, "Expand All Folds")
+			map("zM", require("ufo").closeAllFolds, "Collapse All Folds")
+			map("zr", require("ufo").openFoldsExceptKinds, "")
+			map("zm", require("ufo").closeFoldsWith, "")
 		end,
 	},
 	-- Folding preview, by default h and l keys are used.

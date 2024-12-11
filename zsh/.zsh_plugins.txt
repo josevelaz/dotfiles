@@ -1,0 +1,9 @@
+marlonrichert/zsh-autocomplete
+
+zsh-users/zsh-completions branch:adfade31a84dfa512a7e3583d567ee19ac4a7936
+
+MichaelAquilina/zsh-auto-notify
+
+zsh-users/zsh-syntax-highlighting
+
+zsh-users/zsh-autosuggestions

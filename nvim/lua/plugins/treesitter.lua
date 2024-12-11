@@ -1,59 +1,30 @@
 return {
-	{
-		"windwp/nvim-ts-autotag",
-		lazy = true,
-		opts = {
-			filetypes = {
-				"html",
-				"tsx",
-				"jsx",
-				"vue",
-				"svelte",
-				"typescriptreact",
-				"javascriptreact",
-			},
-		},
-	},
-	{
+	{ -- Highlight, edit, and navigate code
 		"nvim-treesitter/nvim-treesitter",
-		lazy = false,
 		build = ":TSUpdate",
-		version = false,
-		config = function(_, opts)
-			require("nvim-treesitter.configs").setup(opts)
-		end,
 		opts = {
-			-- A list of parser names, or "all" (the five listed parsers should always be installed)
 			ensure_installed = {
-				"typescript",
-				"javascript",
-				"jsdoc",
-				"svelte",
-				"tsx",
-				"yaml",
-				"sql",
-				"json",
-				"css",
+				"bash",
+				"html",
 				"lua",
-				"vim",
-				"vimdoc",
-				"query",
+				"luadoc",
 				"markdown",
 				"markdown_inline",
+				"vim",
+				"vimdoc",
+				"jsdoc",
+				"typescript",
+				"javascript",
+				"json",
+				"yaml",
 			},
-
-			autotag = {
-				enable = true,
-			},
-			-- Install parsers synchronously (only applied to `ensure_installed`)
-			sync_install = false,
-
-			-- Automatically install missing parsers when entering buffer
-			-- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
+			-- Autoinstall languages that are not installed
 			auto_install = true,
-			-- List of parsers to ignore installing (for "all")
 			highlight = {
 				enable = true,
+				-- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
+				--  If you are experiencing weird indenting issues, add the language to
+				--  the list of additional_vim_regex_highlighting and disabled languages for indent.
 				additional_vim_regex_highlighting = { "markdown" },
 			},
 			incremental_selection = {
@@ -65,5 +36,24 @@ return {
 				},
 			},
 		},
+		config = function(_, opts)
+			-- [[ Configure Treesitter ]] See `:help nvim-treesitter`
+
+			require("nvim-treesitter.configs").setup(opts)
+
+			-- There are additional nvim-treesitter modules that you can use to interact
+			-- with nvim-treesitter. You should go explore a few and see what interests you:
+			--
+			--    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
+			--    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
+			--    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+		end,
 	},
+  {
+    "nvim-treesitter/nvim-treesitter-context",
+    opts = {
+      max_lines = 5,
+      multiline_threshold = 3
+    }
+  }
 }

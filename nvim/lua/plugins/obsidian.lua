@@ -1,7 +1,7 @@
 return {
 	"epwalsh/obsidian.nvim",
 	version = "*", -- recommended, use latest release instead of latest commit
-  lazy = true,
+	lazy = true,
 	cmd = { "ObsidianOpen", "ObsidianNew" },
 	dependencies = {
 		-- Required.
@@ -16,7 +16,5 @@ return {
 				path = "~/work/itemize/itemize-notes",
 			},
 		},
-
-		-- see below for full list of options 👇
 	},
 }
