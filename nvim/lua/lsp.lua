@@ -123,8 +123,8 @@ function M.configure_server(server, settings)
 		return vim.tbl_deep_extend(
 			"force",
 			cap,
-			-- nvim-cmp supports additional completion capabilities, so broadcast that to servers.
-			require("cmp_nvim_lsp").default_capabilities()
+			-- blink.cmp supports additional completion capabilities, so broadcast that to servers.
+			require("blink.cmp").get_lsp_capabilities()
 		)
 	end
 
