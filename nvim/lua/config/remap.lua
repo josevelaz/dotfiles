@@ -25,10 +25,8 @@ vim.keymap.set("i", "<C-c>", "<Esc>")
 
 vim.keymap.set("n", "Q", "<nop>")
 
-vim.keymap.set("n", "<leader>ds", "<cmd>!cp '%:p' '%:p:h/%:t:r-copy.%:e'", { desc = "duplicate current file" })
-
-vim.keymap.set("n", "<leader>cn", "<cmd>cnext<cr>zz")
-vim.keymap.set("n", "<leader>cp", "<cmd>cprev<cr>zz")
+vim.keymap.set("n", "<M-n>", "<cmd>cnext<cr>zz")
+vim.keymap.set("n", "<M-p>", "<cmd>cprev<cr>zz")
 
 -- search all and replace
 vim.keymap.set(

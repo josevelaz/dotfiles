@@ -1,9 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json
 
 transient_prompt:
-  template: "❯ "
-  foreground: ""
-  background: ""
+  template: " ❯ "
   foreground_templates:
   - "{{if gt .Code 0}}red{{end}}"
   - "{{if eq .Code 0}}magenta{{end}}"
@@ -14,37 +12,29 @@ blocks:
   - properties:
       style: austin
       threshold: 150.0
-    style: diamond
-    leading_diamond: 
-    trailing_diamond: "\ue0b4 "
+    style: plain
     template: "{{ .FormattedMs }}"
     foreground: "#AEA4BF"
-    background: "#29315A"
     type: executiontime
   - properties:
       style: folder
-    style: diamond
-    leading_diamond: 
-    trailing_diamond: 
-    template:  {{ .Path }}
+    style: plain
+    template: "    {{ .Path }}"
     foreground: "#3EC669"
-    background: "#29315A"
     type: path
   - properties:
       branch_max_length: 25.0
       fetch_status: true
-    style: diamond
-    leading_diamond: " \ue0b6"
-    trailing_diamond: 
-    template: " {{ .UpstreamIcon }} {{ .HEAD }} {{if .BranchStatus }} {{ .BranchStatus }}{{ end }} "
+    style: plain
+    template: "{{ .UpstreamIcon }} {{ .HEAD }} {{if .BranchStatus }} {{ .BranchStatus }}{{ end }} "
     foreground: "#43CCEA"
-    background: "#29315A"
     type: git
     foreground_templates:
     - "{{ if or (.Working.Changed) (.Staging.Changed) }}#FF9248{{ end }}"
     - "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#ff4500{{ end }}"
     - "{{ if gt .Ahead 0 }}#B388FF{{ end }}"
     - "{{ if gt .Behind 0 }}#B388FF{{ end }}"
+  
   newline: true
 version: 3
 auto_upgrade: true

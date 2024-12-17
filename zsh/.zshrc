@@ -4,7 +4,6 @@ if [[ ":$FPATH:" != *":/Users/josevelazquez/.zsh/completions:"* ]]; then export 
 # =========== ANTIDOTE ================
 source /opt/homebrew/opt/antidote/share/antidote/antidote.zsh
 
-
 antidote load
 # =========== END ANTIDOTE ================
 

@@ -17,9 +17,9 @@ sketchybar --bar \
   height=32 \
   blur_radius=30 \
   color=0xbf1e2124 \
-  margin=8 \
+  margin=3 \
   corner_radius=10 \
-  y_offset=4
+  y_offset=3
 
 ##### Changing Defaults #####
 # We now change some default values, which are applied to all further items.
@@ -27,8 +27,8 @@ sketchybar --bar \
 # https://felixkratz.github.io/SketchyBar/config/items
 
 default=(
-  padding_left=5
-  padding_right=5
+  padding_left=3
+  padding_right=3
   border_radius=10
   icon.font="IosevkaTerm Nerd Font:Bold:17.0"
   label.font="IosevkaTerm Font:Bold:14.0"
