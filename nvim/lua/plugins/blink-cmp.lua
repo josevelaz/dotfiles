@@ -4,6 +4,7 @@ return {
 	dependencies = {
 		{
 			"L3MON4D3/LuaSnip",
+			version = "v2.*",
 			dependencies = {
 				"rafamadriz/friendly-snippets",
 				config = function()
@@ -36,12 +37,18 @@ return {
 			},
 			providers = {
 				-- dont show LuaLS require statements when lazydev has items
-				lsp = { fallback_for = { "lazydev" } },
+				lsp = { score_offset = 3, fallback_for = { "lazydev" } },
 				lazydev = { name = "LazyDev", module = "lazydev.integrations.blink" },
 			},
 		},
 		keymap = {
 			preset = "enter",
+
+			["<C-l>"] = { "snippet_forward" },
+			["<C-h>"] = { "snippet_backward" },
+
+			["<C-u>"] = { "scroll_documentation_up", "fallback" },
+			["<C-d>"] = { "scroll_documentation_down", "fallback" },
 		},
 
 		signature = { enabled = true },
@@ -57,7 +64,16 @@ return {
 			},
 			menu = {
 				draw = {
-					columns = { { "label", "label_description", gap = 1 }, { "kind_icon", "kind", gap = 1 } },
+					columns = { { "kind_icon" }, { "label", "label_description", gap = 1 }, { "kind" } },
+					components = {
+						kind_icon = {
+							ellipsis = false,
+							text = function(ctx)
+								local kind_icon, _, _ = require("mini.icons").get("lsp", ctx.kind)
+								return kind_icon
+							end,
+						},
+					},
 				},
 			},
 		},

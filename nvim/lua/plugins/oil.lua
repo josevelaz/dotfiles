@@ -12,8 +12,7 @@ return {
 				Grapple.toggle({ path = Path.join(directory, filename) })
 			end, { desc = "Grapple tag under cursor" })
 
-
-      vim.keymap.set("n", "<leader>pv", "<cmd>Oil<cr>")
+			vim.keymap.set("n", "<leader>pv", "<cmd>Oil<cr>")
 		end,
 		opts = {
 			keymaps = {
@@ -36,6 +35,9 @@ return {
 			use_default_keymaps = false,
 			view_options = {
 				show_hidden = true,
+			},
+			lsp_file_methods = {
+				auto_save_changes = true,
 			},
 		},
 		-- Optional dependencies

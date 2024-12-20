@@ -23,6 +23,7 @@ return {
 			-- Useful for getting pretty icons, but requires a Nerd Font.
 			{ "nvim-tree/nvim-web-devicons", enabled = vim.g.have_nerd_font },
 			"albenisolmos/telescope-oil.nvim",
+			"nvim-telescope/telescope-dap.nvim",
 		},
 		config = function()
 			-- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -74,7 +75,7 @@ return {
 			})
 
 			-- Enable Telescope extensions if they are installed
-			local extensions = { "fzf", "ui-select", "git_worktree" }
+			local extensions = { "fzf", "ui-select", "git_worktree", "dap" }
 			for _, extension in ipairs(extensions) do
 				pcall(require("telescope").load_extension, extension)
 			end

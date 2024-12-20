@@ -19,7 +19,7 @@ vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]], { desc = "copy into clipboard
 vim.keymap.set("n", "<leader>Y", [["+Y]])
 
 -- delete into void
-vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "delete into void" })
+vim.keymap.set({ "v" }, "<leader>d", [["_d]], { desc = "delete into void", noremap = true })
 
 vim.keymap.set("i", "<C-c>", "<Esc>")
 

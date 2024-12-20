@@ -48,7 +48,7 @@ return {
 			},
 			{
 				"<leader>dB",
-				"<cmd>FzfLua dap_breakpoints<cr>",
+				"<cmd>Telescope dap list_breakpoints<cr>",
 				desc = "List breakpoints",
 			},
 			{
