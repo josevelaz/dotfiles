@@ -46,7 +46,7 @@ sketchybar --default "${default[@]}"
 # https://felixkratz.github.io/SketchyBar/config/components#space----associate-mission-control-spaces-with-an-item
 # to indicate active and available mission control spaces.
 
-SPACE_ICONS=("" "󰈹" "󱞁" "󰆼" "" "" "" "󰩃" "9" "10")
+SPACE_ICONS=("" "󰈹" "󱞁" "󰆼" "" "" "" "8" "9" "10")
 for i in "${!SPACE_ICONS[@]}"
 do
   sid="$(($i+1))"
@@ -74,6 +74,15 @@ sketchybar --add item chevron left \
            --add item front_app left \
            --set front_app icon.drawing=off script="$PLUGIN_DIR/front_app.sh" \
            --subscribe front_app front_app_switched
+
+media=(
+  script="$PLUGIN_DIR/media.sh"
+  updates=on
+)
+
+sketchybar --add item media center \
+           --set media "${media[@]}" \
+           --subscribe media media_change
 
 ##### Adding Right Items #####
 # In the same way as the left items we can add items to the right side.

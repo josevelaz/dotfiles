@@ -32,13 +32,10 @@ return {
 			end,
 		},
 		sources = {
-			completion = {
-				enabled_providers = { "lsp", "path", "luasnip", "buffer", "lazydev" },
-			},
+			default = { "lsp", "path", "luasnip", "buffer", "lazydev" },
 			providers = {
 				-- dont show LuaLS require statements when lazydev has items
-				lsp = { score_offset = 3, fallback_for = { "lazydev" } },
-				lazydev = { name = "LazyDev", module = "lazydev.integrations.blink" },
+				lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", fallbacks = { "lsp" } },
 			},
 		},
 		keymap = {
