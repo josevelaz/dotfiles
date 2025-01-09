@@ -82,8 +82,9 @@ vim.keymap.set("n", "<leader>l", "<cmd>bnext<cr>")
 
 vim.keymap.set("n", "<leader>h", "<cmd>bprev<cr>")
 
-vim.keymap.set("i", "jk", "<esc>")
-
 vim.keymap.set("n", "<leader>dvo", "<cmd>DiffviewOpen<cr>")
 vim.keymap.set("n", "<leader>dvc", "<cmd>DiffviewClose<cr>")
 vim.keymap.set("n", "<leader>dvh", "<cmd>DiffviewFileHistory %<cr>")
+
+vim.keymap.set("i", "<C-h>", "<Left>")
+vim.keymap.set("i", "<C-l>", "<Right>")
