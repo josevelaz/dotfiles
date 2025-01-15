@@ -17,22 +17,8 @@ return {
 	---@module 'blink.cmp'
 	---@type blink.cmp.Config
 	opts = {
-		snippets = {
-			expand = function(snippet)
-				require("luasnip").lsp_expand(snippet)
-			end,
-			active = function(filter)
-				if filter and filter.direction then
-					return require("luasnip").jumpable(filter.direction)
-				end
-				return require("luasnip").in_snippet()
-			end,
-			jump = function(direction)
-				require("luasnip").jump(direction)
-			end,
-		},
 		sources = {
-			default = { "lsp", "path", "luasnip", "buffer", "lazydev" },
+			default = { "lsp", "path", "snippets", "buffer", "lazydev" },
 			providers = {
 				-- dont show LuaLS require statements when lazydev has items
 				lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", fallbacks = { "lsp" } },
@@ -51,7 +37,7 @@ return {
 		signature = { enabled = true },
 		completion = {
 			list = {
-				selection = "manual",
+				selection = { preselect = false, auto_insert = false },
 			},
 			accept = {
 				auto_brackets = { enabled = true },
