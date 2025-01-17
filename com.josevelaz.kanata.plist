@@ -7,7 +7,7 @@
 
     <key>ProgramArguments</key>
     <array>
-    <string>sudo /Users/josevelazquez/.cargo/bin/kanata</string>
+        <string>sudo /Users/josevelazquez/.cargo/bin/kanata</string>
         <string>-c</string>
         <string>/Users/josevelazquez/dotfiles/kanata/kanata.kbd</string>
     </array>
