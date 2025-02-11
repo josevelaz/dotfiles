@@ -49,5 +49,6 @@ yabai -m rule --add app="^CleanShotX$" manage=off
 yabai -m rule --add app="^CleanShot X$" manage=off 
 yabai -m rule --add app="^Stickies$" manage=off 
 yabai -m rule --add app="^Claude$" manage=off 
+yabai -m rule --add app="^Shadow$" manage=off 
 
 # borders active_color=0xff5ea1ff inactive_color=0xff6e738d width=2.0 &
