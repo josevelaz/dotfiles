@@ -2,7 +2,7 @@ return {
 	"epwalsh/obsidian.nvim",
 	version = "*", -- recommended, use latest release instead of latest commit
 	lazy = true,
-	cmd = { "ObsidianOpen", "ObsidianNew" },
+	ft = "markdown",
 	dependencies = {
 		-- Required.
 		"nvim-lua/plenary.nvim",
@@ -12,9 +12,12 @@ return {
 	opts = {
 		workspaces = {
 			{
-				name = "work",
-				path = "~/work/itemize/itemize-notes",
+				name = "notes",
+				path = "~/obsidian_vaults",
 			},
+		},
+		completion = {
+			nvim_cmp = false, -- disable!
 		},
 	},
 }
