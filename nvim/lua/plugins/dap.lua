@@ -1,3 +1,35 @@
+-- -- First define the sign
+vim.fn.sign_define("DapBreakpoint", {
+	text = "●", -- or "•" if you prefer a smaller dot
+	texthl = "DapBreakpointHl",
+	linehl = "",
+	numhl = "",
+})
+vim.fn.sign_define("DapBreakpointLog", {
+	text = "", -- or "•" if you prefer a smaller dot
+	texthl = "DapBreakpointLogHl",
+	linehl = "",
+	numhl = "",
+})
+vim.fn.sign_define("DapBreakpointCondition", {
+	text = "", -- or "•" if you prefer a smaller dot
+	texthl = "DapBreakpointConditionHl",
+	linehl = "",
+	numhl = "",
+})
+vim.fn.sign_define("DapBreakpointRejected", {
+	text = "", -- or "•" if you prefer a smaller dot
+	texthl = "DapBreakpointRejectedHl",
+	linehl = "",
+	numhl = "",
+})
+vim.fn.sign_define("DapStopped", {
+	text = "", -- or "•" if you prefer a smaller dot
+	texthl = "DapStoppedHl",
+	linehl = "",
+	numhl = "",
+})
+
 return {
 	{
 		"mfussenegger/nvim-dap",
@@ -27,7 +59,7 @@ return {
 								{ id = "scopes", size = 0.50 },
 							},
 							position = "left",
-							size = 40,
+							size = 60,
 						},
 					},
 				},
@@ -107,7 +139,7 @@ return {
 				host = "::1",
 				port = "${port}",
 				executable = {
-					command = "js-debug-adapter",
+					command = vim.fn.stdpath("data") .. "/mason/bin/js-debug-adapter",
 					args = {
 						"${port}",
 					},
@@ -116,18 +148,18 @@ return {
 
 			dap.configurations["typescript"] = {
 				{
-					type = "node",
+					type = "pwa-node",
 					request = "launch",
-					name = "Dev Server",
+					name = "Run and Attach",
 					program = "${workspaceFolder}/ace.js",
 					args = { "serve", "--hmr" },
 					skipFiles = { "<node_internals>/**" },
 					cwd = "${workspaceFolder}",
 				},
 				{
-					type = "node",
+					type = "pwa-node",
 					request = "attach",
-					name = "Dev Server",
+					name = "Attach",
 					processId = require("dap.utils").pick_process,
 					skipFiles = { "<node_internals>/**" },
 					cwd = "${workspaceFolder}",

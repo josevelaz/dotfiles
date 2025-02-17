@@ -1,14 +1,3 @@
--- First define the sign
-vim.fn.sign_define("DapBreakpoint", {
-	text = "●", -- or "•" if you prefer a smaller dot
-	texthl = "DapBreakpointSign",
-	linehl = "",
-	numhl = "",
-})
-
--- Create the highlight group with red color
-vim.api.nvim_set_hl(0, "DapBreakpointSign", { fg = "#FF0000" })
-
 return {
 	{
 		"luukvbaal/statuscol.nvim",

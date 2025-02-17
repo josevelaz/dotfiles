@@ -26,7 +26,7 @@ return {
 		{
 			"<leader>sf",
 			function()
-				Snacks.picker.files()
+				Snacks.picker.files({ hidden = true })
 			end,
 			desc = "[S]earch [F]iles",
 		},
@@ -54,7 +54,7 @@ return {
 		{
 			"<leader>sg",
 			function()
-				Snacks.picker.grep()
+				Snacks.picker.grep({ hidden = true })
 			end,
 			desc = "[S]earch by [G]rep",
 		},
