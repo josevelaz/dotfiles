@@ -79,8 +79,17 @@ return {
 				desc = "Toggle breakpoint",
 			},
 			{
+				"<leader>dl",
+				function()
+					require("dap").set_breakpoint(nil, nil, vim.fn.input("Log Message: "))
+				end,
+				desc = "List breakpoints",
+			},
+			{
 				"<leader>dB",
-				"<cmd>Telescope dap list_breakpoints<cr>",
+				function()
+					require("dap").list_breakpoints()
+				end,
 				desc = "List breakpoints",
 			},
 			{
