@@ -26,7 +26,11 @@ return {
 		{
 			"<leader>sf",
 			function()
-				Snacks.picker.files({ hidden = true })
+				Snacks.picker.files({
+					hidden = true,
+					ignored = true,
+					exclude = { "node_modules", ".git", "tmp", "cdk.out" },
+				})
 			end,
 			desc = "[S]earch [F]iles",
 		},
