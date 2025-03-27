@@ -13,7 +13,7 @@ return {
 			},
 		},
 	},
-	version = "v0.*",
+	version = "v1.*",
 	---@module 'blink.cmp'
 	---@type blink.cmp.Config
 	opts = {
