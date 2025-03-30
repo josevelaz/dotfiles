@@ -171,6 +171,8 @@ return {
 					name = "Attach",
 					processId = require("dap.utils").pick_process,
 					skipFiles = { "<node_internals>/**" },
+					autoAttachChildProcesses = true,
+					outFiles = { "${workspaceFolder}/**/*.js" },
 					cwd = "${workspaceFolder}",
 				},
 			}
