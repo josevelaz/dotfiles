@@ -4,7 +4,7 @@ return {
 		event = { "BufReadPre", "BufNewFile" },
 		config = function()
 			local linter = require("lint")
-			local js_configuration = { "eslint_d", "cspell" }
+			local js_configuration = { "eslint_d" }
 
 			linter.linters_by_ft = {
 				lua = { "luacheck", "cspell" },
