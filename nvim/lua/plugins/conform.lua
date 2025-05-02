@@ -22,7 +22,7 @@ return {
 					typescript = js_configuration,
 					typescriptreact = js_configuration,
 					lua = { "stylua" },
-					go = { "goimports", "gofmt" },
+					go = { "goimports", "gofumpt" },
 				},
 				default_format_ops = {
 					lsp_format = "fallback",
