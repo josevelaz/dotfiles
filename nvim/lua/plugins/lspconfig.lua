@@ -2,6 +2,8 @@ local servers = {}
 
 servers.gopls = {}
 
+servers.templ = {}
+
 servers.sqlls = {}
 
 servers.html = {
