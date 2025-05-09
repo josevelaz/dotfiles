@@ -23,6 +23,7 @@ return {
 					typescriptreact = js_configuration,
 					lua = { "stylua" },
 					go = { "goimports", "gofumpt" },
+					templ = { "templ" },
 				},
 				default_format_ops = {
 					lsp_format = "fallback",

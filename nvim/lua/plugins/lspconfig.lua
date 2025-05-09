@@ -10,14 +10,18 @@ servers.html = {
 	filetypes = { "html", "templ" },
 }
 
-servers.htmx = {
-	filetypes = { "html", "templ" },
-}
+servers.htmx = {}
 
 servers.tailwindcss = {
 	filetypes = { "typescriptreact", "templ" },
 	root_dir = require("lspconfig").util.root_pattern("tailwind.config.{js,cjs,mjs,ts}"),
-	settings = { tailwindCSS = { includeLanguages = { templ = "html" } } },
+	settings = {
+		tailwindCSS = {
+			includeLanguages = { templ = "html" },
+			classFunctions = { "Class" },
+			classAttributes = { "Class" },
+		},
+	},
 }
 
 servers.vtsls = {
@@ -90,8 +94,6 @@ return {
 				"prettierd",
 				"jsonls",
 			})
-
-			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 
 			---@diagnostic disable-next-line: missing-fields
 			require("mason-lspconfig").setup({
