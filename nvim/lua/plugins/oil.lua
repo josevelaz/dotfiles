@@ -18,7 +18,7 @@ return {
 			keymaps = {
 				["g?"] = "actions.show_help",
 				["<CR>"] = "actions.select",
-				["<Esc>"] = "actions.parent",
+				["<Esc>"] = { "actions.parent", mode = "n" },
 				["<C-r>"] = "actions.refresh",
 				["<C-v>"] = "actions.select_vsplit",
 				["<C-s>"] = "actions.select_split",

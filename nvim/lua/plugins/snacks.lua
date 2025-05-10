@@ -6,6 +6,7 @@ return {
 	opts = {
 		picker = {
 			enabled = true,
+			main = { current = true },
 		},
 	},
 	keys = {
