@@ -36,8 +36,10 @@ return {
 				},
 				documentation = {
 					auto_show = true,
+					window = { border = "rounded" },
 				},
 				menu = {
+					border = "solid",
 					draw = {
 						columns = { { "kind_icon" }, { "label", "label_description", gap = 1 }, { "kind" } },
 						components = {
