@@ -10,7 +10,9 @@ servers.html = {
 	filetypes = { "html", "templ" },
 }
 
-servers.htmx = {}
+servers.htmx = {
+	filetypes = { "html", "templ" },
+}
 
 servers.tailwindcss = {
 	filetypes = { "typescriptreact", "templ" },
