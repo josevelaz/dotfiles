@@ -1,6 +1,8 @@
 local servers = {}
 
-servers.gopls = {}
+servers.gopls = {
+	filetypes = { "templ" },
+}
 
 servers.templ = {}
 

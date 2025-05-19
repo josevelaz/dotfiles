@@ -42,7 +42,6 @@ yabai -m rule --add app="^System Settings$" manage=off
 yabai -m rule --add app="^Karabiner-Elements$" manage=off
 yabai -m rule --add app="^Messages$" manage=off 
 yabai -m rule --add app="^CoScreen$" manage=off
-yabai -m rule --add app="^ChatGPT$" manage=off 
 yabai -m rule --add app="^Calculator$" manage=off 
 yabai -m rule --add app="^1Password$" manage=off 
 yabai -m rule --add app="^CleanShotX$" manage=off 
@@ -51,4 +50,4 @@ yabai -m rule --add app="^Stickies$" manage=off
 yabai -m rule --add app="^Claude$" manage=off 
 yabai -m rule --add app="^Shadow$" manage=off 
 
-# borders active_color=0xff5ea1ff inactive_color=0xff6e738d width=2.0 &
+borders active_color=0xff5ea1ff inactive_color=0xff6e738d width=4.0 &
