@@ -58,3 +58,10 @@ export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
 export PATH=$PATH:$HOME/go/bin
 # =========== END PATHS================
 . "/Users/josevelazquez/.deno/env"
+
+# bun completions
+[ -s "/Users/josevelazquez/.bun/_bun" ] && source "/Users/josevelazquez/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
