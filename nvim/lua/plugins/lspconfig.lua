@@ -36,7 +36,8 @@ servers.vtsls = {
 			experimental = {
 				maxInlayHintLength = 30,
 				completion = {
-					enableServerSideFuzzyMatch = true,
+					enableServerSideFuzzyMatch = false,
+					enableProjectDiagnostics = true,
 				},
 			},
 		},
