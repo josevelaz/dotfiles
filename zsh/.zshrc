@@ -4,12 +4,12 @@ if [[ ":$FPATH:" != *":/Users/josevelazquez/.zsh/completions:"* ]]; then export 
 # =========== ANTIDOTE ================
 source /opt/homebrew/opt/antidote/share/antidote/antidote.zsh
 
-GIT_WORKING_SHA=adfade31a84dfa512a7e3583d567ee19ac4a7936
-GIT_DIR=$(antidote path marlonrichert/zsh-autocomplete)
+# GIT_WORKING_SHA=adfade31a84dfa512a7e3583d567ee19ac4a7936
+# GIT_DIR=$(antidote path marlonrichert/zsh-autocomplete)
 
 # revert Zsh plugin managed by antidote to a prior SHA
-git -C "$GIT_DIR" fetch --unshallow
-git -C "$GIT_DIR" checkout $GIT_WORKING_SHA
+# git -C "$GIT_DIR" fetch --unshallow
+# git -C "$GIT_DIR" checkout $GIT_WORKING_SHA
 
 antidote load
 # =========== END ANTIDOTE ================
