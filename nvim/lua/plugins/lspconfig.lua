@@ -28,35 +28,35 @@ servers.tailwindcss = {
 	},
 }
 
-servers.vtsls = {
-	settings = {
-		vtsls = {
-			enableMoveToFileCodeAction = true,
-			autoUseWorkspaceTsdk = true,
-			experimental = {
-				maxInlayHintLength = 30,
-				completion = {
-					enableServerSideFuzzyMatch = false,
-					enableProjectDiagnostics = true,
-				},
-			},
-		},
-		typescript = {
-			updateImportsOnFileMove = { enabled = "always" },
-			inlayHints = {
-				enumMemberValues = { enabled = true },
-				functionLikeReturnTypes = { enabled = true },
-				parameterNames = { enabled = "all" },
-				parameterTypes = { enabled = true },
-				propertyDeclarationTypes = { enabled = true },
-				variableTypes = { enabled = true },
-			},
-			suggest = {
-				completeFunctionCalls = true,
-			},
-		},
-	},
-}
+-- servers.vtsls = {
+-- 	settings = {
+-- 		vtsls = {
+-- 			enableMoveToFileCodeAction = true,
+-- 			autoUseWorkspaceTsdk = true,
+-- 			experimental = {
+-- 				maxInlayHintLength = 30,
+-- 				completion = {
+-- 					enableServerSideFuzzyMatch = false,
+-- 					enableProjectDiagnostics = true,
+-- 				},
+-- 			},
+-- 		},
+-- 		typescript = {
+-- 			updateImportsOnFileMove = { enabled = "always" },
+-- 			inlayHints = {
+-- 				enumMemberValues = { enabled = true },
+-- 				functionLikeReturnTypes = { enabled = true },
+-- 				parameterNames = { enabled = "all" },
+-- 				parameterTypes = { enabled = true },
+-- 				propertyDeclarationTypes = { enabled = true },
+-- 				variableTypes = { enabled = true },
+-- 			},
+-- 			suggest = {
+-- 				completeFunctionCalls = true,
+-- 			},
+-- 		},
+-- 	},
+-- }
 
 return {
 	{
@@ -65,7 +65,7 @@ return {
 			"williamboman/mason.nvim",
 			"williamboman/mason-lspconfig.nvim",
 			"WhoIsSethDaniel/mason-tool-installer.nvim",
-			"yioneko/nvim-vtsls",
+			-- "yioneko/nvim-vtsls",
 			{
 				"j-hui/fidget.nvim",
 				opts = {
@@ -104,9 +104,9 @@ return {
 			require("mason-lspconfig").setup({
 				handlers = {
 					function(server_name)
-						if server_name == "tsserver" or server_name == "ts_ls" then
-							return
-						end
+						-- if server_name == "tsserver" or server_name == "ts_ls" then
+						-- 	return
+						-- end
 
 						local configure_server = require("lsp").configure_server
 
