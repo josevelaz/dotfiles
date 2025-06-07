@@ -2,8 +2,7 @@ return {
 	"obsidian-nvim/obsidian.nvim",
 	version = "*", -- recommended, use latest release instead of latest commit
 	lazy = true,
-	cmd = { "ObsidianSearch", "ObsidianNew", "ObsidianQuickSwitch" },
-	ft = "markdown",
+	cmd = { "Obsidian" },
 	dependencies = {
 		-- Required.
 		"nvim-lua/plenary.nvim",

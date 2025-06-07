@@ -4,6 +4,8 @@ servers.gopls = {
 	filetypes = { "templ" },
 }
 
+servers.lua_ls = {}
+
 servers.templ = {}
 
 servers.sqlls = {}

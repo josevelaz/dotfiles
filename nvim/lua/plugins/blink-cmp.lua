@@ -8,11 +8,10 @@ return {
 		---@type blink.cmp.Config
 		opts = {
 			sources = {
-				default = { "lsp", "snippets", "path", "buffer" },
-				per_filetype = { lua = { "lazydev" } },
+				default = { "lazydev", "lsp", "snippets", "path", "buffer" },
 				providers = {
 					-- dont show LuaLS require statements when lazydev has items
-					lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", fallbacks = { "lsp" } },
+					lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", score_offset = 100 },
 					snippets = { opts = { extended_filetypes = { typescript = { "javascript" } } } },
 				},
 			},
