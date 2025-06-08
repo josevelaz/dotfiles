@@ -1,11 +1,20 @@
 local worktree = require("git-worktree")
+-- Toggle for forced deletion (optional)
+local force_next_deletion = false
 
 ---@type snacks.picker.Config
 local new_worktree = {
-	title = "New Worktree",
+	title = "Create Git Worktree",
 	finder = "git_branches",
 	format = "git_branch",
 	preview = "git_log",
+	-- confirm creates: prompt for branch (or use pattern), then create under same name
+	win = {
+		list = { keys = {
+			["<tab>"] = "confirm",
+			["<CR>"] = "confirm",
+		} },
+	},
 }
 
 ---@param picker snacks.Picker
@@ -20,15 +29,78 @@ function new_worktree.confirm(picker, item)
 		branch_name = item.branch
 	end
 
-	vim.print(branch_name, existing_branch and branch_name or "master")
+	local root_path = vim.trim(vim.fn.system("git rev-parse --absolute-git-dir")) .. "/"
 
-	worktree.create_worktree(branch_name, existing_branch and branch_name or "master")
+	vim.print(root_path)
+
+	worktree.create_worktree(root_path .. branch_name, existing_branch and branch_name or "master")
 end
 
 ---@type snacks.picker.Config
 local switch_worktree = {
-	title = "Worktrees",
+	title = "Git Worktrees",
 	preview = "preview",
+	-- core actions: switch (confirm), delete, create
+	actions = {
+		-- delete selected worktree(s)
+		delete = {
+			desc = "Delete worktree(s)",
+			action = function(picker)
+				-- collect selected worktrees, fallback to current
+				local items = picker:selected({ fallback = false })
+				if #items == 0 then
+					items = { picker:current() }
+				end
+				-- confirmation
+				local prompt
+				if #items > 1 then
+					prompt = string.format("Delete %d worktrees?", #items)
+				else
+					prompt = string.format("Delete worktree '%s'?", items[1].path)
+				end
+				if vim.fn.confirm(prompt, "&Yes\n&No", 2) ~= 1 then
+					return
+				end
+				-- delete each selected worktree
+				for _, item in ipairs(items) do
+					worktree.delete_worktree(item.path, force_next_deletion)
+				end
+				picker:update({ refresh = true })
+				force_next_deletion = false
+			end,
+		},
+		-- create a new worktree via new_worktree source
+		create = {
+			desc = "Create worktree",
+			action = function(picker)
+				picker:close()
+				require("snacks.picker").create_worktree()
+			end,
+		},
+		-- toggle forced deletion on next delete
+		force = {
+			desc = "Toggle force deletion",
+			action = function()
+				force_next_deletion = not force_next_deletion
+				if force_next_deletion then
+					vim.print("Next deletion will be forced")
+				else
+					vim.print("Next deletion will be normal")
+				end
+			end,
+		},
+	},
+	-- keymap in list window: m-d delete, m-c create, c-f force
+	win = {
+		list = {
+			keys = {
+				["<CR>"] = "confirm",
+				["<M-d>"] = "delete",
+				["<M-c>"] = "create",
+				["<C-f>"] = "force",
+			},
+		},
+	},
 }
 
 ---@type snacks.picker.finder
@@ -105,7 +177,25 @@ end)
 return {
 	"polarmutex/git-worktree.nvim",
 	version = "^2",
-	dependencies = { "nvim-lua/plenary.nvim" },
+	-- require plenary and snacks picker
+	dependencies = { "nvim-lua/plenary.nvim", "folke/snacks.nvim" },
+	-- keybindings to invoke snacks pickers directly
+	keys = {
+		{
+			"<leader>gW",
+			function()
+				require("snacks.picker").create_worktree()
+			end,
+			desc = "Git Worktree: Create",
+		},
+		{
+			"<leader>gw",
+			function()
+				require("snacks.picker").switch_worktree()
+			end,
+			desc = "Git Worktree: Switch/Delete",
+		},
+	},
 	config = function()
 		if Snacks and pcall(require, "snacks.picker") then
 			Snacks.picker.sources.create_worktree = new_worktree
