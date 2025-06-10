@@ -68,17 +68,6 @@ return {
 			"williamboman/mason-lspconfig.nvim",
 			"WhoIsSethDaniel/mason-tool-installer.nvim",
 			-- "yioneko/nvim-vtsls",
-			{
-				"j-hui/fidget.nvim",
-				opts = {
-					notification = {
-						window = {
-							winblend = 0,
-							border = "rounded",
-						},
-					},
-				},
-			},
 
 			{ "Bilal2453/luvit-meta", lazy = true },
 			{ "justinsgithub/wezterm-types", lazy = true },

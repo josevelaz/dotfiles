@@ -2,13 +2,17 @@ local worktree = require("git-worktree")
 -- Toggle for forced deletion (optional)
 local force_next_deletion = false
 
+local get_worktree_path_cmd = { "git", "rev-parse", "--path-format=absolute", "--git-common-dir" }
+
 ---@type snacks.picker.Config
 local new_worktree = {
 	title = "Create Git Worktree",
 	finder = "git_branches",
 	format = "git_branch",
 	preview = "git_log",
-	-- confirm creates: prompt for branch (or use pattern), then create under same name
+	matcher = {
+		fuzzy = false,
+	},
 	win = {
 		list = { keys = {
 			["<tab>"] = "confirm",
@@ -22,24 +26,26 @@ local new_worktree = {
 function new_worktree.confirm(picker, item)
 	picker:close()
 
-	local existing_branch = false
 	local branch_name = picker.finder.filter.pattern
 	if item ~= nil then
-		existing_branch = true
 		branch_name = item.branch
 	end
 
-	local root_path = vim.trim(vim.fn.system("git rev-parse --absolute-git-dir")) .. "/"
+	local root_path = vim.trim(vim.system(get_worktree_path_cmd):wait().stdout) .. "/"
 
-	vim.print(root_path)
+	local path_with_branch = root_path .. branch_name
 
-	worktree.create_worktree(root_path .. branch_name, existing_branch and branch_name or "master")
+	worktree.create_worktree(path_with_branch, branch_name)
 end
 
 ---@type snacks.picker.Config
 local switch_worktree = {
 	title = "Git Worktrees",
 	preview = "preview",
+	matcher = {
+		fuzzy = false,
+	},
+	focus = "list",
 	-- core actions: switch (confirm), delete, create
 	actions = {
 		-- delete selected worktree(s)
@@ -69,35 +75,16 @@ local switch_worktree = {
 				force_next_deletion = false
 			end,
 		},
-		-- create a new worktree via new_worktree source
-		create = {
-			desc = "Create worktree",
-			action = function(picker)
-				picker:close()
-				require("snacks.picker").create_worktree()
-			end,
-		},
-		-- toggle forced deletion on next delete
-		force = {
-			desc = "Toggle force deletion",
-			action = function()
-				force_next_deletion = not force_next_deletion
-				if force_next_deletion then
-					vim.print("Next deletion will be forced")
-				else
-					vim.print("Next deletion will be normal")
-				end
-			end,
-		},
 	},
-	-- keymap in list window: m-d delete, m-c create, c-f force
 	win = {
+		input = {
+			keys = {
+				["<c-d>"] = "delete",
+			},
+		},
 		list = {
 			keys = {
-				["<CR>"] = "confirm",
-				["<M-d>"] = "delete",
-				["<M-c>"] = "create",
-				["<C-f>"] = "force",
+				["<c-d>"] = "delete",
 			},
 		},
 	},
@@ -109,10 +96,12 @@ function switch_worktree.finder(_, _)
 	local lines = vim.fn.systemlist("git worktree list --porcelain")
 	local worktrees = {}
 	local current = {}
+
 	for _, line in ipairs(lines) do
-		local key, val = line:match("^(%w+)%s+(.+)$")
+		local key, val = line:match("^(%w+)%s*(.*)$")
+
 		if key == "worktree" then
-			if current.path then
+			if current.path and not current.bare then
 				table.insert(worktrees, current)
 			end
 			current = { path = val }
@@ -120,11 +109,15 @@ function switch_worktree.finder(_, _)
 			current.sha = val
 		elseif key == "branch" then
 			current.branch = val:match("^refs/heads/(.+)$") or val
+		elseif key == "bare" then
+			current.bare = true
 		end
 	end
+
 	if current.path then
 		table.insert(worktrees, current)
 	end
+
 	---@async
 	---@param cb async fun(item: snacks.picker.finder.Item)
 	return function(cb)
@@ -166,11 +159,80 @@ function switch_worktree.confirm(picker, item)
 end
 
 local Hooks = require("git-worktree.hooks")
-local config = require("git-worktree.config")
 local update_on_switch = Hooks.builtins.update_current_buffer_on_switch
 
+local fidget = require("fidget")
+
+Hooks.register(Hooks.type.CREATE, function(path, branch, upstream)
+	local root_path = vim.system({ "git", "rev-parse", "--git-common-dir" }):wait().stdout
+	root_path = vim.trim(root_path or "")
+
+	if root_path == "." then
+		root_path = ".."
+	end
+
+	local env_master = string.format("%s/.env", root_path)
+
+	local env_current = string.format("%s/.env", path)
+
+	local link_cmd = { "ln", "-s", env_master, env_current }
+
+	vim.system(link_cmd):wait()
+
+	fidget.notify("Linked .env to worktree", vim.log.levels.INFO, {
+		ttl = 10,
+	})
+
+	local progressHandler = fidget.progress.handle.create({
+		title = "Installing Dependencies",
+		message = "npm install",
+		percentage = 0,
+	})
+
+	local on_install_finish = function(install_output)
+		if install_output.code == 1 then
+			progressHandler:report({
+				title = "Error Installing Dependencies",
+				message = "An error occurred installing dependencies",
+				done = true,
+			})
+		end
+
+		progressHandler:report({
+			title = "Finished Installing Dependencies",
+			done = true,
+		})
+	end
+
+	vim.system({ "npm", "install" }, { text = true, cwd = path }, on_install_finish)
+end)
+
 Hooks.register(Hooks.type.SWITCH, function(path, prev_path)
-	vim.notify("Moved from " .. prev_path .. " to " .. path)
+	local formatPath = function(fullPath)
+		local last_two = fullPath:match("([^/]+/[^/]+)$")
+		return last_two
+	end
+	fidget.notify(
+		"Moved from " .. formatPath(prev_path) .. " to " .. formatPath(path),
+		vim.log.levels.WARN,
+		{ ttl = 10 }
+	)
+
+	local buf = vim.api.nvim_get_current_buf()
+
+	local ft = vim.api.nvim_get_option_value("filetype", {
+		buf = buf,
+	})
+
+	if ft == "oil" then
+		local oil = require("oil")
+		local oil_actions = require("oil.actions")
+
+		oil_actions.refresh.callback()
+		oil.open(path)
+		return
+	end
+
 	update_on_switch(path, prev_path)
 end)
 
@@ -182,14 +244,14 @@ return {
 	-- keybindings to invoke snacks pickers directly
 	keys = {
 		{
-			"<leader>gW",
+			"<leader>sT",
 			function()
 				require("snacks.picker").create_worktree()
 			end,
 			desc = "Git Worktree: Create",
 		},
 		{
-			"<leader>gw",
+			"<leader>st",
 			function()
 				require("snacks.picker").switch_worktree()
 			end,
