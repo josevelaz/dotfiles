@@ -35,7 +35,7 @@ function new_worktree.confirm(picker, item)
 
 	local path_with_branch = root_path .. branch_name
 
-	worktree.create_worktree(path_with_branch, branch_name)
+	worktree.create_worktree(path_with_branch, branch_name, "origin/master")
 end
 
 ---@type snacks.picker.Config
