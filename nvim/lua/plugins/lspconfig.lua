@@ -30,35 +30,36 @@ servers.tailwindcss = {
 	},
 }
 
--- servers.vtsls = {
--- 	settings = {
--- 		vtsls = {
--- 			enableMoveToFileCodeAction = true,
--- 			autoUseWorkspaceTsdk = true,
--- 			experimental = {
--- 				maxInlayHintLength = 30,
--- 				completion = {
--- 					enableServerSideFuzzyMatch = false,
--- 					enableProjectDiagnostics = true,
--- 				},
--- 			},
--- 		},
--- 		typescript = {
--- 			updateImportsOnFileMove = { enabled = "always" },
--- 			inlayHints = {
--- 				enumMemberValues = { enabled = true },
--- 				functionLikeReturnTypes = { enabled = true },
--- 				parameterNames = { enabled = "all" },
--- 				parameterTypes = { enabled = true },
--- 				propertyDeclarationTypes = { enabled = true },
--- 				variableTypes = { enabled = true },
--- 			},
--- 			suggest = {
--- 				completeFunctionCalls = true,
--- 			},
--- 		},
--- 	},
--- }
+servers.vtsls = {
+	settings = {
+		vtsls = {
+			enableMoveToFileCodeAction = true,
+			autoUseWorkspaceTsdk = true,
+			experimental = {
+				maxInlayHintLength = 30,
+				completion = {
+					enableServerSideFuzzyMatch = false,
+					enableProjectDiagnostics = true,
+				},
+			},
+		},
+		typescript = {
+			updateImportsOnFileMove = { enabled = "always" },
+			inlayHints = {
+				enumMemberValues = { enabled = true },
+				functionLikeReturnTypes = { enabled = true },
+				parameterNames = { enabled = "all" },
+				parameterTypes = { enabled = true },
+				propertyDeclarationTypes = { enabled = true },
+				variableTypes = { enabled = true },
+			},
+			suggest = {
+				completeFunctionCalls = true,
+				autoImports = true,
+			},
+		},
+	},
+}
 
 return {
 	{
