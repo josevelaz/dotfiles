@@ -4,6 +4,8 @@ servers.gopls = {
 	filetypes = { "templ" },
 }
 
+servers.jsonls = {}
+
 servers.lua_ls = {}
 
 servers.templ = {}
@@ -38,7 +40,7 @@ servers.vtsls = {
 			experimental = {
 				maxInlayHintLength = 30,
 				completion = {
-					enableServerSideFuzzyMatch = false,
+					enableServerSideFuzzyMatch = true,
 					enableProjectDiagnostics = true,
 				},
 			},
@@ -68,7 +70,7 @@ return {
 			"williamboman/mason.nvim",
 			"williamboman/mason-lspconfig.nvim",
 			"WhoIsSethDaniel/mason-tool-installer.nvim",
-			-- "yioneko/nvim-vtsls",
+			"yioneko/nvim-vtsls",
 
 			{ "Bilal2453/luvit-meta", lazy = true },
 			{ "justinsgithub/wezterm-types", lazy = true },
@@ -84,29 +86,18 @@ return {
 			require("mason").setup()
 
 			local ensure_installed = vim.tbl_keys(servers or {})
-			vim.list_extend(ensure_installed, {
-				"stylua",
-				"lua_ls",
-				"eslint_d",
-				"prettierd",
-				"jsonls",
-			})
 
-			---@diagnostic disable-next-line: missing-fields
+			local configure_server = require("lsp").configure_server
+
+			for _, server_name in ipairs(ensure_installed) do
+				local server_configuration = servers[server_name] or {}
+
+				configure_server(server_name, server_configuration)
+			end
+
 			require("mason-lspconfig").setup({
-				handlers = {
-					function(server_name)
-						-- if server_name == "tsserver" or server_name == "ts_ls" then
-						-- 	return
-						-- end
-
-						local configure_server = require("lsp").configure_server
-
-						local server_configuration = servers[server_name] or {}
-
-						configure_server(server_name, server_configuration)
-					end,
-				},
+				ensure_installed = ensure_installed,
+				automatic_enable = true,
 			})
 		end,
 	},

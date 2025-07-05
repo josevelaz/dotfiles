@@ -86,21 +86,21 @@ local on_attach = function(client, bufnr)
 			vim.g.inlay_hint_enabled = not enabled
 
 			-- If toggling them on, turn them back off when entering insert mode.
-			if vim.g.inlay_hint_enabled then
-				vim.api.nvim_create_autocmd("InsertEnter", {
-					buffer = bufnr,
-					callback = function()
-						vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
-					end,
-				})
-
-				vim.api.nvim_create_autocmd("InsertLeave", {
-					buffer = bufnr,
-					callback = function()
-						vim.lsp.inlay_hint.enable(vim.g.inlay_hint_enabled, { bufnr = bufnr })
-					end,
-				})
-			end
+			-- if vim.g.inlay_hint_enabled then
+			-- 	vim.api.nvim_create_autocmd("InsertEnter", {
+			-- 		buffer = bufnr,
+			-- 		callback = function()
+			-- 			vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
+			-- 		end,
+			-- 	})
+			--
+			-- 	vim.api.nvim_create_autocmd("InsertLeave", {
+			-- 		buffer = bufnr,
+			-- 		callback = function()
+			-- 			vim.lsp.inlay_hint.enable(vim.g.inlay_hint_enabled, { bufnr = bufnr })
+			-- 		end,
+			-- 	})
+			-- end
 		end, { buffer = bufnr, desc = "Toggle inlay hints" })
 	end
 end
@@ -142,7 +142,8 @@ function M.configure_server(server, settings)
 		)
 	end
 
-	require("lspconfig")[server].setup(
+	vim.lsp.config(
+		server,
 		vim.tbl_deep_extend("error", { capabilities = capabilities(), silent = true }, settings or {})
 	)
 end
