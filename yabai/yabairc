@@ -46,4 +46,12 @@ yabai -m rule --add app="^1Password$" manage=off
 yabai -m rule --add app="^CleanShotX$" manage=off 
 yabai -m rule --add app="^CleanShot X$" manage=off 
 
+yabai -m rule --add app="^Ghostty$" space=1
+yabai -m rule --add app="^Obsidian$" space=3
+yabai -m rule --add app="^Todoist$" space=3 grid=1:3:2:0:1:1
+yabai -m rule --add app="^DataGrip$" space=4
+yabai -m rule --add app="^Slack$" space=5
+yabai -m rule --add app="^Fantastical$" space=6
+yabai -m rule --add app="^Youtube Music$" space=9
+
 borders active_color=0xfff25c00 inactive_color=0xff6e738d width=5.0 &

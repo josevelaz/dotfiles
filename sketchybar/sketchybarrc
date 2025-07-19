@@ -106,7 +106,7 @@ sketchybar --add item clock right \
            --add alias 1Password right \
            --set 1Password background.padding_left=-10 background.padding_right=-10 \
            --add alias "Dato,UpcomingEvent" right \
-           --set "Dato,UpcomingEvent" background.padding_left=-10 background.padding_right=-10 \
+           --set "Dato,UpcomingEvent" background.padding_left=-10 background.padding_right=-10 click_script="$PLUGIN_DIR/dato.sh"\
            --add alias Tunnelblick right \
            --set Tunnelblick background.padding_left=-10 background.padding_right=-10 click_script="$PLUGIN_DIR/vpn.sh"
 
