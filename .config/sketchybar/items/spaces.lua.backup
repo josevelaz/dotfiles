@@ -1,0 +1,55 @@
+local cjson = require("cjson")
+local inspect = require("inspect")
+
+-- Space indicators for mission control spaces
+local SPACE_ICONS = { "", "󰈹", "󱞁", "󰆼", "", "", "7", "8", "9", "10" }
+
+local spaces = io.popen("yabai -m query --spaces | jq 'sort_by(.index) | map(.index)'", "r")
+local spaces_output = spaces:read("*a")
+
+local active_apps = cjson.decode(spaces_output)
+
+print(inspect(active_apps))
+
+-- Get spaces from yabai (this would need to be handled differently in practice)
+-- For now, we'll create spaces 1-10 as in the original config
+for space_i, space in ipairs(active_apps) do
+	local window_spaces =
+		io.popen("yabai -m query --windows --space " .. math.tointeger(space) .. " | jq 'map(.app)'", "r")
+
+	if window_spaces == nil then
+		print("Unable to query windows for space: " .. space)
+		return
+	end
+
+	local windows_output = window_spaces:read("*a")
+	window_spaces:close()
+
+	local active_windows = cjson.decode(windows_output)
+
+	local space = sbar.add("space", "space." .. space_i, {
+		space = space_i,
+		background = {
+			color = 0x40ffffff,
+			corner_radius = 5,
+			height = 24,
+		},
+		-- script = os.getenv("CONFIG_DIR") .. "/plugins/space.sh",
+		click_script = "yabai -m space --focus " .. space_i,
+	})
+
+	for app_i, app in ipairs(active_windows) do
+		sbar.add("item", app, {
+			label = app,
+			space = space_i,
+		})
+	end
+	space:subscribe("space_change", function(env)
+		local selected = env.SELECTED == "true"
+		space:set({
+			background = { highlight = selected },
+			label = env.NAME,
+		})
+	end)
+end
+

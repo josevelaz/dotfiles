@@ -1,0 +1,53 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "theme": "cyberdream",
+  "lsp": {
+    "go": {
+      "command": [ "gopls" ],
+      "extensions": ["go", "templ", "gomod", "gowork"]
+    },
+    "templ": {
+      "command": [ "go", "tool", "templ", "lsp" ],
+      "extensions": ["templ"]
+    },
+    "htmx": {
+      "command": [ "htmx-lsp" ],
+      "extensions": ["templ", "html"]
+    } 
+  },
+  "mcp": {
+    "aws_documentation": {
+      "type": "local",
+      "command": [ "uvx",
+     "awslabs.aws-documentation-mcp-server@latest" ],
+      "environment": {
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "AWS_DOCUMENTATION_PARTITION": "aws"
+      }
+    },
+    "aws_knowledge": {
+      "type": "remote",
+      "url": "https://knowledge-mcp.global.api.aws"
+    },
+    "jira": {
+      "type": "local",
+      "command": ["npx", "-y", "mcp-remote", "https://mcp.atlassian.com/v1/sse"]
+    },
+    // "obsidian": {
+    //   "type": "local",
+    //   "command": ["npx", "-y", "obsidian-mcp-server"],
+    //   "environment": {
+    //     "OBSIDIAN_API_KEY": "$OBSIDIAN_API_KEY"
+    //   }
+    // },
+    "github": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer {env:GITHUB_MCP_PAT}"
+      }
+      // "command": ["npx", "-y", "mcp-remote", "https://api.githubcopilot.com/mcp/"]
+    }
+  }
+
+}
