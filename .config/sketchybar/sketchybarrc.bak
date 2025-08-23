@@ -1,0 +1,166 @@
+require("helpers")
+# This is a demo config to showcase some of the most important commands.
+# It is meant to be changed and confi
+# For a (much) more advanced configuration example see my dotfiles:
+# https://github.com/FelixKratz/dotfiles
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+
+##### Bar Appearance #####
+# Configuring the general appearance of the bar.
+# These are only some of the options available. For all options see:
+# https://felixkratz.github.io/SketchyBar/config/bar
+# If you are looking for other colors, see the color picker:
+# https://felixkratz.github.io/SketchyBar/config/tricks#color-picker
+
+sketchybar --bar \
+  position=top \
+  height=32 \
+  blur_radius=30 \
+  color=0xbf1e2124 \
+  margin=3 \
+  corner_radius=10 \
+  y_offset=3
+
+##### Changing Defaults #####
+# We now change some default values, which are applied to all further items.
+# For a full list of all available item properties see:
+# https://felixkratz.github.io/SketchyBar/config/items
+
+default=(
+  padding_left=3
+  padding_right=3
+  border_radius=10
+  icon.font="IosevkaTerm Nerd Font:Bold:17.0"
+  label.font="IosevkaTerm Font:Bold:14.0"
+  icon.color=0xffffffff
+  label.color=0xffffffff
+  icon.padding_left=4
+  icon.padding_right=4
+  label.padding_left=4
+  label.padding_right=4
+)
+sketchybar --default "${default[@]}"
+
+##### Adding Mission Control Space Indicators #####
+# Let's add some mission control spaces:
+# https://felixkratz.github.io/SketchyBar/config/components#space----associate-mission-control-spaces-with-an-item
+# to indicate active and available mission control spaces.
+
+SPACE_ICONS=("" "󰈹" "󱞁" "󰆼" "" "" "7" "8" "9" "10")
+
+SPACES=(yabai -m query --windows | jq "sort_by(.space)| group_by(.space) | map([.[].app])")
+
+echo $SPACES
+
+
+for i in "${arrays[@]}"; do
+    # for val in "${(@P)arrname}"; do
+    # done
+
+    sid="$(($i+1))"
+    space=(
+        space="$sid"
+# icon="${SPACE_ICONS[i]}"
+        icon.padding_left=7
+        icon.padding_right=7
+        background.color=0x40ffffff
+        background.corner_radius=5
+        background.height=24
+        label="test"
+# label.drawing=off
+        script="$PLUGIN_DIR/space.sh"
+        click_script="yabai -m space --focus $sid"
+        )
+  sketchybar --add space space."$sid" left --set space."$sid" "${space[@]}"
+done
+
+##### Adding Left Items #####
+# We add some regular items to the left side of the bar, where
+# only the properties deviating from the current defaults need to be set
+
+sketchybar --add item chevron left \
+           --set chevron icon= icon.font.size=10 label.drawing=off \
+           --add item front_app left \
+           --set front_app icon.drawing=off script="$PLUGIN_DIR/front_app.sh" \
+           --subscribe front_app front_app_switched
+
+# media=(
+#   script="$PLUGIN_DIR/media.sh"
+#   updates=on
+# )
+#
+# sketchybar --add item media center \
+#            --set media "${media[@]}" \
+#            --subscribe media media_change
+
+##### Adding Right Items #####
+# In the same way as the left items we can add items to the right side.
+# Additional position (e.g. center) are available, see:
+# https://felixkratz.github.io/SketchyBar/config/items#adding-items-to-sketchybar
+
+# Some items refresh on a fixed cycle, e.g. the clock runs its script once
+# every 10s. Other items respond to events they subscribe to, e.g. the
+# volume.sh script is only executed once an actual change in system audio
+# volume is registered. More info about the event system can be found here:
+# https://felixkratz.github.io/SketchyBar/config/events
+
+sketchybar --add item clock right \
+           --set clock update_freq=10 icon.drawing=false  script="$PLUGIN_DIR/clock.sh" \
+           --add item volume right \
+           --set volume script="$PLUGIN_DIR/volume.sh" \
+           --subscribe volume volume_change \
+           --add item battery right \
+           --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
+           --subscribe battery system_woke power_source_change \
+           --add alias 1Password right \
+           --set 1Password background.padding_left=-10 background.padding_right=-10 \
+           --add alias "Dato,UpcomingEvent" right \
+           --set "Dato,UpcomingEvent" background.padding_left=-10 background.padding_right=-10 click_script="$PLUGIN_DIR/dato.sh"\
+           --add alias Tunnelblick right \
+           --set Tunnelblick background.padding_left=-10 background.padding_right=-10 click_script="$PLUGIN_DIR/vpn.sh"
+
+
+music=(
+  script="$PLUGIN_DIR/youtube-music.sh"
+  click_script="curl -s -X POST 0.0.0.0:26538/api/v1/toggle-play && $PLUGIN_DIR/youtube-music.sh"
+  label.padding_right=8
+  label.font="IosevkaTerm Font:Bold:14.0"
+  padding_left=0
+  icon=􁁒
+  # Pinned it to the primary display since my other monitor is in vertical layout
+  # display=1
+  label="Loading…"
+  background.image.scale=0.9
+  background.image.corner_radius=10
+  background.image.border_color="$TRANSPARENT"
+  background.color="$TRANSPARENT"
+  icon.padding_left=36
+  icon.padding_right=8
+  label.align=left
+  update_freq=10
+  label.max_chars=40
+  scroll_texts=on
+)
+
+music_artwork=(
+  click_script="curl -s -X POST 0.0.0.0:26538/api/v1/toggle-play && $PLUGIN_DIR/youtube-music.sh"
+  label.padding_right=8
+  padding_left=8
+  display=1
+  label=""
+  width=40
+  background.image.scale=0.05
+  background.image.corner_radius=8
+  background.image.border_color="$TRANSPARENT"
+  background.color="$TRANSPARENT"
+)
+sketchybar \
+     --add item music-artwork right \
+       --set music-artwork "${music_artwork[@]}"
+sketchybar \
+  --add item music right \
+  --set music "${music[@]}"
+
+##### Force all scripts to run the first time (never do this in a script) #####
+sketchybar --update
