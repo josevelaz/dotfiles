@@ -1,26 +1,36 @@
 -- Application aliases
 local onepassword = sbar.add("alias", "1Password", {
-  position = "right",
-  background = {
-    padding_left = -10,
-    padding_right = -10,
-  },
+	position = "right",
+	background = {
+		padding_left = -10,
+		padding_right = -10,
+	},
 })
 
-local dato = sbar.add("alias", "Dato,UpcomingEvent", {
-  position = "right", 
-  background = {
-    padding_left = -10,
-    padding_right = -10,
-  },
-  click_script = os.getenv("CONFIG_DIR") .. "/plugins/dato.sh",
+local fantasical = sbar.add("alias", "Fantastical Helper,Fantastical", {
+	position = "right",
+	background = {
+		padding_left = -10,
+		padding_right = -10,
+	},
+	click_script = os.getenv("CONFIG_DIR") .. "/plugins/fantastical.sh",
 })
+
+-- local dato = sbar.add("alias", "Dato,UpcomingEvent", {
+--   position = "right",
+--   background = {
+--     padding_left = -10,
+--     padding_right = -10,
+--   },
+--   click_script = os.getenv("CONFIG_DIR") .. "/plugins/dato.sh",
+-- })
 
 local tunnelblick = sbar.add("alias", "Tunnelblick", {
-  position = "right",
-  background = {
-    padding_left = -10,
-    padding_right = -10,
-  },
-  click_script = os.getenv("CONFIG_DIR") .. "/plugins/vpn.sh",
+	position = "right",
+	background = {
+		padding_left = -10,
+		padding_right = -10,
+	},
+	click_script = os.getenv("CONFIG_DIR") .. "/plugins/vpn.sh",
 })
+
