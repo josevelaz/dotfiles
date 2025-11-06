@@ -2038,4 +2038,3 @@ enquiry-response =
 # 
 # Changing this value at runtime works after a small delay.
 auto-update = check
-
