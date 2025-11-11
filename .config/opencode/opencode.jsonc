@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "theme": "cyberdream",
+  "theme": "tokyonight",
   "autoupdate": true,
   "lsp": {
     "go": {
@@ -29,10 +29,6 @@
     "aws_knowledge": {
       "type": "remote",
       "url": "https://knowledge-mcp.global.api.aws"
-    },
-    "jira": {
-      "type": "local",
-      "command": ["npx", "-y", "mcp-remote", "https://mcp.atlassian.com/v1/sse"]
     },
     // "obsidian": {
     //   "type": "local",
