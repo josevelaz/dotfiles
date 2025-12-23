@@ -1,0 +1,14 @@
+[
+  {
+    "content": "Run npm run lint to check for lint errors",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Fix any lint errors found",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  }
+]

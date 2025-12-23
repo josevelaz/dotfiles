@@ -1,0 +1,20 @@
+[
+  {
+    "content": "Investigate SQS notification service error with notificationId casting",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Fix the notificationId parameter type issue in SQS message attributes",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Test the fix to ensure notifications are properly enqueued",
+    "status": "pending",
+    "priority": "medium",
+    "id": "3"
+  }
+]

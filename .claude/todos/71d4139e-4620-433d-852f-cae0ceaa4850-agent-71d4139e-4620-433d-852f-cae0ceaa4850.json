@@ -1,0 +1,42 @@
+[
+  {
+    "content": "Analyze existing test structure to understand patterns",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": "Create integration tests for TimezoneMiddleware functionality",
+    "status": "completed",
+    "id": "2"
+  },
+  {
+    "content": "Create integration tests for timezone extraction in AP controllers",
+    "status": "completed",
+    "id": "3"
+  },
+  {
+    "content": "Create frontend tests for timezone utilities",
+    "status": "completed",
+    "id": "4"
+  },
+  {
+    "content": "Run all tests to ensure they pass",
+    "status": "completed",
+    "id": "5"
+  },
+  {
+    "content": "Run lint to ensure code quality",
+    "status": "completed",
+    "id": "6"
+  },
+  {
+    "content": "Run typecheck to ensure no type errors",
+    "status": "completed",
+    "id": "7"
+  },
+  {
+    "content": "Fix any failing tests, lint or type errors",
+    "status": "completed",
+    "id": "8"
+  }
+]

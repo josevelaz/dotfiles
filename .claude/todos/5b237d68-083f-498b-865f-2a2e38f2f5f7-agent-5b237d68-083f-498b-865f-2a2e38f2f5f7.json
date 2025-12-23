@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Replace staging values with ephemeral build ID",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Add primary keys, foreign keys, and constraints copying",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Add indexes copying for performance",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Implement efficient bulk data transfer with COPY",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Add transaction wrapping for atomicity",
+    "status": "completed",
+    "priority": "high",
+    "id": "5"
+  }
+]

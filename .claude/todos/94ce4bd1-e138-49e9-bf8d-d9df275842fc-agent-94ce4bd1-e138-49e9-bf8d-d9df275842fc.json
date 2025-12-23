@@ -1,0 +1,68 @@
+[
+  {
+    "content": "Remove axios dependencies and unused properties from Auth0Service",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Replace createOrganization method with Auth0 library",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Replace updateOrganization method with Auth0 library",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Replace getOrganizationConnections method with Auth0 library",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Replace inviteUserToOrganization method with Auth0 library",
+    "status": "completed",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "content": "Update error handling to work with Auth0 library errors",
+    "status": "completed",
+    "priority": "medium",
+    "id": "6"
+  },
+  {
+    "content": "Run lint and typecheck to ensure code quality",
+    "status": "completed",
+    "priority": "medium",
+    "id": "7"
+  },
+  {
+    "content": "Add deleteUser method to Auth0Service",
+    "status": "completed",
+    "priority": "high",
+    "id": "8"
+  },
+  {
+    "content": "Add invite user back functionality to frontend",
+    "status": "completed",
+    "priority": "high",
+    "id": "9"
+  },
+  {
+    "content": "Add invite user back backend functionality",
+    "status": "completed",
+    "priority": "high",
+    "id": "10"
+  },
+  {
+    "content": "Add route for invite user back functionality",
+    "status": "completed",
+    "priority": "high",
+    "id": "11"
+  }
+]

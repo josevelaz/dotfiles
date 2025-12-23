@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Examine existing Cognito guard structure",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Review framework documentation for auth guard interfaces",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Create base auth guard interfaces",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Ensure backwards/forwards compatibility",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  }
+]

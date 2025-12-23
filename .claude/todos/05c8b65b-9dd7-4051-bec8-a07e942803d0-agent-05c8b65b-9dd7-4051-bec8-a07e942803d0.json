@@ -1,0 +1,27 @@
+[
+  {
+    "content": "Fix null document type ID handling in reports controller",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": "Add comprehensive debug logging for query parameters",
+    "status": "completed",
+    "id": "2"
+  },
+  {
+    "content": "Enhance timezone handling with validation",
+    "status": "completed",
+    "id": "3"
+  },
+  {
+    "content": "Improve document query logic and error handling",
+    "status": "completed",
+    "id": "4"
+  },
+  {
+    "content": "Test the fixes with edge cases",
+    "status": "completed",
+    "id": "5"
+  }
+]

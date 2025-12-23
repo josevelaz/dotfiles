@@ -1,0 +1,685 @@
+[DEBUG] Watching for changes in setting files /Users/josevelazquez/.claude/settings.json...
+[DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+[DEBUG] Creating shell snapshot for zsh (/bin/zsh)
+[DEBUG] Looking for shell config file: /Users/josevelazquez/.zshrc
+[DEBUG] Snapshots directory: /Users/josevelazquez/.claude/shell-snapshots
+[DEBUG] Creating snapshot at: /Users/josevelazquez/.claude/shell-snapshots/snapshot-zsh-1760015311761-inzsa2.sh
+[DEBUG] Shell binary exists: true
+[DEBUG] Execution timeout: 10000ms
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude/todos/956cc83a-ed31-4fe6-a970-9b31c1d0a582-agent-956cc83a-ed31-4fe6-a970-9b31c1d0a582.json.tmp.33391.1760015311763
+[DEBUG] Temp file written successfully, size: 2 bytes
+[DEBUG] Renaming /Users/josevelazquez/.claude/todos/956cc83a-ed31-4fe6-a970-9b31c1d0a582-agent-956cc83a-ed31-4fe6-a970-9b31c1d0a582.json.tmp.33391.1760015311763 to /Users/josevelazquez/.claude/todos/956cc83a-ed31-4fe6-a970-9b31c1d0a582-agent-956cc83a-ed31-4fe6-a970-9b31c1d0a582.json
+[DEBUG] File /Users/josevelazquez/.claude/todos/956cc83a-ed31-4fe6-a970-9b31c1d0a582-agent-956cc83a-ed31-4fe6-a970-9b31c1d0a582.json written atomically
+[DEBUG] Registered 0 hooks from 0 plugins
+[DEBUG] Loading skills from directories: managed=/Library/Application Support/ClaudeCode/.claude/skills, user=/Users/josevelazquez/.claude/skills, project=/Users/josevelazquez/work/itemize/platform.worktrees/IZ-3819/.claude/skills
+[DEBUG] Loaded 0 skills total (managed: 0, user: 0, project: 0)
+[DEBUG] Total plugin commands loaded: 0
+[DEBUG] Total plugin skills loaded: 0
+[DEBUG] Summarizing all 2 messages (~0 tokens)
+[DEBUG] Ripgrep first use test: PASSED (mode=builtin, path=/Users/josevelazquez/Library/Application Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/vendor/ripgrep/arm64-darwin/rg)
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015311983
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1691557 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015311983 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[ERROR] AxiosError: AxiosError: Request failed with status code 401
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async cIA (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:877:25947)
+[DEBUG] Shell snapshot created successfully (39241 bytes)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async II6 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1374:5002)
+    at async in2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1374:5248)
+[DEBUG] Failed to fetch Grove notice config: AxiosError: Request failed with status code 401
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async tI1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2605:2030)
+    at async ND0 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1923:3306)
+    at async mr5 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3172:21788)
+    at async file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3172:23369
+    at async Ek0 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3172:1852)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgEuSzmdqYp9yxJmy5S"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async tI1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2605:2030)
+    at async ND0 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1923:3306)
+    at async mr5 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3172:21788)
+    at async file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3172:23369
+    at async Ek0 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3172:1852)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgEwUnE4yTZeyxFsD5n"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015314358
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1691557 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015314358 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015314393
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1691557 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015314393 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015315521
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1692042 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015315521 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] MCP server "obsidian": Starting connection with timeout of 30000ms
+[DEBUG] MCP server "obsidian": Successfully connected to stdio server in 633ms
+[DEBUG] MCP server "obsidian": Connection established with capabilities: {"hasTools":true,"hasPrompts":false,"hasResources":false,"serverVersion":{"name":"mcp-obsidian","version":"1.16.0"}}
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015316234
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1692042 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015316234 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] Executing hooks for SessionStart:startup
+[DEBUG] Getting matching hook commands for SessionStart with query: startup
+[DEBUG] Found 0 hook matchers in settings
+[DEBUG] Matched 0 unique hooks for query "startup" (0 before deduplication)
+[DEBUG] Found 0 hook commands to execute
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015316329
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1692042 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015316329 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015316372
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1692041 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015316372 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] AutoUpdaterWrapper: Installation type: unknown, using native: false
+[DEBUG] performStartupChecks called, ENABLE_PLUGINS=undefined
+[DEBUG] Skipping plugin installations - ENABLE_PLUGINS not set
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015316998
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1692146 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015316998 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[ERROR] MCP server "obsidian" Server stderr: INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015317465
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1692146 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015317465 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 4)
+    at async eG1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:1425)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFDRjJqpUKPVuCpPLM"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 4)
+    at async eG1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:1425)
+    at async SQQ (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3172:467)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 4)
+    at async eG1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:1425)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 3)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFJEhsWteg2m9ifzu3"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 3)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 2)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFJgVJHsfMDL1gYpKp"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 2)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 3)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 7)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFL55kU4gYKYUtorSY"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 7)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 9)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFLaLwXhCriu8fgV44"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 9)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 0)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 9)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFME31yQvg8LrpmepL"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 0)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 0)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 2)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 10)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFQoqtBrk1KQ8uvDcA"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 10)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 7)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 1)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFTY3u4eCXXMo55Kwa"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 1)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 5)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFTwrKJfF3NY3zBjoT"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 5)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 1)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 11)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFVfnjrFZCZe5gz9iK"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 11)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 6)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFWE2QguSgU9VxgbnG"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 6)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 11)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 6)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 10)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9643)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 8)
+[ERROR] Error: Error: 401 {"type":"error","error":{"type":"authentication_error","message":"OAuth token has expired. Please obtain a new token or refresh your existing token."},"request_id":"req_011CTwgFcmB8SdrEyxEKj32t"}
+    at i9.generate (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:881:18745)
+    at bP.makeStatusError (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:2117)
+    at bP.makeRequest (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1026:5330)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async fZ1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:9695)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:143)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 8)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 5)
+[ERROR] AxiosError: AxiosError: Request failed with status code 400
+    at pN (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:713:1075)
+    at IncomingMessage.<anonymous> (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:714:9910)
+    at IncomingMessage.emit (node:events:536:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at pQ1.request (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:716:2078)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async A1B (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:2016:1471)
+    at async mm (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3380:10719)
+    at async hF (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:6082)
+    at async Oy2 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:1034:10086)
+    at async YF1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:186)
+    at async Rc1 (file:///Users/josevelazquez/Library/Application%20Support/Zed/external_agents/claude-code-acp/0.5.4/node_modules/@anthropic-ai/claude-agent-sdk/cli.js:3162:352)
+    at async Promise.all (index 8)
+[DEBUG] Telemetry flushed successfully
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015326834
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1692146 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015326834 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015326906
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1691747 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015326906 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015327140
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1692021 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015327140 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015327763
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1692146 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015327763 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.33391.1760015328097
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1692207 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.33391.1760015328097 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] Getting matching hook commands for Notification with query: undefined
+[DEBUG] Found 0 hook matchers in settings
+[DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)

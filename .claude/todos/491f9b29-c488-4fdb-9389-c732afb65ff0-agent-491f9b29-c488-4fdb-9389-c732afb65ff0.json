@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Search for inline styles using style attribute in all TSX files",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Search for CSS-in-JS patterns (style objects) in all TSX files",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Analyze and document all found inline styles with their locations",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Replace inline styles with Tailwind equivalents",
+    "status": "pending",
+    "priority": "medium",
+    "id": "4"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Analyze current ephemeral build system and identify where Auth0 environment variables need to be added",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Check hub stack configuration to understand how environment variables are passed",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Add Auth0 environment variables to ephemeral stack configuration",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Test the changes by checking if Auth0 variables are properly configured in ephemeral builds",
+    "status": "in_progress",
+    "priority": "medium",
+    "id": "4"
+  }
+]

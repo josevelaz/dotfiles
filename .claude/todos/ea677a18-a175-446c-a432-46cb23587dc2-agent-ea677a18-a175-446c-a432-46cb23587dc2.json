@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Update document query to preload children in NotificationDispatchWorker",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": "Replace flat document processing with hierarchical logic",
+    "status": "completed",
+    "id": "2"
+  },
+  {
+    "content": "Update email template data structure for hierarchy",
+    "status": "completed",
+    "id": "3"
+  },
+  {
+    "content": "Modify Edge email template to display tree structure",
+    "status": "completed",
+    "id": "4"
+  },
+  {
+    "content": "Test the implementation",
+    "status": "completed",
+    "id": "5"
+  },
+  {
+    "content": "Improve CSS styling for parent/child relationships with connecting lines",
+    "status": "completed",
+    "id": "6"
+  }
+]

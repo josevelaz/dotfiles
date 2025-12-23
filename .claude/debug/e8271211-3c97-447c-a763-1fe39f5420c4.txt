@@ -1,0 +1,109 @@
+2025-12-17T05:09:16.794Z [DEBUG] Watching for changes in setting files /Users/josevelazquez/.claude/settings.json, /Users/josevelazquez/dotfiles/.claude/settings.json, /Users/josevelazquez/dotfiles/.claude/settings.local.json...
+2025-12-17T05:09:16.813Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (18.4ms): security find-generic-password -a $USER -w -s "Claude Code"
+2025-12-17T05:09:16.835Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (21.4ms): security find-generic-password -a "josevelazquez" -w -s "Claude Code-credentials"
+2025-12-17T05:09:16.844Z [DEBUG] [LSP MANAGER] initializeLspServerManager() called
+2025-12-17T05:09:16.844Z [DEBUG] [LSP MANAGER] Created manager instance, state=pending
+2025-12-17T05:09:16.844Z [DEBUG] [LSP MANAGER] Starting async initialization (generation 1)
+2025-12-17T05:09:16.844Z [DEBUG] [LSP SERVER MANAGER] initialize() called
+2025-12-17T05:09:16.844Z [DEBUG] [LSP SERVER MANAGER] Calling getAllLspServers()
+2025-12-17T05:09:16.849Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.24220.1765948156849
+2025-12-17T05:09:16.849Z [DEBUG] Preserving file permissions: 100644
+2025-12-17T05:09:16.849Z [DEBUG] Temp file written successfully, size: 61434 bytes
+2025-12-17T05:09:16.849Z [DEBUG] Applied original permissions to temp file
+2025-12-17T05:09:16.849Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.24220.1765948156849 to /Users/josevelazquez/.claude.json
+2025-12-17T05:09:16.849Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-17T05:09:16.851Z [DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+2025-12-17T05:09:16.854Z [DEBUG] Loading skills from directories: managed=/Library/Application Support/ClaudeCode/.claude/skills, user=/Users/josevelazquez/.claude/skills, project=[]
+2025-12-17T05:09:16.854Z [DEBUG] >>>>> getPluginSkills CALLED <<<<<
+2025-12-17T05:09:16.856Z [DEBUG] installed_plugins.json doesn't exist yet at /Users/josevelazquez/.claude/plugins/installed_plugins.json, returning empty object
+2025-12-17T05:09:16.866Z [DEBUG] Creating shell snapshot for zsh (/bin/zsh)
+2025-12-17T05:09:16.866Z [DEBUG] Looking for shell config file: /Users/josevelazquez/.zshrc
+2025-12-17T05:09:16.866Z [DEBUG] Snapshots directory: /Users/josevelazquez/.claude/shell-snapshots
+2025-12-17T05:09:16.866Z [DEBUG] Creating snapshot at: /Users/josevelazquez/.claude/shell-snapshots/snapshot-zsh-1765948156866-w3bnz2.sh
+2025-12-17T05:09:16.866Z [DEBUG] Shell binary exists: true
+2025-12-17T05:09:16.866Z [DEBUG] Execution timeout: 10000ms
+2025-12-17T05:09:16.867Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude/todos/e8271211-3c97-447c-a763-1fe39f5420c4-agent-e8271211-3c97-447c-a763-1fe39f5420c4.json.tmp.24220.1765948156867
+2025-12-17T05:09:16.867Z [DEBUG] Temp file written successfully, size: 2 bytes
+2025-12-17T05:09:16.867Z [DEBUG] Renaming /Users/josevelazquez/.claude/todos/e8271211-3c97-447c-a763-1fe39f5420c4-agent-e8271211-3c97-447c-a763-1fe39f5420c4.json.tmp.24220.1765948156867 to /Users/josevelazquez/.claude/todos/e8271211-3c97-447c-a763-1fe39f5420c4-agent-e8271211-3c97-447c-a763-1fe39f5420c4.json
+2025-12-17T05:09:16.867Z [DEBUG] File /Users/josevelazquez/.claude/todos/e8271211-3c97-447c-a763-1fe39f5420c4-agent-e8271211-3c97-447c-a763-1fe39f5420c4.json written atomically
+2025-12-17T05:09:16.870Z [DEBUG] Total LSP servers loaded: 0
+2025-12-17T05:09:16.870Z [DEBUG] getPluginSkills: Processing 0 enabled plugins
+2025-12-17T05:09:16.870Z [DEBUG] Total plugin skills loaded: 0
+2025-12-17T05:09:16.870Z [DEBUG] Total plugin commands loaded: 0
+2025-12-17T05:09:16.870Z [DEBUG] Registered 0 hooks from 0 plugins
+2025-12-17T05:09:16.872Z [DEBUG] [LSP SERVER MANAGER] getAllLspServers returned 0 server(s)
+2025-12-17T05:09:16.872Z [DEBUG] LSP manager initialized with 0 servers
+2025-12-17T05:09:16.872Z [DEBUG] Loaded 0 unique skills (managed: 0, user: 0, project: 0, duplicates removed: 0)
+2025-12-17T05:09:16.872Z [DEBUG] LSP server manager initialized successfully
+2025-12-17T05:09:16.872Z [DEBUG] LSP notification handlers registered successfully for all 0 server(s)
+2025-12-17T05:09:16.873Z [DEBUG] Attempting to auto-install official marketplace
+2025-12-17T05:09:16.875Z [DEBUG] getSkills returning: 0 skill dir commands, 0 plugin skills
+2025-12-17T05:09:16.898Z [DEBUG] Git remote URL: git@github.com:josevelaz/dotfiles.git
+2025-12-17T05:09:16.898Z [DEBUG] Parsed repository: josevelaz/dotfiles from git@github.com:josevelaz/dotfiles.git
+2025-12-17T05:09:16.898Z [DEBUG] Parsed repository: josevelaz/dotfiles from URL: git@github.com:josevelaz/dotfiles.git
+2025-12-17T05:09:16.899Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.24220.1765948156899
+2025-12-17T05:09:16.899Z [DEBUG] Preserving file permissions: 100644
+2025-12-17T05:09:16.899Z [DEBUG] Temp file written successfully, size: 61534 bytes
+2025-12-17T05:09:16.899Z [DEBUG] Applied original permissions to temp file
+2025-12-17T05:09:16.899Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.24220.1765948156899 to /Users/josevelazquez/.claude.json
+2025-12-17T05:09:16.900Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-17T05:09:16.900Z [DEBUG] Added /Users/josevelazquez/dotfiles to tracked paths for repo josevelaz/dotfiles
+2025-12-17T05:09:16.921Z [DEBUG] Install: Starting installation process (force=false, target=undefined)
+2025-12-17T05:09:16.922Z [DEBUG] Install: Calling installLatest(force=true, target=undefined, forceReinstall=false)
+2025-12-17T05:09:16.969Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.24220.1765948156969
+2025-12-17T05:09:16.969Z [DEBUG] Preserving file permissions: 100644
+2025-12-17T05:09:16.969Z [DEBUG] Temp file written successfully, size: 61534 bytes
+2025-12-17T05:09:16.969Z [DEBUG] Applied original permissions to temp file
+2025-12-17T05:09:16.969Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.24220.1765948156969 to /Users/josevelazquez/.claude.json
+2025-12-17T05:09:16.970Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-17T05:09:17.110Z [DEBUG] Shell snapshot created successfully (39016 bytes)
+2025-12-17T05:09:17.147Z [DEBUG] Checking for native installer update to version 2.0.71
+2025-12-17T05:09:17.147Z [DEBUG] Ripgrep first use test: PASSED (mode=builtin, path=/Users/josevelazquez/.claude/downloads/claude-2.0.65-darwin-arm64)
+2025-12-17T05:09:17.148Z [DEBUG] Downloading native installer version 2.0.71
+2025-12-17T05:09:19.382Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.24220.1765948159382
+2025-12-17T05:09:19.382Z [DEBUG] Preserving file permissions: 100644
+2025-12-17T05:09:19.382Z [DEBUG] Temp file written successfully, size: 61568 bytes
+2025-12-17T05:09:19.382Z [DEBUG] Applied original permissions to temp file
+2025-12-17T05:09:19.382Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.24220.1765948159382 to /Users/josevelazquez/.claude.json
+2025-12-17T05:09:19.382Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-17T05:09:19.383Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.24220.1765948159383
+2025-12-17T05:09:19.383Z [DEBUG] Preserving file permissions: 100644
+2025-12-17T05:09:19.383Z [DEBUG] Temp file written successfully, size: 61612 bytes
+2025-12-17T05:09:19.383Z [DEBUG] Applied original permissions to temp file
+2025-12-17T05:09:19.383Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.24220.1765948159383 to /Users/josevelazquez/.claude.json
+2025-12-17T05:09:19.383Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-17T05:09:19.384Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.24220.1765948159384
+2025-12-17T05:09:19.384Z [DEBUG] Preserving file permissions: 100644
+2025-12-17T05:09:19.384Z [DEBUG] Temp file written successfully, size: 61637 bytes
+2025-12-17T05:09:19.384Z [DEBUG] Applied original permissions to temp file
+2025-12-17T05:09:19.384Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.24220.1765948159384 to /Users/josevelazquez/.claude.json
+2025-12-17T05:09:19.385Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-17T05:09:19.403Z [DEBUG] [SLOW OPERATION DETECTED] fs.rmSync (15.0ms)
+2025-12-17T05:09:19.404Z [ERROR] Failed to auto-install official marketplace: Invalid schema: name: Marketplace name cannot impersonate official Anthropic/Claude marketplaces. Names containing "official", "anthropic", or "claude" in official-sounding combinations are reserved.
+2025-12-17T05:09:19.404Z [ERROR] ConfigParseError: ConfigParseError: Invalid schema: name: Marketplace name cannot impersonate official Anthropic/Claude marketplaces. Names containing "official", "anthropic", or "claude" in official-sounding combinations are reserved.
+    at wHB (/$bunfs/root/claude:1006:869)
+    at vdR (/$bunfs/root/claude:1006:2934)
+    at async jk (/$bunfs/root/claude:1008:601)
+    at async d4_ (/$bunfs/root/claude:4483:1628)
+    at processTicksAndRejections (native:7:39)
+2025-12-17T05:09:19.404Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.24220.1765948159404
+2025-12-17T05:09:19.404Z [DEBUG] Preserving file permissions: 100644
+2025-12-17T05:09:19.405Z [DEBUG] Temp file written successfully, size: 61790 bytes
+2025-12-17T05:09:19.405Z [DEBUG] Applied original permissions to temp file
+2025-12-17T05:09:19.405Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.24220.1765948159404 to /Users/josevelazquez/.claude.json
+2025-12-17T05:09:19.405Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-17T05:09:41.077Z [DEBUG] CDN dark read succeeded for 2.0.71
+2025-12-17T05:09:42.855Z [DEBUG] Successfully updated to version 2.0.71
+2025-12-17T05:09:42.856Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.24220.1765948182856
+2025-12-17T05:09:42.856Z [DEBUG] Preserving file permissions: 100644
+2025-12-17T05:09:42.856Z [DEBUG] Temp file written successfully, size: 61832 bytes
+2025-12-17T05:09:42.856Z [DEBUG] Applied original permissions to temp file
+2025-12-17T05:09:42.856Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.24220.1765948182856 to /Users/josevelazquez/.claude.json
+2025-12-17T05:09:42.856Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-17T05:09:42.856Z [DEBUG] Native installer: Set installMethod to "native" and disabled legacy auto-updater for protection
+2025-12-17T05:09:42.856Z [DEBUG] Install: installLatest returned version=2.0.71, wasUpdated=true, lockFailed=false
+2025-12-17T05:09:42.857Z [DEBUG] Install: Setup launcher completed with 0 messages
+2025-12-17T05:09:42.857Z [DEBUG] Install: Cleaning up npm installations after successful install
+2025-12-17T05:09:42.883Z [DEBUG] Removed global npm installation of @anthropic-ai/claude-code
+2025-12-17T05:09:42.883Z [DEBUG] Cleaned up 1 npm installation(s)
+2025-12-17T05:09:42.884Z [DEBUG] Install: Shell PATH already configured

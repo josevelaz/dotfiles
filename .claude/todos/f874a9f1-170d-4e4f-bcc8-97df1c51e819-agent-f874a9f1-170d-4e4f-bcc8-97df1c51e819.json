@@ -1,0 +1,17 @@
+[
+  {
+    "content": "Run unit and functional tests",
+    "status": "completed",
+    "id": "test-run"
+  },
+  {
+    "content": "Run ESLint to check code quality",
+    "status": "completed",
+    "id": "lint-check"
+  },
+  {
+    "content": "Run TypeScript type checking",
+    "status": "completed",
+    "id": "typecheck"
+  }
+]

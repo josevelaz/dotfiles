@@ -1,0 +1,22 @@
+[
+  {
+    "content": "Search for report-related models and database schema",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": "Examine report controllers and routes",
+    "status": "completed",
+    "id": "2"
+  },
+  {
+    "content": "Analyze report services and business logic",
+    "status": "completed",
+    "id": "3"
+  },
+  {
+    "content": "Review frontend report components and pages",
+    "status": "completed",
+    "id": "4"
+  }
+]

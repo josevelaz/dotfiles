@@ -1,0 +1,20 @@
+[
+  {
+    "content": "Check useEffect dependency array for subscription recreation",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Verify transmit context and user object availability",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Check if subscription is properly created and connected",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  }
+]

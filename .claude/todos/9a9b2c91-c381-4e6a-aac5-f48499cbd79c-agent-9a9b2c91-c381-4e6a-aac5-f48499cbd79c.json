@@ -1,0 +1,14 @@
+[
+  {
+    "content": "Investigate current notification_events table structure and enum values",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Create migration to add EMAIL_FORWARD_PROCESSED to notification_events_slug_type enum",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  }
+]

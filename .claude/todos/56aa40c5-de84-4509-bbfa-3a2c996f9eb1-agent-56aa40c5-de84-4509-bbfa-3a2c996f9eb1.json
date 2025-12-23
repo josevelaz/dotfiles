@@ -1,0 +1,50 @@
+[
+  {
+    "content": "Examine existing Cognito guard structure for reference",
+    "status": "completed",
+    "priority": "medium",
+    "id": "1"
+  },
+  {
+    "content": "Create Auth0 guard directory structure",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Create Auth0 config definition",
+    "status": "pending",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Create Auth0 user provider",
+    "status": "pending",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Create Auth0 web guard implementation",
+    "status": "pending",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "content": "Create Auth0 API guard implementation",
+    "status": "pending",
+    "priority": "high",
+    "id": "6"
+  },
+  {
+    "content": "Create Auth0 types definition",
+    "status": "pending",
+    "priority": "medium",
+    "id": "7"
+  },
+  {
+    "content": "Update main.ts to register Auth0 guard",
+    "status": "pending",
+    "priority": "medium",
+    "id": "8"
+  }
+]

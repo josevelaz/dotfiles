@@ -1,0 +1,271 @@
+2025-12-20T00:54:51.189Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults_DEPRECATED (27.7ms): security find-generic-password -a $USER -w -s "Claude Code"
+2025-12-20T00:54:51.211Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults_DEPRECATED (20.4ms): security find-generic-password -a "josevelazquez" -w -s "Claude Code-credentials"
+2025-12-20T00:54:51.221Z [DEBUG] Watching for changes in setting files /Users/josevelazquez/.claude/settings.json...
+2025-12-20T00:54:51.233Z [DEBUG] [LSP MANAGER] initializeLspServerManager() called
+2025-12-20T00:54:51.233Z [DEBUG] [LSP MANAGER] Created manager instance, state=pending
+2025-12-20T00:54:51.233Z [DEBUG] [LSP MANAGER] Starting async initialization (generation 1)
+2025-12-20T00:54:51.235Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192091235
+2025-12-20T00:54:51.235Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:51.236Z [DEBUG] Temp file written successfully, size: 61855 bytes
+2025-12-20T00:54:51.236Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:51.236Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192091235 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:51.236Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:51.237Z [DEBUG] LSP server manager initialized successfully
+2025-12-20T00:54:51.237Z [DEBUG] LSP notification handlers registered successfully for all 0 server(s)
+2025-12-20T00:54:51.240Z [DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+2025-12-20T00:54:51.243Z [DEBUG] Stats cache does not exist, returning empty cache
+2025-12-20T00:54:51.244Z [DEBUG] Stats cache empty, processing all historical data in background
+2025-12-20T00:54:51.245Z [DEBUG] Plugin autoupdate: skipped (auto-updater disabled)
+2025-12-20T00:54:51.247Z [DEBUG] Loading skills from directories: managed=/Library/Application Support/ClaudeCode/.claude/skills, user=/Users/josevelazquez/.claude/skills, project=[]
+2025-12-20T00:54:51.249Z [DEBUG] installed_plugins.json doesn't exist, returning empty V2 object
+2025-12-20T00:54:51.260Z [DEBUG] Creating shell snapshot for zsh (/bin/zsh)
+2025-12-20T00:54:51.260Z [DEBUG] Looking for shell config file: /Users/josevelazquez/.zshrc
+2025-12-20T00:54:51.260Z [DEBUG] Snapshots directory: /Users/josevelazquez/.claude/shell-snapshots
+2025-12-20T00:54:51.261Z [DEBUG] Creating snapshot at: /Users/josevelazquez/.claude/shell-snapshots/snapshot-zsh-1766192091260-gn4upl.sh
+2025-12-20T00:54:51.261Z [DEBUG] Shell binary exists: true
+2025-12-20T00:54:51.261Z [DEBUG] Execution timeout: 10000ms
+2025-12-20T00:54:51.262Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude/todos/848ad4e7-5790-492e-976f-1cd58843d8aa-agent-848ad4e7-5790-492e-976f-1cd58843d8aa.json.tmp.70226.1766192091262
+2025-12-20T00:54:51.262Z [DEBUG] Temp file written successfully, size: 2 bytes
+2025-12-20T00:54:51.262Z [DEBUG] Renaming /Users/josevelazquez/.claude/todos/848ad4e7-5790-492e-976f-1cd58843d8aa-agent-848ad4e7-5790-492e-976f-1cd58843d8aa.json.tmp.70226.1766192091262 to /Users/josevelazquez/.claude/todos/848ad4e7-5790-492e-976f-1cd58843d8aa-agent-848ad4e7-5790-492e-976f-1cd58843d8aa.json
+2025-12-20T00:54:51.262Z [DEBUG] File /Users/josevelazquez/.claude/todos/848ad4e7-5790-492e-976f-1cd58843d8aa-agent-848ad4e7-5790-492e-976f-1cd58843d8aa.json written atomically
+2025-12-20T00:54:51.265Z [DEBUG] getPluginSkills: Processing 0 enabled plugins
+2025-12-20T00:54:51.265Z [DEBUG] Total plugin skills loaded: 0
+2025-12-20T00:54:51.265Z [DEBUG] Total plugin commands loaded: 0
+2025-12-20T00:54:51.265Z [DEBUG] Registered 0 hooks from 0 plugins
+2025-12-20T00:54:51.266Z [DEBUG] Loaded 0 unique skills (managed: 0, user: 0, project: 0, duplicates removed: 0)
+2025-12-20T00:54:51.266Z [DEBUG] getSkills returning: 0 skill dir commands, 0 plugin skills
+2025-12-20T00:54:51.272Z [DEBUG] Stats cache saved successfully (lastComputedDate: 2025-12-19)
+2025-12-20T00:54:51.272Z [DEBUG] Stats cache updated with 3 sessions
+2025-12-20T00:54:51.295Z [DEBUG] Acquired mtime-based lock on running version: /Users/josevelazquez/.local/share/claude/versions/2.0.71
+2025-12-20T00:54:51.298Z [DEBUG] Git remote URL: git@github.com:josevelaz/dotfiles.git
+2025-12-20T00:54:51.298Z [DEBUG] Parsed repository: josevelaz/dotfiles from git@github.com:josevelaz/dotfiles.git
+2025-12-20T00:54:51.298Z [DEBUG] Parsed repository: josevelaz/dotfiles from URL: git@github.com:josevelaz/dotfiles.git
+2025-12-20T00:54:51.299Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192091299
+2025-12-20T00:54:51.299Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:51.299Z [DEBUG] Temp file written successfully, size: 61905 bytes
+2025-12-20T00:54:51.299Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:51.299Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192091299 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:51.299Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:51.300Z [DEBUG] Added /Users/josevelazquez/dotfiles/bin/.local to tracked paths for repo josevelaz/dotfiles
+2025-12-20T00:54:51.305Z [DEBUG] Skipping duplicate file '/Users/josevelazquez/dotfiles/.claude/agents/test-mutation-validator.md' from projectSettings (same inode already loaded from userSettings)
+2025-12-20T00:54:51.305Z [DEBUG] Deduplicated 1 files in agents (same inode via symlinks or hard links)
+2025-12-20T00:54:51.306Z [DEBUG] Total plugin agents loaded: 0
+2025-12-20T00:54:51.365Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192091365
+2025-12-20T00:54:51.365Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:51.365Z [DEBUG] Temp file written successfully, size: 64540 bytes
+2025-12-20T00:54:51.365Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:51.365Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192091365 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:51.365Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:51.402Z [ERROR] AxiosError: Error
+    at Ek (/$bunfs/root/claude:59:1144)
+    at <anonymous> (/$bunfs/root/claude:60:10093)
+    at emit (node:events:92:22)
+    at endReadableNT (internal:streams/readable:861:50)
+    at processTicksAndRejections (native:7:39)
+    at request (/$bunfs/root/claude:62:2149)
+    at processTicksAndRejections (native:7:39)
+2025-12-20T00:54:51.453Z [DEBUG] Failed to fetch Grove notice config: AxiosError: Request failed with status code 401
+2025-12-20T00:54:51.486Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults_DEPRECATED (32.7ms): security find-generic-password -a "josevelazquez" -w -s "Claude Code-credentials"
+2025-12-20T00:54:51.495Z [DEBUG] MCP server "obsidian": Starting connection with timeout of 30000ms
+2025-12-20T00:54:51.502Z [DEBUG] Initialized versioned plugins system with 0 plugins
+2025-12-20T00:54:51.505Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192091505
+2025-12-20T00:54:51.505Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:51.505Z [DEBUG] Temp file written successfully, size: 64540 bytes
+2025-12-20T00:54:51.505Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:51.505Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192091505 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:51.505Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:51.524Z [DEBUG] Getting matching hook commands for SessionStart with query: startup
+2025-12-20T00:54:51.524Z [DEBUG] Found 0 hook matchers in settings
+2025-12-20T00:54:51.524Z [DEBUG] Matched 0 unique hooks for query "startup" (0 before deduplication)
+2025-12-20T00:54:51.525Z [DEBUG] Failed to check metrics opt-out status: Request failed with status code 401
+2025-12-20T00:54:51.525Z [ERROR] AxiosError: Error
+    at Ek (/$bunfs/root/claude:59:1144)
+    at <anonymous> (/$bunfs/root/claude:60:10093)
+    at emit (node:events:92:22)
+    at endReadableNT (internal:streams/readable:861:50)
+    at processTicksAndRejections (native:7:39)
+    at request (/$bunfs/root/claude:62:2149)
+    at processTicksAndRejections (native:7:39)
+2025-12-20T00:54:51.570Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192091570
+2025-12-20T00:54:51.570Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:51.571Z [DEBUG] Temp file written successfully, size: 64435 bytes
+2025-12-20T00:54:51.571Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:51.571Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192091570 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:51.571Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:51.572Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192091572
+2025-12-20T00:54:51.572Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:51.572Z [DEBUG] Temp file written successfully, size: 64435 bytes
+2025-12-20T00:54:51.572Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:51.572Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192091572 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:51.572Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:51.573Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192091573
+2025-12-20T00:54:51.573Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:51.573Z [DEBUG] Temp file written successfully, size: 64517 bytes
+2025-12-20T00:54:51.573Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:51.573Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192091573 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:51.574Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:51.579Z [DEBUG] performStartupChecks called
+2025-12-20T00:54:51.579Z [DEBUG] Starting background plugin installations
+2025-12-20T00:54:51.579Z [DEBUG] performBackgroundPluginInstallations called
+2025-12-20T00:54:51.588Z [DEBUG] AutoUpdaterWrapper: Installation type: native
+2025-12-20T00:54:51.590Z [DEBUG] Setting installation status: 0 marketplaces, 0 installable plugins, 0 uninstallable plugins
+2025-12-20T00:54:51.590Z [DEBUG] Attempting to auto-install official marketplace
+2025-12-20T00:54:51.593Z [DEBUG] Loaded plugins - Enabled: 0, Disabled: 0, Commands: 0, Agents: 0, Errors: 0
+2025-12-20T00:54:51.597Z [DEBUG] Getting matching hook commands for SubagentStart with query: Plan
+2025-12-20T00:54:51.598Z [DEBUG] Found 0 hook matchers in settings
+2025-12-20T00:54:51.598Z [DEBUG] Matched 0 unique hooks for query "Plan" (0 before deduplication)
+2025-12-20T00:54:51.602Z [DEBUG] Getting matching hook commands for SubagentStart with query: Explore
+2025-12-20T00:54:51.602Z [DEBUG] Found 0 hook matchers in settings
+2025-12-20T00:54:51.602Z [DEBUG] Matched 0 unique hooks for query "Explore" (0 before deduplication)
+2025-12-20T00:54:51.614Z [DEBUG] Shell snapshot created successfully (38686 bytes)
+2025-12-20T00:54:51.653Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults_DEPRECATED (31.2ms): security find-generic-password -a "josevelazquez" -w -s "Claude Code-credentials"
+2025-12-20T00:54:51.657Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192091657
+2025-12-20T00:54:51.657Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:51.658Z [DEBUG] Temp file written successfully, size: 64517 bytes
+2025-12-20T00:54:51.658Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:51.658Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192091657 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:51.658Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:51.659Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192091659
+2025-12-20T00:54:51.659Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:51.660Z [DEBUG] Temp file written successfully, size: 64698 bytes
+2025-12-20T00:54:51.660Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:51.660Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192091659 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:51.661Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:51.674Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192091674
+2025-12-20T00:54:51.674Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:51.674Z [DEBUG] Temp file written successfully, size: 64698 bytes
+2025-12-20T00:54:51.674Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:51.674Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192091674 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:51.674Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:51.678Z [DEBUG] Ripgrep first use test: PASSED (mode=builtin, path=/Users/josevelazquez/.local/share/claude/versions/2.0.71)
+2025-12-20T00:54:52.075Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192092075
+2025-12-20T00:54:52.075Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:52.075Z [DEBUG] Temp file written successfully, size: 64760 bytes
+2025-12-20T00:54:52.075Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:52.075Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192092075 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:52.075Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:52.097Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults_DEPRECATED (22.2ms): security find-generic-password -a "josevelazquez" -w -s "Claude Code-credentials"
+2025-12-20T00:54:52.121Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults_DEPRECATED (23.5ms): security find-generic-password -a "josevelazquez" -w -s "Claude Code-credentials"
+2025-12-20T00:54:52.172Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults_DEPRECATED (23.0ms): security find-generic-password -a "josevelazquez" -w -s "Claude Code-credentials"
+2025-12-20T00:54:52.358Z [ERROR] MCP server "obsidian" Server stderr: Installed 33 packages in 35ms
+2025-12-20T00:54:53.230Z [DEBUG] Added marketplace source: claude-plugins-official
+2025-12-20T00:54:53.230Z [DEBUG] Successfully auto-installed official marketplace
+2025-12-20T00:54:53.231Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192093231
+2025-12-20T00:54:53.231Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:53.231Z [DEBUG] Temp file written successfully, size: 64702 bytes
+2025-12-20T00:54:53.231Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:53.231Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192093231 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:53.231Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:53.232Z [DEBUG] Showing marketplace installation success notification
+2025-12-20T00:54:53.287Z [DEBUG] MCP server "obsidian": Successfully connected to stdio server in 1797ms
+2025-12-20T00:54:53.287Z [DEBUG] MCP server "obsidian": Connection established with capabilities: {"hasTools":true,"hasPrompts":false,"hasResources":false,"serverVersion":{"name":"mcp-obsidian","version":"1.25.0"}}
+2025-12-20T00:54:53.288Z [ERROR] MCP server "obsidian" Server stderr: INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+2025-12-20T00:54:53.589Z [DEBUG] Skills and commands included in Skill tool:
+2025-12-20T00:54:53.589Z [DEBUG] Slash commands included in SlashCommand tool:
+2025-12-20T00:54:53.790Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192093790
+2025-12-20T00:54:53.790Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:53.791Z [DEBUG] Temp file written successfully, size: 64760 bytes
+2025-12-20T00:54:53.791Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:53.791Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192093790 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:53.791Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:53.793Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192093793
+2025-12-20T00:54:53.793Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:53.794Z [DEBUG] Temp file written successfully, size: 64790 bytes
+2025-12-20T00:54:53.794Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:53.794Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192093793 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:53.794Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:53.796Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192093796
+2025-12-20T00:54:53.796Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:53.797Z [DEBUG] Temp file written successfully, size: 64828 bytes
+2025-12-20T00:54:53.797Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:53.797Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192093796 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:53.797Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:53.799Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192093799
+2025-12-20T00:54:53.799Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:53.799Z [DEBUG] Temp file written successfully, size: 64933 bytes
+2025-12-20T00:54:53.799Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:53.799Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192093799 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:53.799Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:53.801Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192093801
+2025-12-20T00:54:53.801Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:53.802Z [DEBUG] Temp file written successfully, size: 64981 bytes
+2025-12-20T00:54:53.802Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:53.802Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192093801 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:53.802Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:53.814Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192093814
+2025-12-20T00:54:53.814Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:54:53.814Z [DEBUG] Temp file written successfully, size: 65028 bytes
+2025-12-20T00:54:53.814Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:54:53.814Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192093814 to /Users/josevelazquez/.claude.json
+2025-12-20T00:54:53.814Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:54:54.719Z [DEBUG] Stream started - received first chunk
+2025-12-20T00:54:55.300Z [DEBUG] Stream started - received first chunk
+2025-12-20T00:54:56.860Z [DEBUG] Getting matching hook commands for SubagentStop with query: undefined
+2025-12-20T00:54:56.860Z [DEBUG] Found 0 hook matchers in settings
+2025-12-20T00:54:56.860Z [DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+2025-12-20T00:54:58.893Z [DEBUG] Getting matching hook commands for SubagentStop with query: undefined
+2025-12-20T00:54:58.893Z [DEBUG] Found 0 hook matchers in settings
+2025-12-20T00:54:58.893Z [DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+2025-12-20T00:55:11.881Z [ERROR] Error: Error
+    at <anonymous> (/$bunfs/root/claude:46:15236)
+    at <anonymous> (/$bunfs/root/claude:60:10259)
+    at emitError (node:events:43:23)
+    at <anonymous> (/$bunfs/root/claude:59:3470)
+    at emitError (node:events:43:23)
+    at <anonymous> (node:_http_client:248:22)
+    at processTicksAndRejections (native:7:39)
+    at request (/$bunfs/root/claude:62:2149)
+    at processTicksAndRejections (native:7:39)
+2025-12-20T00:55:12.518Z [DEBUG] AutoUpdaterWrapper: Installation type: native
+2025-12-20T00:55:12.557Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192112557
+2025-12-20T00:55:12.557Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:55:12.557Z [DEBUG] Temp file written successfully, size: 65028 bytes
+2025-12-20T00:55:12.557Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:55:12.557Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192112557 to /Users/josevelazquez/.claude.json
+2025-12-20T00:55:12.558Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:55:12.560Z [DEBUG] FileHistory: Added snapshot for d9e6fa21-b536-4099-93ba-459eaa2ca6bf, tracking 0 files
+2025-12-20T00:55:12.562Z [DEBUG] UserCommandMessage rendering: "release-notes" (args: "none")
+2025-12-20T00:55:12.562Z [DEBUG] isSkillFormat: false, prefix: "/"
+2025-12-20T00:55:12.748Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192112748
+2025-12-20T00:55:12.748Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:55:12.748Z [DEBUG] Temp file written successfully, size: 65068 bytes
+2025-12-20T00:55:12.748Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:55:12.748Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192112748 to /Users/josevelazquez/.claude.json
+2025-12-20T00:55:12.748Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:55:12.749Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192112749
+2025-12-20T00:55:12.749Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:55:12.749Z [DEBUG] Temp file written successfully, size: 65097 bytes
+2025-12-20T00:55:12.749Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:55:12.749Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192112749 to /Users/josevelazquez/.claude.json
+2025-12-20T00:55:12.749Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:56:12.753Z [DEBUG] Getting matching hook commands for Notification with query: idle_prompt
+2025-12-20T00:56:12.753Z [DEBUG] Found 0 hook matchers in settings
+2025-12-20T00:56:12.753Z [DEBUG] Matched 0 unique hooks for query "idle_prompt" (0 before deduplication)
+2025-12-20T00:56:49.968Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude/settings.json.tmp.70226.1766192209968
+2025-12-20T00:56:49.968Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:56:49.969Z [DEBUG] Temp file written successfully, size: 1214 bytes
+2025-12-20T00:56:49.969Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:56:49.969Z [DEBUG] Renaming /Users/josevelazquez/.claude/settings.json.tmp.70226.1766192209968 to /Users/josevelazquez/.claude/settings.json
+2025-12-20T00:56:49.969Z [DEBUG] File /Users/josevelazquez/.claude/settings.json written atomically
+2025-12-20T00:56:49.971Z [DEBUG] FileHistory: Making snapshot for message d16b9efc-2e7a-43b8-9c28-bbbcbfbad083
+2025-12-20T00:56:49.972Z [DEBUG] FileHistory: Added snapshot for d16b9efc-2e7a-43b8-9c28-bbbcbfbad083, tracking 0 files
+2025-12-20T00:56:49.972Z [DEBUG] UserCommandMessage rendering: "model" (args: "none")
+2025-12-20T00:56:49.972Z [DEBUG] isSkillFormat: false, prefix: "/"
+2025-12-20T00:56:49.983Z [DEBUG] AutoUpdaterWrapper: Installation type: native
+2025-12-20T00:56:49.998Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192209998
+2025-12-20T00:56:49.998Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:56:49.999Z [DEBUG] Temp file written successfully, size: 65127 bytes
+2025-12-20T00:56:49.999Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:56:49.999Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192209998 to /Users/josevelazquez/.claude.json
+2025-12-20T00:56:49.999Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:56:50.000Z [DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.70226.1766192210000
+2025-12-20T00:56:50.000Z [DEBUG] Preserving file permissions: 100644
+2025-12-20T00:56:50.000Z [DEBUG] Temp file written successfully, size: 65163 bytes
+2025-12-20T00:56:50.000Z [DEBUG] Applied original permissions to temp file
+2025-12-20T00:56:50.000Z [DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.70226.1766192210000 to /Users/josevelazquez/.claude.json
+2025-12-20T00:56:50.000Z [DEBUG] File /Users/josevelazquez/.claude.json written atomically
+2025-12-20T00:57:03.756Z [DEBUG] AutoUpdaterWrapper: Installation type: native
+2025-12-20T00:57:16.130Z [DEBUG] AutoUpdaterWrapper: Installation type: native
+2025-12-20T00:57:17.647Z [DEBUG] Getting matching hook commands for SessionEnd with query: prompt_input_exit
+2025-12-20T00:57:17.647Z [DEBUG] Found 0 hook matchers in settings
+2025-12-20T00:57:17.647Z [DEBUG] Matched 0 unique hooks for query "prompt_input_exit" (0 before deduplication)

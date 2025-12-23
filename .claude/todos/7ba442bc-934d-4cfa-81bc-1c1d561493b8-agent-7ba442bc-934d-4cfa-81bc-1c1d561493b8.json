@@ -1,0 +1,22 @@
+[
+  {
+    "content": "Examine the seeder file causing the error",
+    "status": "in_progress",
+    "activeForm": "Examining the seeder file causing the error"
+  },
+  {
+    "content": "Check the account_vendors table schema and unique constraint",
+    "status": "pending",
+    "activeForm": "Checking the account_vendors table schema and unique constraint"
+  },
+  {
+    "content": "Identify why duplicate records are being inserted",
+    "status": "pending",
+    "activeForm": "Identifying why duplicate records are being inserted"
+  },
+  {
+    "content": "Provide solution to fix the seeder",
+    "status": "pending",
+    "activeForm": "Providing solution to fix the seeder"
+  }
+]

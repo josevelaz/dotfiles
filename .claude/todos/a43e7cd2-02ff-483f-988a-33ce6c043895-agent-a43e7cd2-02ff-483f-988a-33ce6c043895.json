@@ -1,0 +1,14 @@
+[
+  {
+    "content": "Investigate and fix PipelineRules component crash on refresh when whitelabel is enabled",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Test the fix by enabling whitelabel and refreshing the page",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "2"
+  }
+]

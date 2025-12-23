@@ -73,3 +73,5 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 # opencode
 export PATH=/Users/josevelazquez/.opencode/bin:$PATH
+
+export PROJECTS=/Users/josevelazquez/projects

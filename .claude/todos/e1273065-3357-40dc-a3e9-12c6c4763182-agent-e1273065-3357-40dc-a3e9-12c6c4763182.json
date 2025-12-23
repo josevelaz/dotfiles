@@ -1,0 +1,22 @@
+[
+  {
+    "content": "Create query to identify duplicate vendor_branches",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": "Create query to update references to point to original records",
+    "status": "completed",
+    "id": "2"
+  },
+  {
+    "content": "Create query to delete duplicate vendor_branches",
+    "status": "completed",
+    "id": "3"
+  },
+  {
+    "content": "Combine into complete deduplication script",
+    "status": "completed",
+    "id": "4"
+  }
+]
