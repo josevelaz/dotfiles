@@ -1,0 +1,14 @@
+[
+  {
+    "content": "Move email completion check transaction from jet extraction worker to notifications worker",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Remove the transaction code from jet extraction worker",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  }
+]

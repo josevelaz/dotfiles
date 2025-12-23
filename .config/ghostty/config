@@ -1,4 +1,4 @@
- # The font families to use.
+# The font families to use.
 # 
 # You can generate the list of valid values using the CLI:
 # 
@@ -2038,3 +2038,4 @@ enquiry-response =
 # 
 # Changing this value at runtime works after a small delay.
 auto-update = check
+command = /bin/zsh -lc "tmux new -s default gh/usr/local/bin/.local/tmux-sessionizer"

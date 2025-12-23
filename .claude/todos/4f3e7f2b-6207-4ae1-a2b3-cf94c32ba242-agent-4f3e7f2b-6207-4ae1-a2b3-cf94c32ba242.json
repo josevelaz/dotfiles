@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Update getConnections method to use organization enabled connections API",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Update method signature to require organizationId parameter",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Update response types for organization connections",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Update error handling for organization-specific endpoint",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "content": "Search for date formatting patterns in the codebase",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": "Check controller responses with dates",
+    "status": "completed",
+    "id": "2"
+  },
+  {
+    "content": "Review DTOs that contain date fields",
+    "status": "completed",
+    "id": "3"
+  },
+  {
+    "content": "Verify services that format dates for client",
+    "status": "completed",
+    "id": "4"
+  }
+]

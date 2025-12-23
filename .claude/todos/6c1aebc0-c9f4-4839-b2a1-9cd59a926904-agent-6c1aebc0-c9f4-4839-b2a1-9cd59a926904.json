@@ -1,0 +1,20 @@
+[
+  {
+    "content": "Create proper integration tests for TasksService.processDocument method",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Mock all dependencies properly (Module, DocumentType, Document, etc.)",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Test actual service behavior with real method calls",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  }
+]

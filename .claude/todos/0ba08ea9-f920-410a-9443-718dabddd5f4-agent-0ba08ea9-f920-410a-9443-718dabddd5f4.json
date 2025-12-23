@@ -1,0 +1,44 @@
+[
+  {
+    "content": "Add API authentication methods to existing CognitoWebGuard",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Create unified provider that handles both user lookup methods",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Update auth configuration to remove cognito_api guard",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Update route middleware to use web guard instead of api",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Update controllers to remove .use() calls",
+    "status": "completed",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "content": "Remove API guard files and references",
+    "status": "completed",
+    "priority": "high",
+    "id": "6"
+  },
+  {
+    "content": "Fix TypeScript errors and test",
+    "status": "completed",
+    "priority": "high",
+    "id": "7"
+  }
+]

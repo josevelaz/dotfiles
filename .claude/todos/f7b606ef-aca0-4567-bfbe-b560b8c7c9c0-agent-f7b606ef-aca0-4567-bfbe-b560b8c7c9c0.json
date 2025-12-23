@@ -1,0 +1,38 @@
+[
+  {
+    "content": "Search for existing whitelabel functionality in the codebase",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Identify where whitelabel is currently enabled/configured",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Find existing permission checking patterns in the codebase",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Implement account:whitelabel permission check",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Run lint and typecheck to ensure code quality",
+    "status": "completed",
+    "priority": "medium",
+    "id": "5"
+  },
+  {
+    "content": "Update frontend to hide enable branding button when no permission",
+    "status": "completed",
+    "priority": "high",
+    "id": "6"
+  }
+]

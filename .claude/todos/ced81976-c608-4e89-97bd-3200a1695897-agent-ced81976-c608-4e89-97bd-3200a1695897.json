@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Examine current authentication setup and config",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Create custom auth guard class",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Configure the guard in auth config",
+    "status": "pending",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Test the implementation",
+    "status": "pending",
+    "priority": "medium",
+    "id": "4"
+  }
+]

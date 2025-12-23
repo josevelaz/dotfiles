@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Analyze existing test structure and patterns",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": "Create unit tests for TimezoneService",
+    "status": "completed",
+    "id": "2"
+  },
+  {
+    "content": "Create integration tests for ReportTemplatesController",
+    "status": "completed",
+    "id": "3"
+  },
+  {
+    "content": "Create integration tests for ReportsController",
+    "status": "completed",
+    "id": "4"
+  },
+  {
+    "content": "Create integration tests for AccountsPayableController exportCSV",
+    "status": "completed",
+    "id": "5"
+  },
+  {
+    "content": "Run tests to verify functionality",
+    "status": "completed",
+    "id": "6"
+  }
+]

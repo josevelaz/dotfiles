@@ -1,0 +1,22 @@
+[
+  {
+    "content": "Move Auth0 Lambda functions from ephemeral_stack to hub_stack",
+    "status": "completed",
+    "id": "6"
+  },
+  {
+    "content": "Create custom resource in hub_stack for Auth0 app creation",
+    "status": "completed",
+    "id": "7"
+  },
+  {
+    "content": "Update hub_stack to handle Auth0 app lifecycle",
+    "status": "completed",
+    "id": "8"
+  },
+  {
+    "content": "Remove Auth0 components from ephemeral_stack",
+    "status": "completed",
+    "id": "9"
+  }
+]

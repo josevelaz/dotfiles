@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Check if auth0 npm package is already installed",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Install auth0 npm package if needed",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Refactor Auth0Service to use ManagementClient from auth0 library",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Update imports and remove axios dependency",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Test the refactored service",
+    "status": "in_progress",
+    "priority": "medium",
+    "id": "5"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Fix UUID format issues in all integration test files",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": "Fix user ID constraint issues in test data",
+    "status": "completed",
+    "id": "2"
+  },
+  {
+    "content": "Update all integration test files with proper UUIDs",
+    "status": "completed",
+    "id": "3"
+  },
+  {
+    "content": "Fix model property mismatches (Field, FieldMapping, Document, ObjectReference)",
+    "status": "completed",
+    "id": "4"
+  },
+  {
+    "content": "Fix test client API usage (.loginAs positioning)",
+    "status": "completed",
+    "id": "5"
+  },
+  {
+    "content": "Validate TimezoneService functionality with comprehensive unit tests",
+    "status": "completed",
+    "id": "6"
+  }
+]

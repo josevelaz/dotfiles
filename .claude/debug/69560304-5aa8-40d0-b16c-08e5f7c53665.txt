@@ -1,0 +1,237 @@
+[DEBUG] Watching for changes in setting files /Users/josevelazquez/.claude/settings.json, /Users/josevelazquez/.claude/settings.json...
+[DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+[DEBUG] Creating shell snapshot for zsh (/bin/zsh)
+[DEBUG] Looking for shell config file: /Users/josevelazquez/.zshrc
+[DEBUG] Snapshots directory: /Users/josevelazquez/.claude/shell-snapshots
+[DEBUG] Creating snapshot at: /Users/josevelazquez/.claude/shell-snapshots/snapshot-zsh-1760129103723-aim9mh.sh
+[DEBUG] Shell binary exists: true
+[DEBUG] Execution timeout: 10000ms
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude/todos/69560304-5aa8-40d0-b16c-08e5f7c53665-agent-69560304-5aa8-40d0-b16c-08e5f7c53665.json.tmp.59937.1760129103725
+[DEBUG] Temp file written successfully, size: 2 bytes
+[DEBUG] Renaming /Users/josevelazquez/.claude/todos/69560304-5aa8-40d0-b16c-08e5f7c53665-agent-69560304-5aa8-40d0-b16c-08e5f7c53665.json.tmp.59937.1760129103725 to /Users/josevelazquez/.claude/todos/69560304-5aa8-40d0-b16c-08e5f7c53665-agent-69560304-5aa8-40d0-b16c-08e5f7c53665.json
+[DEBUG] File /Users/josevelazquez/.claude/todos/69560304-5aa8-40d0-b16c-08e5f7c53665-agent-69560304-5aa8-40d0-b16c-08e5f7c53665.json written atomically
+[DEBUG] Registered 0 hooks from 0 plugins
+[DEBUG] Loading skills from directories: managed=/Library/Application Support/ClaudeCode/.claude/skills, user=/Users/josevelazquez/.claude/skills, project=/Users/josevelazquez/.claude/skills
+[DEBUG] Loaded 0 skills total (managed: 0, user: 0, project: 0)
+[DEBUG] Total plugin commands loaded: 0
+[DEBUG] Total plugin skills loaded: 0
+[DEBUG] Ripgrep first use test: PASSED (mode=builtin, path=/Users/josevelazquez/Library/Application Support/Zed/external_agents/claude-code-acp/0.5.5/node_modules/@anthropic-ai/claude-agent-sdk/vendor/ripgrep/arm64-darwin/rg)
+[DEBUG] Total plugin agents loaded: 0
+[DEBUG] MCP server "acpPermission": Initializing HTTP transport to http://127.0.0.1:62085/mcp
+[DEBUG] MCP server "acpPermission": Node version: v22.16.0, Platform: darwin
+[DEBUG] MCP server "acpPermission": Environment: {"NODE_OPTIONS":"not set","UV_THREADPOOL_SIZE":"default","HTTP_PROXY":"not set","HTTPS_PROXY":"not set","NO_PROXY":"not set"}
+[DEBUG] MCP server "acpPermission": MTLS options: default
+[DEBUG] MCP server "acpPermission": HTTP transport options: {"url":"http://127.0.0.1:62085/mcp","headers":{"User-Agent":"claude-code/2.0.13","x-acp-proxy-session-id":"0199cfde-b4a6-7719-95aa-20a7885ba487"},"hasAuthProvider":true,"timeoutMs":60000}
+[DEBUG] MCP server "acpPermission": HTTP transport created successfully
+[DEBUG] MCP server "acpPermission": Client created, setting up request handler
+[DEBUG] MCP server "acpPermission": Starting connection with timeout of 30000ms
+[DEBUG] MCP server "acpPermission": Testing basic HTTP connectivity to http://127.0.0.1:62085/mcp
+[DEBUG] MCP server "acpPermission": Parsed URL: host=127.0.0.1, port=62085, protocol=http:
+[DEBUG] MCP server "acpPermission": Using loopback address: 127.0.0.1
+[DEBUG] MCP server "obsidian": Starting connection with timeout of 30000ms
+[DEBUG] MCP server "jira": SSE transport initialized, awaiting connection
+[DEBUG] MCP server "jira": Starting connection with timeout of 30000ms
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 1333s
+[DEBUG] MCP server "acpPermission": No token data found
+[DEBUG] Shell snapshot created successfully (41088 bytes)
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.59937.1760129104021
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1717756 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.59937.1760129104021 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] MCP server "acpPermission": No token data found
+[DEBUG] MCP server "acpPermission": No token data found
+[DEBUG] MCP server "acpPermission": Successfully connected to http server in 364ms
+[DEBUG] MCP server "acpPermission": Connection established with capabilities: {"hasTools":true,"hasPrompts":false,"hasResources":false,"serverVersion":{"name":"acpPermission","version":"1.0.0"}}
+[DEBUG] MCP server "acpPermission": No token data found
+[DEBUG] MCP server "acpPermission": HTTP connection dropped after 0s uptime
+[DEBUG] MCP server "acpPermission": Connection error: Streamable HTTP error: Failed to open SSE stream: Not Found
+[DEBUG] MCP server "acpPermission": HTTP connection dropped after 0s uptime
+[DEBUG] MCP server "acpPermission": Connection error: Streamable HTTP error: Failed to open SSE stream: Not Found
+[DEBUG] rg error (signal=undefined, code=ERR_CHILD_PROCESS_STDIO_MAXBUFFER, stderr: ), 176497 results
+[ERROR] RangeError: RangeError [ERR_CHILD_PROCESS_STDIO_MAXBUFFER]: stdout maxBuffer length exceeded
+    at Socket.onChildStdout (node:child_process:481:14)
+    at Socket.emit (node:events:518:28)
+    at Socket.emit (node:domain:489:12)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 1333s
+[DEBUG] MCP server "obsidian": Successfully connected to stdio server in 792ms
+[DEBUG] MCP server "obsidian": Connection established with capabilities: {"hasTools":true,"hasPrompts":false,"hasResources":false,"serverVersion":{"name":"mcp-obsidian","version":"1.17.0"}}
+[ERROR] MCP server "obsidian" Server stderr: INFO:mcp.server.lowlevel.server:Processing request of type ListToolsRequest
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 1333s
+[DEBUG] MCP server "jira": Successfully connected to sse server in 935ms
+[DEBUG] MCP server "jira": Connection established with capabilities: {"hasTools":true,"hasPrompts":false,"hasResources":false,"serverVersion":{"name":"atlassian-mcp-server","version":"1.0.0"}}
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 1332s
+[DEBUG] Executing hooks for SessionStart:startup
+[DEBUG] Getting matching hook commands for SessionStart with query: startup
+[DEBUG] Found 0 hook matchers in settings
+[DEBUG] Matched 0 unique hooks for query "startup" (0 before deduplication)
+[DEBUG] Found 0 hook commands to execute
+[DEBUG] Slash commands included in SlashCommand tool:
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.59937.1760129106312
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1717756 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.59937.1760129106312 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] Writing to temp file: /Users/josevelazquez/.claude.json.tmp.59937.1760129106351
+[DEBUG] Preserving file permissions: 100644
+[DEBUG] Temp file written successfully, size: 1717756 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Users/josevelazquez/.claude.json.tmp.59937.1760129106351 to /Users/josevelazquez/.claude.json
+[DEBUG] File /Users/josevelazquez/.claude.json written atomically
+[DEBUG] MCP server "jira": SSE connection dropped after 3924s uptime
+[DEBUG] MCP server "jira": Connection reset - server may have crashed or restarted
+[DEBUG] MCP server "jira": Token expires in -2595s, attempting proactive refresh
+[DEBUG] MCP server "jira": Starting token refresh
+[DEBUG] MCP server "jira": Found client info
+[DEBUG] MCP server "jira": Token refresh successful, saving new tokens
+[DEBUG] MCP server "jira": Saving tokens
+[DEBUG] MCP server "jira": Token expires in: 3300
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Token refreshed successfully
+[DEBUG] MCP server "jira": SSE connection dropped after 4372s uptime
+[DEBUG] MCP server "jira": Connection error: SSE error: undefined
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 2853s
+[DEBUG] MCP server "jira": SSE connection dropped after 7015s uptime
+[DEBUG] MCP server "jira": Connection reset - server may have crashed or restarted
+[DEBUG] MCP server "jira": Token expires in 210s, attempting proactive refresh
+[DEBUG] MCP server "jira": Starting token refresh
+[DEBUG] MCP server "jira": Found client info
+[DEBUG] MCP server "jira": Token refresh successful, saving new tokens
+[DEBUG] MCP server "jira": Saving tokens
+[DEBUG] MCP server "jira": Token expires in: 3300
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Token refreshed successfully
+[DEBUG] MCP server "jira": SSE connection dropped after 10550s uptime
+[DEBUG] MCP server "jira": Connection error: SSE error: undefined
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 2784s
+[DEBUG] MCP server "jira": SSE connection dropped after 11147s uptime
+[DEBUG] MCP server "jira": Connection timeout - network issue or server unresponsive
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 2187s
+[DEBUG] MCP server "jira": SSE connection dropped after 12250s uptime
+[DEBUG] MCP server "jira": Connection reset - server may have crashed or restarted
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 1084s
+[DEBUG] MCP server "jira": SSE connection dropped after 13891s uptime
+[DEBUG] MCP server "jira": Connection reset - server may have crashed or restarted
+[DEBUG] MCP server "jira": Token expires in -557s, attempting proactive refresh
+[DEBUG] MCP server "jira": Starting token refresh
+[DEBUG] MCP server "jira": Found client info
+[DEBUG] MCP server "jira": Token refresh successful, saving new tokens
+[DEBUG] MCP server "jira": Saving tokens
+[DEBUG] MCP server "jira": Token expires in: 3300
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Token refreshed successfully
+[DEBUG] MCP server "jira": SSE connection dropped after 18315s uptime
+[DEBUG] MCP server "jira": Connection reset - server may have crashed or restarted
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 2101s
+[DEBUG] MCP server "jira": SSE connection dropped after 19085s uptime
+[DEBUG] MCP server "jira": Connection reset - server may have crashed or restarted
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 1265s
+[DEBUG] MCP server "jira": SSE connection dropped after 20843s uptime
+[DEBUG] MCP server "jira": Connection reset - server may have crashed or restarted
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 2646s
+[DEBUG] MCP server "jira": SSE connection dropped after 21614s uptime
+[DEBUG] MCP server "jira": Connection reset - server may have crashed or restarted
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 1875s
+[DEBUG] MCP server "jira": SSE connection dropped after 22477s uptime
+[DEBUG] MCP server "jira": Connection reset - server may have crashed or restarted
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: 1013s
+[DEBUG] MCP server "jira": SSE connection dropped after 23647s uptime
+[DEBUG] MCP server "jira": Connection reset - server may have crashed or restarted
+[DEBUG] MCP server "jira": Token expires in -158s, attempting proactive refresh
+[DEBUG] MCP server "jira": Starting token refresh
+[DEBUG] MCP server "jira": Found client info
+[DEBUG] MCP server "jira": Token refresh failed: Invalid refresh token
+[DEBUG] MCP server "jira": Token refresh failed, returning current tokens
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: -158s
+[DEBUG] MCP server "jira": Found client info
+[DEBUG] MCP server "jira": Token expires in -159s, attempting proactive refresh
+[DEBUG] MCP server "jira": Starting token refresh
+[DEBUG] MCP server "jira": Found client info
+[DEBUG] MCP server "jira": Token refresh failed: Invalid refresh token
+[DEBUG] MCP server "jira": Token refresh failed, returning current tokens
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: -159s
+[DEBUG] MCP server "jira": addClientAuthentication called
+[DEBUG] MCP server "jira": Current params: grant_type=refresh_token&refresh_token=712020-50c5ba12-d255-4239-b827-032372dac192%3AzVLH87HmdQnpmzir%3Aau9tnie7irmcA7CApQRCNFGzHCVgw84V
+[DEBUG] MCP server "jira": Stored scopes: NONE
+[DEBUG] MCP server "jira": Adding client_id: Uz11dwihE1ptwhJH
+[DEBUG] MCP server "jira": ERROR: No scopes stored to add to token request!
+[DEBUG] MCP server "jira": Final params: grant_type=refresh_token&refresh_token=712020-50c5ba12-d255-4239-b827-032372dac192%3AzVLH87HmdQnpmzir%3Aau9tnie7irmcA7CApQRCNFGzHCVgw84V&client_id=Uz11dwihE1ptwhJH
+[DEBUG] MCP server "jira": Found client info
+[DEBUG] MCP server "jira": Token expires in -408s, attempting proactive refresh
+[DEBUG] MCP server "jira": Starting token refresh
+[DEBUG] MCP server "jira": Found client info
+[DEBUG] MCP server "jira": Token refresh failed: Invalid refresh token
+[DEBUG] MCP server "jira": Token refresh failed, returning current tokens
+[DEBUG] MCP server "jira": Returning tokens
+[DEBUG] MCP server "jira": Token length: 93
+[DEBUG] MCP server "jira": Has refresh token: true
+[DEBUG] MCP server "jira": Expires in: -408s
+[DEBUG] MCP server "jira": addClientAuthentication called
+[DEBUG] MCP server "jira": Current params: grant_type=refresh_token&refresh_token=712020-50c5ba12-d255-4239-b827-032372dac192%3AzVLH87HmdQnpmzir%3Aau9tnie7irmcA7CApQRCNFGzHCVgw84V
+[DEBUG] MCP server "jira": Stored scopes: NONE
+[DEBUG] MCP server "jira": Adding client_id: Uz11dwihE1ptwhJH
+[DEBUG] MCP server "jira": ERROR: No scopes stored to add to token request!
+[DEBUG] MCP server "jira": Final params: grant_type=refresh_token&refresh_token=712020-50c5ba12-d255-4239-b827-032372dac192%3AzVLH87HmdQnpmzir%3Aau9tnie7irmcA7CApQRCNFGzHCVgw84V&client_id=Uz11dwihE1ptwhJH
+[DEBUG] MCP server "jira": SSE connection dropped after 23901s uptime
+[DEBUG] MCP server "jira": Connection error: Invalid refresh token
+[DEBUG] Getting matching hook commands for SessionEnd with query: undefined
+[DEBUG] Found 0 hook matchers in settings
+[DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+[DEBUG] Cleaned up session snapshot: /Users/josevelazquez/.claude/shell-snapshots/snapshot-zsh-1760129103723-aim9mh.sh
+[DEBUG] MCP server "acpPermission": HTTP connection closed after 1016363s (with errors)
+[DEBUG] MCP server "obsidian": Sending SIGINT to MCP server process
+[DEBUG] MCP server "jira": SSE connection closed after 1016363s (with errors)
+[DEBUG] MCP server "obsidian": SIGINT failed, sending SIGTERM to MCP server process
+[DEBUG] MCP server "obsidian": STDIO connection closed after 1016363s (cleanly)
+[DEBUG] MCP server "obsidian": MCP server process exited cleanly

@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Examine existing auth guard structure and interfaces",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Fetch Auth0 guard documentation from AdonisJS",
+    "status": "completed",
+    "priority": "medium",
+    "id": "2"
+  },
+  {
+    "content": "Create Auth0 guard interface",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Create Auth0 guard base class",
+    "status": "pending",
+    "priority": "high",
+    "id": "4"
+  }
+]

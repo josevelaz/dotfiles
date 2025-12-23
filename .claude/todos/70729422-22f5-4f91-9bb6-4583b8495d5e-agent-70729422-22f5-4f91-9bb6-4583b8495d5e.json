@@ -1,0 +1,47 @@
+[
+  {
+    "content": "Analyze current authentication implementation",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": "Update dependencies for Auth0",
+    "status": "completed",
+    "id": "2"
+  },
+  {
+    "content": "Update authentication initialization in kernel/auth.go",
+    "status": "completed",
+    "id": "3"
+  },
+  {
+    "content": "Update auth controller to use Auth0",
+    "status": "completed",
+    "id": "4"
+  },
+  {
+    "content": "Update container to remove Cognito dependencies",
+    "status": "completed",
+    "id": "5"
+  },
+  {
+    "content": "Update app controller to remove Cognito user lookup",
+    "status": "completed",
+    "id": "6"
+  },
+  {
+    "content": "Update middleware to use Auth0 OIDC verification",
+    "status": "completed",
+    "id": "7"
+  },
+  {
+    "content": "Create users table migration",
+    "status": "completed",
+    "id": "8"
+  },
+  {
+    "content": "Test the authentication flow",
+    "status": "completed",
+    "id": "9"
+  }
+]

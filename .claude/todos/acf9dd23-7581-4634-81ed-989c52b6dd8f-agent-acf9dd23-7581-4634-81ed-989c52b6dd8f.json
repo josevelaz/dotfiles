@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Add PasswordResetError type to Auth0ServiceErrors union",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Add createPasswordResetTicket method to Auth0Service",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Update resetPassword method in UserManagementController with conditional auth driver logic",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Check if AUTH_DRIVER environment variable needs to be added",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  },
+  {
+    "content": "Test the implementation with both auth drivers",
+    "status": "completed",
+    "priority": "medium",
+    "id": "5"
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "content": "Examine existing Cognito guard structure and patterns",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Create common auth interfaces and types",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Refactor Cognito guard to use common interfaces",
+    "status": "pending",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Create Auth0 guard types extending common interfaces",
+    "status": "pending",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Create Auth0 web guard interface",
+    "status": "pending",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "content": "Create Auth0 user providers interface",
+    "status": "pending",
+    "priority": "high",
+    "id": "6"
+  }
+]

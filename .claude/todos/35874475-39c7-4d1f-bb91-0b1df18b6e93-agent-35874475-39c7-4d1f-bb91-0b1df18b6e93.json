@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Create preview route in admin routes",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Create controller method for preview",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Create preview page component with black layout and branded elements",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Update preview button to use new route",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  }
+]
