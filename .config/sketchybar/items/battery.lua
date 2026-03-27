@@ -2,7 +2,8 @@
 local battery = sbar.add("item", "battery", {
   position = "right",
   update_freq = 120,
-  script = os.getenv("CONFIG_DIR") .. "/plugins/battery.sh",
+  script = CONFIG_DIR .. "/plugins/battery.sh",
+  background = {
+    border_width = 0,
+  },
 })
-
-battery:subscribe("system_woke", "power_source_change")
