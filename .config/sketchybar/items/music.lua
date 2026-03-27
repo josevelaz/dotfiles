@@ -1,7 +1,8 @@
 -- Music artwork item
 local music_artwork = sbar.add("item", "music-artwork", {
   position = "right",
-  click_script = "curl -s -X POST 0.0.0.0:26538/api/v1/toggle-play && " .. os.getenv("CONFIG_DIR") .. "/plugins/youtube-music.sh",
+  drawing = false,
+  click_script = "curl -s -X POST 0.0.0.0:26538/api/v1/toggle-play && " .. CONFIG_DIR .. "/plugins/youtube-music.sh",
   label = {
     padding_right = 8,
   },
@@ -9,6 +10,7 @@ local music_artwork = sbar.add("item", "music-artwork", {
   display = 1,
   width = 40,
   background = {
+    border_width = 0,
     image = {
       scale = 0.05,
       corner_radius = 8,
@@ -21,8 +23,9 @@ local music_artwork = sbar.add("item", "music-artwork", {
 -- Music info item
 local music = sbar.add("item", "music", {
   position = "right",
-  script = os.getenv("CONFIG_DIR") .. "/plugins/youtube-music.sh",
-  click_script = "curl -s -X POST 0.0.0.0:26538/api/v1/toggle-play && " .. os.getenv("CONFIG_DIR") .. "/plugins/youtube-music.sh",
+  drawing = false,
+  script = CONFIG_DIR .. "/plugins/youtube-music.sh",
+  click_script = "curl -s -X POST 0.0.0.0:26538/api/v1/toggle-play && " .. CONFIG_DIR .. "/plugins/youtube-music.sh",
   label = {
     padding_right = 8,
     font = "IosevkaTerm Font:Bold:14.0",
@@ -39,6 +42,7 @@ local music = sbar.add("item", "music", {
   update_freq = 10,
   scroll_texts = true,
   background = {
+    border_width = 0,
     image = {
       scale = 0.9,
       corner_radius = 10,

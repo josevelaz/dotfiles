@@ -1,7 +1,9 @@
 -- Volume item
 local volume = sbar.add("item", "volume", {
   position = "right",
-  script = os.getenv("CONFIG_DIR") .. "/plugins/volume.sh",
+  script = CONFIG_DIR .. "/plugins/volume.sh",
+  update_freq = 5,
+  background = {
+    border_width = 0,
+  },
 })
-
-volume:subscribe("volume_change")

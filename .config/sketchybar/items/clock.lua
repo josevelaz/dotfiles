@@ -5,5 +5,8 @@ local clock = sbar.add("item", "clock", {
   icon = {
     drawing = false,
   },
-  script = os.getenv("CONFIG_DIR") .. "/plugins/clock.sh",
+  script = CONFIG_DIR .. "/plugins/clock.sh",
+  background = {
+    border_width = 0,
+  },
 })
