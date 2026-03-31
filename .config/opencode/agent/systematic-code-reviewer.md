@@ -38,7 +38,9 @@ description: >-
     </commentary>
   </example>
 mode: subagent
-model: openai/gpt-5.2
+model: "openai/gpt-5.4"
+reasoningEffort: "xhigh"
+reasoningSummary: "auto"
 temperature: 0.1
 tools:
   write: false

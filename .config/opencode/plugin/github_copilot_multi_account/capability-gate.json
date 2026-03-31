@@ -1,0 +1,23 @@
+{
+	"authMethodShape": "AuthHook.methods: Array<{ type: 'oauth' | 'api'; label: string; prompts?; authorize? }>",
+	"loaderShape": "AuthHook.loader(auth: () => Promise<Auth>, provider: Provider) => Promise<Record<string, any>>",
+	"opencodeVersion": "local-runtime-1.3.3",
+	"pluginVersion": "local",
+	"providerId": "github-copilot",
+	"authMethodId": "github-copilot-multi-account-override",
+	"validationCommand": "bun plugin/github_copilot_multi_account/capability-gate.probe.ts",
+	"probeScript": "plugin/github_copilot_multi_account/capability-gate.probe.ts",
+	"validationDate": "2026-03-28",
+	"providerContractSummary": "Validated against @opencode-ai/plugin 1.3.3 dist typings and local plugin initialization: auth hook supports provider-specific methods plus loader(auth, provider) returning override fields.",
+	"refreshContractSummary": "Runtime implementation must own refresh and persistence in the loader fetch wrapper; current proof validates hook shape and override entrypoints, not upstream GitHub refresh semantics.",
+	"requestFixtureHash": "6f9713d4198de920d5a6d0ab6f0b84e3a3fca4d21dd5836250d6f11ba3dd40cb",
+	"responseFixtureHash": "f84796fe37853d28cfb3dabf31adf3c5f2ab7f4aa533281fe7f2460f16dc5cb8",
+	"replayProof": "Probe verifies plugin exposes a loader suitable for wrapping fetch and replay-safe buffering logic in plugin-owned code paths.",
+	"persistenceProof": "Plugin runtime can synchronously load the checked-in gate artifact and prepare persistent state helpers before fetch execution.",
+	"transportOverrideProof": "OpenCode plugin auth loader contract permits returned override objects, including custom fetch implementations.",
+	"canInspectResponse": true,
+	"canReplayBufferedRequest": true,
+	"canPersistDuringRequest": true,
+	"canOverrideTransport": true,
+	"goNoGo": "go"
+}
