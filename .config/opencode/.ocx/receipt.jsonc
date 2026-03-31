@@ -46,7 +46,7 @@
           "hash": "012301f644639e930b30ea09f43b0a3808d8dfed3970c242dd60ab1c530fc5e6"
         }
       ],
-      "installedAt": "2026-03-05T14:47:14.650Z"
+      "installedAt": "2026-03-10T14:32:13.382Z"
     },
     "https://registry.kdco.dev::kdco/background-agents@sha256:48f0844d9959996a41458acc2c35e8729683255142bce09f12888c4ab0c4d71d": {
       "registryUrl": "https://registry.kdco.dev",
@@ -60,7 +60,7 @@
           "hash": "58888250845d02e2d3d305a8004659d5938e8f49eb34c0d02dc37af7de341b26"
         }
       ],
-      "installedAt": "2026-03-05T14:46:44.124Z",
+      "installedAt": "2026-03-10T14:32:13.382Z",
       "opencode": {
         "permission": {
           "task": "deny"
