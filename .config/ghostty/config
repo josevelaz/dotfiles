@@ -318,7 +318,7 @@ freetype-load-flags = hinting,force-autohint,monochrome,autohint
 # 
 #   - macOS: titlebar tabs style is not updated when switching themes.
 # 
-theme = cyberdream
+theme = Rose Pine
 
 # Swap the foreground and background colors of cells for selection. This
 # option overrides the `selection-foreground` and `selection-background`
@@ -2038,4 +2038,4 @@ enquiry-response =
 # 
 # Changing this value at runtime works after a small delay.
 auto-update = check
-command = /bin/zsh -lc "tmux new -s default gh/usr/local/bin/.local/tmux-sessionizer"
+command = /bin/zsh -lc "~/.local/bin/tmux-sessionizer"

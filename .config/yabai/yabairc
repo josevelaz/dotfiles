@@ -1,5 +1,5 @@
-sudo yabai --load-sa
 yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+sudo yabai --load-sa
 
 # default layout (can be bsp, stack or float)
 yabai -m config layout bsp
@@ -8,11 +8,11 @@ yabai -m config layout bsp
 yabai -m config window_placement second_child
 
 # padding set to 12px
-yabai -m config top_padding 10
-yabai -m config bottom_padding 10
-yabai -m config left_padding 10
-yabai -m config right_padding 10
-yabai -m config window_gap 10
+yabai -m config top_padding 20 
+yabai -m config bottom_padding 4
+yabai -m config left_padding 4
+yabai -m config right_padding 4
+yabai -m config window_gap 2
 
 yabai -m config window_shadow off
 
@@ -54,4 +54,4 @@ yabai -m rule --add app="^Slack$" space=5
 yabai -m rule --add app="^Fantastical$" space=6
 yabai -m rule --add app="^Youtube Music$" space=9
 
-borders active_color=0xfff25c00 inactive_color=0xff6e738d width=5.0 &
+borders active_color=0xffc4a7e7 inactive_color=0xff6e738d width=4.0 &

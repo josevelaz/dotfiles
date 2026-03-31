@@ -1,2 +1,12 @@
 export OBSIDIAN_API_KEY=KdyXVmIdZ25XscTjzF5g3xqe2jeCq6wldpnnG8cJYBg
 export CONTEXT7_API_KEY=ctx7sk-b7c4477d-3308-493a-a69e-ed4b35fd010c
+export ALIBABA_STUDIO_API_KEY="sk-sp-dd186f9072d24bbc9692ef8869ad3878"
+
+export ANTIGRAVITY_OAUTH_CLIENT_ID="1097797743861-b6alt04prgockilhvosji3b163bk7llu.apps.googleusercontent.com"
+export ANTIGRAVITY_OAUTH_CLIENT_SECRET="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"
+
+export GEMINI_OAUTH_CLIENT_ID="1097797743861-b6alt04prgockilhvosji3b163bk7llu.apps.googleusercontent.com"
+export GEMINI_OAUTH_CLIENT_SECRET="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"
+export GEMINI_CLI_OAUTH_CLIENT_SECRET="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"
+
+export CODEX_LB_API_KEY=sk-clb-hfnUpBUO57zdbyzo71piK503OpttwxJwrFz5GYO4ijA

@@ -1,4 +1,7 @@
 .stow-local-ignore
 .git
 .gitignore
+tests/*
+docs/*
+.DS_Store
 AGENTS.md

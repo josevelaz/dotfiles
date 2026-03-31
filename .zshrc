@@ -1,7 +1,21 @@
 source ~/.zsh_secrets.sh
 
+bindkey -v
+
 # Add deno completions to search path
 if [[ ":$FPATH:" != *":/Users/josevelazquez/.zsh/completions:"* ]]; then export FPATH="/Users/josevelazquez/.zsh/completions:$FPATH"; fi
+
+
+
+function oai-lb {
+  docker volume create oai-lb-data
+  docker run -d --name oai-lb \
+    -p 2455:2455 -p 1455:1455 \
+    -v codex-lb-data:/var/lib/codex-lb \
+    ghcr.io/soju06/codex-lb:latest
+}
+
+export OPENCODE_EXPERIMENTAL_LSP_TOOL=1
 
 # =========== ANTIDOTE ================
 source /opt/homebrew/opt/antidote/share/antidote/antidote.zsh
@@ -19,7 +33,7 @@ antidote load
 
 # =========== OH MY POSH ================
 if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
-  eval "$(oh-my-posh init zsh --config ~/.bubblestheme.omp.yaml)"
+  eval "$(oh-my-posh init zsh --config ~/.rose_pine.omp.json)"
 fi
 
 # =========== END OH MY POSH ================
@@ -31,12 +45,12 @@ alias oc="opencode"
 
 
 # FZF styling
-export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
---color=fg:#c0caf5,bg:#1a1b26,hl:#ff9e64
---color=fg+:#c0caf5,bg+:#1a1b26,hl+:#ff9e64
---color=info:#7aa2f7,prompt:#7aa2f7,pointer:#db4b4b
---color=marker:#9ece6a,spinner:#9ece6a,header:#9ece6a'
-
+export FZF_DEFAULT_OPTS="
+	--color=fg:#908caa,bg:#191724,hl:#ebbcba
+	--color=fg+:#e0def4,bg+:#26233a,hl+:#ebbcba
+	--color=border:#403d52,header:#31748f,gutter:#191724
+	--color=spinner:#f6c177,info:#9ccfd8
+	--color=pointer:#c4a7e7,marker:#eb6f92,prompt:#908caa"
 
 bindkey '\t'   complete-word       # tab          | complete
 bindkey '\t\t' autosuggest-accept  # shift + tab  | autosuggest
@@ -52,7 +66,7 @@ export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
 
 # Local bin
-export PATH="$PATH:/usr/local/bin/.local"
+export PATH="$PATH:$HOME/.local/bin"
 
 # mysql-client
 export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
@@ -74,4 +88,15 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # opencode
 export PATH=/Users/josevelazquez/.opencode/bin:$PATH
 
+opencode() {
+	OPENCODE_DISABLE_DEFAULT_PLUGINS=1 command /Users/josevelazquez/.opencode/bin/opencode "$@"
+}
+
 export PROJECTS=/Users/josevelazquez/projects
+
+
+tmux-window-name() {
+	($TMUX_PLUGIN_MANAGER_PATH/tmux-window-name/scripts/rename_session_windows.py &)
+}
+
+add-zsh-hook chpwd tmux-window-name

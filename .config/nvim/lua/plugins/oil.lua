@@ -1,21 +1,33 @@
 return {
 	{
 		"stevearc/oil.nvim",
+		lazy = false,
+		keys = {
+			{ "<leader>pv", "<cmd>Oil<cr>", desc = "Open Oil file explorer" },
+		},
 		init = function()
-			vim.keymap.set("n", "<leader>M", function()
-				local Oil = require("oil")
-				local filename = Oil.get_cursor_entry().name
-				local directory = Oil.get_current_dir()
-
-				local Grapple = require("grapple")
-				local Path = require("grapple.path")
-				Grapple.toggle({ path = Path.join(directory, filename) })
-			end, { desc = "Grapple tag under cursor" })
-
-			vim.keymap.set("n", "<leader>pv", "<cmd>Oil<cr>")
+			-- Disable netrw - oil.nvim will handle directory browsing
+			vim.g.loaded_netrw = 1
+			vim.g.loaded_netrwPlugin = 1
 		end,
 		opts = {
 			keymaps = {
+				["<leader>M"] = {
+					callback = function()
+						local Oil = require("oil")
+						local entry = Oil.get_cursor_entry()
+						if not entry then
+							vim.notify("No file under cursor", vim.log.levels.WARN)
+							return
+						end
+						local filename = entry.name
+						local directory = Oil.get_current_dir()
+						local Grapple = require("grapple")
+						local Path = require("grapple.path")
+						Grapple.toggle({ path = Path.join(directory, filename) })
+					end,
+					desc = "Grapple tag under cursor",
+				},
 				["g?"] = "actions.show_help",
 				["<CR>"] = "actions.select",
 				["<Esc>"] = { "actions.parent", mode = "n" },

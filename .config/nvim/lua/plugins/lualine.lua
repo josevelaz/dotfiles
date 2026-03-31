@@ -57,6 +57,6 @@ return {
 				lualine_z = { "location" },
 			},
 		},
-		dependencies = { "nvim-tree/nvim-web-devicons", opt = true },
+		dependencies = { "nvim-tree/nvim-web-devicons" },
 	},
 }

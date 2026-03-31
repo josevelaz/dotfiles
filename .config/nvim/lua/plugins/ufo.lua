@@ -4,19 +4,14 @@ return {
 		dependencies = {
 			"kevinhwang91/promise-async",
 		},
-		event = "BufReadPost",
-		opts = {},
-
-		init = function()
-			local map = function(keys, func, desc)
-				vim.keymap.set("n", keys, func, { desc = desc })
-			end
-
-			map("zR", require("ufo").openAllFolds, "Expand All Folds")
-			map("zM", require("ufo").closeAllFolds, "Collapse All Folds")
-			map("zr", require("ufo").openFoldsExceptKinds, "")
-			map("zm", require("ufo").closeFoldsWith, "")
-		end,
+	event = "BufReadPost",
+	opts = {},
+	keys = {
+		{ "zR", function() require("ufo").openAllFolds() end, desc = "Expand All Folds" },
+		{ "zM", function() require("ufo").closeAllFolds() end, desc = "Collapse All Folds" },
+		{ "zr", function() require("ufo").openFoldsExceptKinds() end, desc = "Open folds except kinds" },
+		{ "zm", function() require("ufo").closeFoldsWith() end, desc = "Close folds with level" },
+	},
 	},
 	-- Folding preview, by default h and l keys are used.
 	-- On first press of h key, when cursor is on a closed fold, the preview will be shown.

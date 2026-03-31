@@ -46,3 +46,11 @@ vim.api.nvim_create_autocmd("BufEnter", {
 -- 		vim.diagnostic.open_float(nil, { focusable = false, source = "if_many" })
 -- 	end,
 -- })
+
+vim.api.nvim_create_autocmd({ "VimEnter", "VimLeave" }, {
+	callback = function()
+		if vim.env.TMUX_PLUGIN_MANAGER_PATH then
+			vim.uv.spawn(vim.env.TMUX_PLUGIN_MANAGER_PATH .. "/tmux-window-name/scripts/rename_session_windows.py", {})
+		end
+	end,
+})

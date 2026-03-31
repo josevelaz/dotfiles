@@ -12,6 +12,20 @@ local YABAI_BIN = "/usr/local/bin/yabai"
 
 local spaces = {}
 
+local function same_apps(left, right)
+	if #left ~= #right then
+		return false
+	end
+
+	for index = 1, #left do
+		if left[index] ~= right[index] then
+			return false
+		end
+	end
+
+	return true
+end
+
 local function sync_space_item(space_data)
 	local show_space_number = #(space_data.apps or {}) == 0
 
@@ -144,34 +158,51 @@ local function render_space_apps(space_data)
 	end
 end
 
-local function update_space_apps(space_data, space_id)
-	sbar.exec(YABAI_BIN .. " -m query --windows --space " .. space_id, function(windows)
-		local apps = {}
-		local seen = {}
+local function build_apps_by_space(windows)
+	local apps_by_space = {}
+	local seen_by_space = {}
 
-		if type(windows) == "table" then
-			for _, window in ipairs(windows) do
-				local app_name = window.app
-				if app_name and app_name ~= "" and not seen[app_name] then
-					seen[app_name] = true
-					table.insert(apps, app_name)
-				end
+	if type(windows) ~= "table" then
+		return apps_by_space
+	end
+
+	for _, window in ipairs(windows) do
+		local space_id = tonumber(window.space)
+		local app_name = window.app
+		local is_standard_window = window.role == "AXWindow"
+
+		if space_id and is_standard_window and app_name and app_name ~= "" then
+			apps_by_space[space_id] = apps_by_space[space_id] or {}
+			seen_by_space[space_id] = seen_by_space[space_id] or {}
+
+			if not seen_by_space[space_id][app_name] then
+				seen_by_space[space_id][app_name] = true
+				table.insert(apps_by_space[space_id], app_name)
 			end
 		end
+	end
 
+	for _, apps in pairs(apps_by_space) do
 		table.sort(apps, function(left, right)
 			return left:lower() < right:lower()
 		end)
+	end
 
-		space_data.apps = apps
-		render_space_apps(space_data)
-	end)
+	return apps_by_space
 end
 
 local function refresh_all_spaces()
-	for _, space_data in ipairs(spaces) do
-		update_space_apps(space_data, space_data.id)
-	end
+	sbar.exec(YABAI_BIN .. " -m query --windows", function(windows)
+		local apps_by_space = build_apps_by_space(windows)
+
+		for _, space_data in ipairs(spaces) do
+			local apps = apps_by_space[space_data.id] or {}
+			if not same_apps(space_data.apps, apps) then
+				space_data.apps = apps
+				render_space_apps(space_data)
+			end
+		end
+	end)
 end
 
 local refresh_observer = sbar.add("item", "spaces.observer", {
@@ -304,9 +335,9 @@ sbar.exec(YABAI_BIN .. " -m query --spaces", function(space_info)
 			render_space_apps(space_data)
 		end)
 
-		-- Initial app content update
-		update_space_apps(space_data, space_id)
 	end
+
+	refresh_all_spaces()
 
 	require("items.front_app")
 end)
