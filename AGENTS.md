@@ -22,3 +22,5 @@ Agent behavior:
 - Make small, reversible commits; run pre-commit hooks locally.
 
 Contact: maintainers via repo issues for unclear conventions.
+
+**DO NOT FOLLOW TDD**

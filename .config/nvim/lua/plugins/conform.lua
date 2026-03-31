@@ -25,9 +25,9 @@ return {
 					go = { "goimports", "gofumpt" },
 					templ = { "templ" },
 				},
-				default_format_ops = {
-					lsp_format = "fallback",
-				},
+			default_format_opts = {
+				lsp_format = "fallback",
+			},
 			}
 		end,
 	},

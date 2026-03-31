@@ -1,16 +1,24 @@
 return {
-
-	"scottmckendry/cyberdream.nvim",
-	lazy = false,
-	priority = 1000,
-	init = function()
-		vim.cmd("colorscheme cyberdream")
-	end,
+	"rose-pine/neovim",
+	name = "rose-pine",
 	opts = {
-		variant = "dark",
-		italic_comments = true,
-		cache = true,
+		dim_inactive_windows = true,
 	},
+	config = function()
+		vim.cmd("colorscheme rose-pine")
+	end,
+
+	-- "scottmckendry/cyberdream.nvim",
+	-- lazy = false,
+	-- priority = 1000,
+	-- init = function()
+	-- 	vim.cmd("colorscheme cyberdream")
+	-- end,
+	-- opts = {
+	-- 	variant = "dark",
+	-- 	italic_comments = true,
+	-- 	cache = true,
+	-- },
 
 	-- {
 	-- 	"folke/tokyonight.nvim",
