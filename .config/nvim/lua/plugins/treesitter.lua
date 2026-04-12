@@ -2,7 +2,10 @@ return {
 	{ -- Highlight, edit, and navigate code
 		"nvim-treesitter/nvim-treesitter",
 		build = ":TSUpdate",
+		branch = "main",
+		lazy = false,
 		opts = {
+			install_dir = vim.fn.stdpath("data") .. "/site",
 			ensure_installed = {
 				"bash",
 				"html",
@@ -29,16 +32,55 @@ return {
 			},
 		},
 		config = function(_, opts)
-			-- [[ Configure Treesitter ]] See `:help nvim-treesitter`
+			local ts = require("nvim-treesitter")
+			local parsers = require("nvim-treesitter.parsers")
 
-			require("nvim-treesitter.configs").setup(opts)
+			ts.setup({
+				install_dir = opts.install_dir,
+			})
 
-			-- There are additional nvim-treesitter modules that you can use to interact
-			-- with nvim-treesitter. You should go explore a few and see what interests you:
-			--
-			--    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-			--    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-			--    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+			ts.install(opts.ensure_installed)
+
+			local highlight_enabled = opts.highlight and opts.highlight.enable ~= false
+			local group = vim.api.nvim_create_augroup("nvim_treesitter_main", { clear = true })
+
+			local function get_lang(bufnr)
+				local ft = vim.bo[bufnr].filetype
+				if ft == "" then
+					return nil
+				end
+
+				local ok, lang = pcall(vim.treesitter.language.get_lang, ft)
+				if ok and lang and lang ~= "" then
+					return lang
+				end
+
+				return ft
+			end
+
+			vim.api.nvim_create_autocmd("FileType", {
+				group = group,
+				callback = function(args)
+					if not highlight_enabled then
+						return
+					end
+
+					local lang = get_lang(args.buf)
+					if not lang or not parsers[lang] then
+						return
+					end
+
+					local installed = ts.get_installed("parsers")
+					if opts.auto_install and not vim.list_contains(installed, lang) then
+						ts.install(lang)
+						return
+					end
+
+					if vim.list_contains(installed, lang) then
+						pcall(vim.treesitter.start, args.buf, lang)
+					end
+				end,
+			})
 		end,
 	},
 	{

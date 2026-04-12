@@ -20,7 +20,7 @@ sudo apt-get update && sudo apt-get install -y \
 ## 2. Clone the dotfiles repo
 
 ```bash
-git clone https://github.com/<your-user>/dotfiles.git ~/dotfiles
+git clone https://github.com/josevelaz/dotfiles.git ~/dotfiles
 ```
 
 Convention: the repo lives at `~/dotfiles`. The stow script derives its own path dynamically, so a different location works too — just adjust accordingly.
@@ -164,9 +164,14 @@ Local macOS terminal (Ghostty)
 
 ## Mutagen sync (optional — for local-edit + remote-execute workflows)
 
-If you prefer editing locally and running on the VPS, use [Mutagen](https://mutagen.io/) to sync files.
+If you want to edit locally on macOS but run everything on the VPS, use [Mutagen](https://mutagen.io/) to sync these two roots:
 
-### Recommended sync roots
+- `~/dotfiles`
+- `~/projects` (excluding all `node_modules` directories)
+
+### Exact setup for your workflow
+
+Replace `user@vps` with your SSH target:
 
 ```bash
 # Sync the dotfiles repo itself
@@ -176,26 +181,39 @@ mutagen sync create \
   --ignore ".weave/learnings" \
   ~/dotfiles user@vps:~/dotfiles
 
-# Sync an active project
+# Sync the full projects tree, excluding node_modules anywhere under it
 mutagen sync create \
-  --name my-project \
+  --name projects \
   --ignore-vcs \
   --ignore "node_modules" \
-  --ignore ".next" \
-  --ignore "dist" \
-  --ignore "build" \
-  ~/projects/my-project user@vps:~/projects/my-project
+  ~/projects user@vps:~/projects
 ```
 
-Prefer **one sync session per active project** rather than syncing all of `~/projects` at once. It keeps Mutagen fast and reduces conflict surface.
+`node_modules` is a leaf-name ignore, so Mutagen will exclude any directory with that name anywhere under `~/projects`, not just `~/projects/node_modules`.
+
+Useful follow-up commands:
+
+```bash
+# List sessions
+mutagen sync list
+
+# Watch status live
+mutagen sync monitor
+
+# Pause/resume if needed
+mutagen sync pause dotfiles projects
+mutagen sync resume dotfiles projects
+
+# Tear down and recreate later
+mutagen sync terminate dotfiles projects
+```
 
 ### What to sync
 
 | Path | Sync? | Reason |
 |------|-------|--------|
 | `~/dotfiles` | ✅ Yes | Keep shell/tmux/nvim config in sync |
-| `~/projects/<active>` | ✅ Yes | Active codebase you're editing locally |
-| `~/projects` (all) | ⚠️ Optional | Only if intentionally broad; exclude caches |
+| `~/projects` | ✅ Yes | Sync your whole working tree to the VPS |
 
 ### What NOT to sync
 
@@ -209,9 +227,9 @@ Prefer **one sync session per active project** rather than syncing all of `~/pro
 | `.env*`, `.zsh_secrets.sh`, SSH keys | Secrets — never sync |
 | `~/.npm`, `~/.pnpm-store`, `~/.cargo`, `~/.rustup`, `~/.venv` | Package caches — install on VPS independently |
 
-### Mutagen ignore file (`.mutagen.yml` at repo root)
+### Optional global Mutagen defaults
 
-Create a `~/.mutagen.yml` or per-project `.mutagen.yml` to codify these exclusions:
+If you want these exclusions available by default for future sessions, add them to `~/.mutagen.yml`:
 
 ```yaml
 sync:
@@ -229,6 +247,8 @@ sync:
         - "*.swp"
         - ".DS_Store"
 ```
+
+For your requested setup, the two `mutagen sync create` commands above are sufficient even without a global config file.
 
 ---
 
