@@ -4,7 +4,7 @@
   "timeout": 5,
   "showProjectName": true,
   "showSessionTitle": true,
-  "showIcon": true,
+  "showIcon": false,
   "suppressWhenFocused": true,
   "notificationSystem": "osascript",
   "linux": {

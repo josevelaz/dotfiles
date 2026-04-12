@@ -2,7 +2,11 @@
 
 set -euo pipefail
 
-SCRIPT="/Users/josevelazquez/dotfiles/.local/bin/tmux-sessionizer"
+# Derive script path relative to this test file so the repo can live anywhere.
+_TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_REPO_DIR="$(cd "$_TEST_DIR/.." && pwd)"
+SCRIPT="$_REPO_DIR/.local/bin/tmux-sessionizer"
+unset _TEST_DIR _REPO_DIR
 
 to_tilde_path() {
     local path="$1"
@@ -277,6 +281,34 @@ run_home_directory_selection_test() {
     assert_contains "$session_line" "home|$home_dir"
 }
 
+run_home_prefixed_tilde_path_test() {
+    local tmpdir home_dir stub_dir target_dir session_line tmux_log malformed_path
+
+    tmpdir="$(mktemp -d)"
+    home_dir="$tmpdir/home"
+    stub_dir="$tmpdir/bin"
+    target_dir="$home_dir/projects/act-strapi"
+    malformed_path="$home_dir/~/projects/act-strapi"
+
+    mkdir -p "$target_dir"
+    make_stub_bin "$stub_dir"
+
+    export HOME="$home_dir"
+    export PATH="$stub_dir:$PATH"
+    export TMUX_TEST_LOG="$tmpdir/tmux.log"
+    export TMUX_TEST_STATE="$tmpdir/tmux.state"
+    export FZF_INPUT_LOG="$tmpdir/fzf.log"
+
+    "$SCRIPT" "$malformed_path" >/dev/null
+
+    session_line="$(grep '^act-strapi|' "$TMUX_TEST_STATE" || true)"
+    assert_contains "$session_line" "act-strapi|$target_dir"
+
+    tmux_log="$(<"$TMUX_TEST_LOG")"
+    assert_not_line "$tmux_log" "tmux send-keys -t act-strapi cd $malformed_path c-M"
+    assert_contains "$tmux_log" "tmux send-keys -t act-strapi cd $target_dir c-M"
+}
+
 run_session_command_window_cwd_test() {
     local tmpdir home_dir stub_dir window_state output window_line current_path config_dir
 
@@ -348,6 +380,7 @@ EOF
 run_specific_directory_test
 run_trailing_slash_search_test
 run_home_directory_selection_test
+run_home_prefixed_tilde_path_test
 run_session_command_window_cwd_test
 run_session_command_split_cwd_test
 

@@ -1,0 +1,89 @@
+{
+  "agents": {
+    "loom": {
+      "model": "openai/gpt-5.4",
+      "fallback_models": [
+        "github-copilot/gpt-5.4"
+      ],
+      "temperature": 0.1,
+      "skills": [
+        "fun-brainstorming"
+      ]
+    },
+    "tapestry": {
+      "temperature": 0.0,
+      "model": "github-copilot/claude-sonnet-4.6",
+      "fallback_models": [
+        "github-copilot/gpt-5.4"
+      ],
+      "skills": [
+        "tdd",
+        "typescript-advanced-types",
+        "animate",
+        "vercel-composition-patterns"
+      ],
+      "tools": {
+        "task": true,
+        "call_weave_agent": true
+      },
+      "prompt_append": "Route tasks as follows:\n\n- @shuttle → Any task that produces or modifies code (implementation, refactoring, debugging, tests)\n- @thread → Open-ended exploration (problem breakdown, architecture decisions, tradeoffs, brainstorming)\n- @spindle → External research (libraries, APIs, patterns, best practices, implementation references)\n- @weft → Post-code validation (consistency checks, integration verification, regression awareness)\n- @warp → Post-code refinement (performance, optimization, cleanup, final polish)\n- @sentinel → QA testing (edge cases, breakage detection, behavioral validation)\n\nRules:\n- If a task requires both exploration and coding, use @thread first, then @shuttle\n- After any @shuttle task, always run @weft, then @warp, then @sentinel\n- If a task depends on unknown tools, libraries, or approaches, use @spindle before any other agent\n- Do not perform coding directly; always delegate to @shuttle"
+    },
+    "shuttle": {
+      "model": "github-copilot/claude-sonnet-4.6",
+      "skills": [
+        "typescript-advanced-types",
+        "animate",
+        "vercel-composition-patterns"
+      ]
+    },
+    "pattern": {
+      "model": "github-copilot/gpt-5.4"
+    },
+    "thread": {
+      "model": "github-copilot/claude-haiku-4.5"
+    },
+    "spindle": {
+      "model": "github-copilot/gpt-5.4",
+      "prompt_append": "Use context7 to search documentation on libraries, or frameworks. Use grep mcp to search code samples in github."
+    },
+    "weft": {
+      "model": "github-copilot/gpt-5.4"
+    },
+    "warp": {
+      "model": "github-copilot/claude-opus-4.6"
+    }
+  },
+  "custom_agents": {
+    "sentinel": {
+      "prompt_file": ".opencode/prompts/browser-tester.md",
+      "model": "github-copilot/gpt-5.4",
+      "mode": "all",
+      "display_name": "Sentinel (QA Agent)",
+      "description": "An autonomous agent designed for exploratory testing of web applications. Sentinel simulates user interactions, identifies potential issues, and provides detailed feedback to improve the quality and usability of the application.",
+      "temperature": 0.2,
+      "top_p": 0.9,
+      "skills": [
+        "agent-browser",
+        "dogfood"
+      ],
+      "triggers": [
+        {
+          "domain": "Web",
+          "trigger": "Run exploratory testing and surface any issues"
+        }
+      ]
+    }
+  },
+  "categories": {
+    "ui": {
+      "description": "Tasks related to user interface development, including component implementation, styling, and accessibility.",
+      "model": "github-copilot/claude-opus-4.6",
+      "temperature": 0.2
+    },
+    "backend": {
+      "description": "Tasks related to server-side development, including API implementation, database interactions, and business logic.",
+      "model": "github-copilot/claude-sonnet-4.6",
+      "temperature": 0.2
+    }
+  }
+}
