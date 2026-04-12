@@ -1,12 +1,12 @@
 search_submodules = true
 session_sort_order = "LastAttached"
 bookmarks = [
-    "/Users/josevelazquez/dotfiles",
-    "/Users/josevelazquez/projects",
-    "/Users/josevelazquez/dotfiles/.config/nvim",
-    "/Users/josevelazquez",
+    "~/dotfiles",
+    "~/projects",
+    "~/dotfiles/.config/nvim",
+    "~/",
 ]
 
 [[search_dirs]]
-path = "/Users/josevelazquez/work/projects"
+path = "~/projects"
 depth = 10

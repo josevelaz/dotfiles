@@ -61,6 +61,20 @@ shell_escape() {
     printf '%q' "$1"
 }
 
+resolve_selected_path() {
+    local path="$1"
+
+    if [[ "$path" == "~" ]]; then
+        printf '%s\n' "$HOME"
+    elif [[ "$path" == "~/"* ]]; then
+        printf '%s\n' "$HOME/${path#~/}"
+    elif [[ "$path" == "$HOME/~/"* ]]; then
+        printf '%s\n' "$HOME/${path#"$HOME/~/"}"
+    else
+        printf '%s\n' "$path"
+    fi
+}
+
 session_idx=""
 session_cmd=""
 user_selected=""
@@ -370,24 +384,20 @@ fi
 
 if [[ "$selected" =~ ^\[TMUX\]\ (.+)$ ]]; then
     selected="${BASH_REMATCH[1]}"
-elif [[ "$selected" == "~" ]]; then
-    selected="$HOME"
-elif [[ "$selected" == "~/"* ]]; then
-    selected="$HOME/${selected#~/}"
 fi
 
-target_cwd="$selected"
-selected_name=$(basename "$selected" | tr . _)
+target_cwd="$(resolve_selected_path "$selected")"
+selected_name=$(basename "$target_cwd" | tr . _)
 
 if ! is_tmux_running; then
     tmux new-session -ds "$selected_name" -c "$target_cwd"
-    hydrate "$selected_name" "$selected"
+    hydrate "$selected_name" "$target_cwd"
     restore_cwd "$selected_name" "$target_cwd"
 fi
 
 if ! has_session "$selected_name"; then
     tmux new-session -ds "$selected_name" -c "$target_cwd"
-    hydrate "$selected_name" "$selected"
+    hydrate "$selected_name" "$target_cwd"
     restore_cwd "$selected_name" "$target_cwd"
 fi
 

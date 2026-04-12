@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# tmux-copy — layered clipboard helper for use as a tmux copy-pipe target.
+#
+# Clipboard provider priority:
+#   1. pbcopy   — macOS (always available on Darwin)
+#   2. wl-copy  — Linux Wayland desktop (WAYLAND_DISPLAY set)
+#   3. xclip    — Linux X11 desktop (DISPLAY set)
+#   4. xsel     — Linux X11 desktop, xclip fallback (DISPLAY set)
+#   5. OSC 52   — SSH/VPS headless fallback; tunnels clipboard through SSH back
+#                 to the local terminal. Requires a terminal that supports OSC 52
+#                 (Ghostty, WezTerm, kitty, iTerm2 ≥ 3.x, etc.) and tmux with
+#                 set-clipboard on (already set in .tmux.conf).
+#
+# Usage:
+#   echo "some text" | tmux-copy
+#   bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel '~/.local/bin/tmux-copy'
+
+set -euo pipefail
+
+# Read stdin once
+data="$(cat)"
+
+# ── 1. macOS ──────────────────────────────────────────────────────────────────
+if command -v pbcopy &>/dev/null; then
+  printf '%s' "$data" | pbcopy
+  exit 0
+fi
+
+# ── 2. Wayland ────────────────────────────────────────────────────────────────
+if command -v wl-copy &>/dev/null && [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+  printf '%s' "$data" | wl-copy --trim-newline
+  exit 0
+fi
+
+# ── 3. X11 via xclip ─────────────────────────────────────────────────────────
+if command -v xclip &>/dev/null && [[ -n "${DISPLAY:-}" ]]; then
+  printf '%s' "$data" | xclip -in -selection clipboard
+  exit 0
+fi
+
+# ── 4. X11 via xsel ──────────────────────────────────────────────────────────
+if command -v xsel &>/dev/null && [[ -n "${DISPLAY:-}" ]]; then
+  printf '%s' "$data" | xsel --input --clipboard
+  exit 0
+fi
+
+# ── 5. OSC 52 (SSH / headless VPS fallback) ───────────────────────────────────
+# Encodes clipboard data as base64 and emits an OSC 52 escape sequence.
+# The terminal on the local machine intercepts the sequence and writes it to
+# the system clipboard, regardless of SSH nesting depth.
+# tmux forwards the sequence when `set-clipboard on` is set in .tmux.conf.
+encoded="$(printf '%s' "$data" | base64 | tr -d '\n')"
+printf "\033]52;c;%s\a" "$encoded"
+exit 0

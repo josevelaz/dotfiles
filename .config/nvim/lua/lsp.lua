@@ -74,7 +74,7 @@ local on_attach = function(client, bufnr)
 			callback = vim.lsp.buf.clear_references,
 		})
 	end
-	if client.supports_method(methods.textDocument_inlayHint) then
+	if client:supports_method(methods.textDocument_inlayHint) then
 		vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 
 		vim.keymap.set("n", "<leader>ci", function()

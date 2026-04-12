@@ -27,14 +27,6 @@ return {
 				--  the list of additional_vim_regex_highlighting and disabled languages for indent.
 				additional_vim_regex_highlighting = { "markdown" },
 			},
-			incremental_selection = {
-				enable = true,
-				keymaps = {
-					init_selection = "<CR>",
-					node_incremental = "<CR>",
-					node_decremental = "<BS>",
-				},
-			},
 		},
 		config = function(_, opts)
 			-- [[ Configure Treesitter ]] See `:help nvim-treesitter`
@@ -49,11 +41,11 @@ return {
 			--    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 		end,
 	},
-  {
-    "nvim-treesitter/nvim-treesitter-context",
-    opts = {
-      max_lines = 5,
-      multiline_threshold = 3
-    }
-  }
+	{
+		"nvim-treesitter/nvim-treesitter-context",
+		opts = {
+			max_lines = 5,
+			multiline_threshold = 3,
+		},
+	},
 }

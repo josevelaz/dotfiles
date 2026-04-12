@@ -1,18 +1,25 @@
 #!/bin/zsh
+# ghostty-init.sh — macOS/Ghostty startup helper.
+# Invoked by Ghostty as its shell command to create or attach a tmux session.
+# .config/ghostty/ is excluded from ubuntu/server profile stowing, so this
+# script is only ever called on macOS where Ghostty is installed.
+#
+# Handles both Apple Silicon (/opt/homebrew) and Intel (/usr/local) Homebrew
+# so tmux is findable before zsh login profiles have run.
 
-# Set PATH to include Homebrew
-export PATH="/opt/homebrew/bin:$PATH"
+for _brew_prefix in /opt/homebrew /usr/local; do
+  if [[ -d "$_brew_prefix/bin" && ":$PATH:" != *":$_brew_prefix/bin:"* ]]; then
+    export PATH="$_brew_prefix/bin:$PATH"
+  fi
+done
+unset _brew_prefix
 
 SESSION_NAME="default"
 
-# Check if the session already exists
-tmux has-session -t $SESSION_NAME 2>/dev/null
-
-if [ $? -eq 0 ]; then
- # If the session exists, reattach to it
- tmux attach-session -t $SESSION_NAME
+# Attach to existing session or create a new one.
+if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+  tmux attach-session -t "$SESSION_NAME"
 else
- # If the session doesn't exist, start a new one
- tmux new-session -s $SESSION_NAME -d
- tmux attach-session -t $SESSION_NAME
+  tmux new-session -s "$SESSION_NAME" -d
+  tmux attach-session -t "$SESSION_NAME"
 fi

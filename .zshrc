@@ -1,42 +1,38 @@
-source ~/.zsh_secrets.sh
+# =========== SECRETS / LOCAL OVERRIDES ================
+# Source optional machine-local secrets and overrides (not committed to repo)
+[[ -f ~/.zsh_secrets.sh ]] && source ~/.zsh_secrets.sh
+[[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/local.zsh" ]] && \
+  source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/local.zsh"
+# =========== END SECRETS / LOCAL OVERRIDES ================
 
 bindkey -v
 
-# Add deno completions to search path
-if [[ ":$FPATH:" != *":/Users/josevelazquez/.zsh/completions:"* ]]; then export FPATH="/Users/josevelazquez/.zsh/completions:$FPATH"; fi
-
-
-
-function oai-lb {
-  docker volume create oai-lb-data
-  docker run -d --name oai-lb \
-    -p 2455:2455 -p 1455:1455 \
-    -v codex-lb-data:/var/lib/codex-lb \
-    ghcr.io/soju06/codex-lb:latest
-}
-
-export OPENCODE_EXPERIMENTAL_LSP_TOOL=1
-
 # =========== ANTIDOTE ================
-source /opt/homebrew/opt/antidote/share/antidote/antidote.zsh
+# Load antidote zsh plugin manager.
+# Tries: Homebrew (Apple Silicon), Homebrew (Intel), manual install at ~/.antidote
+_antidote_path=""
+if [[ -f /opt/homebrew/opt/antidote/share/antidote/antidote.zsh ]]; then
+  _antidote_path="/opt/homebrew/opt/antidote/share/antidote/antidote.zsh"
+elif [[ -f /usr/local/opt/antidote/share/antidote/antidote.zsh ]]; then
+  _antidote_path="/usr/local/opt/antidote/share/antidote/antidote.zsh"
+elif [[ -f "$HOME/.antidote/antidote.zsh" ]]; then
+  _antidote_path="$HOME/.antidote/antidote.zsh"
+fi
 
-# GIT_WORKING_SHA=adfade31a84dfa512a7e3583d567ee19ac4a7936
-# GIT_DIR=$(antidote path marlonrichert/zsh-autocomplete)
-
-# revert Zsh plugin managed by antidote to a prior SHA
-# git -C "$GIT_DIR" fetch --unshallow
-# git -C "$GIT_DIR" checkout $GIT_WORKING_SHA
-
-antidote load
+if [[ -n "$_antidote_path" ]]; then
+  source "$_antidote_path"
+  antidote load
+fi
+unset _antidote_path
 # =========== END ANTIDOTE ================
 
 
 # =========== OH MY POSH ================
-if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
+if command -v oh-my-posh &>/dev/null && [[ "$TERM_PROGRAM" != "Apple_Terminal" ]]; then
   eval "$(oh-my-posh init zsh --config ~/.rose_pine.omp.json)"
 fi
-
 # =========== END OH MY POSH ================
+
 export EDITOR=$(which nvim)
 
 alias vim="nvim"
@@ -55,48 +51,80 @@ export FZF_DEFAULT_OPTS="
 bindkey '\t'   complete-word       # tab          | complete
 bindkey '\t\t' autosuggest-accept  # shift + tab  | autosuggest
 
-# ============ ZIOXIDE ==============
+# ============ ZOXIDE ==============
 export _ZO_EXCLUDE_DIRS="$_ZO_EXCLUDE_DIRS:node_modules/*"
-eval "$(zoxide init --cmd cd zsh)"
-# ============ END ZIOXIDE ==============
+command -v zoxide &>/dev/null && eval "$(zoxide init --cmd cd zsh)"
+# ============ END ZOXIDE ==============
+
+export OPENCODE_EXPERIMENTAL_LSP_TOOL=1
 
 # =========== PATHS ================
-# Volta
-export VOLTA_HOME="$HOME/.volta"
-export PATH="$VOLTA_HOME/bin:$PATH"
-
 # Local bin
 export PATH="$PATH:$HOME/.local/bin"
 
-# mysql-client
-export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
+# Volta (Node version manager)
+export VOLTA_HOME="$HOME/.volta"
+[[ -d "$VOLTA_HOME/bin" ]] && export PATH="$VOLTA_HOME/bin:$PATH"
 
 # Go bin
-export PATH=$PATH:$HOME/go/bin
-# =========== END PATHS================
-. "/Users/josevelazquez/.deno/env"
+[[ -d "$HOME/go/bin" ]] && export PATH="$PATH:$HOME/go/bin"
 
-# bun completions
-[ -s "/Users/josevelazquez/.bun/_bun" ] && source "/Users/josevelazquez/.bun/_bun"
-
-# bun
+# Bun
 export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+[[ -d "$BUN_INSTALL/bin" ]] && export PATH="$BUN_INSTALL/bin:$PATH"
+[[ -s "$BUN_INSTALL/_bun" ]] && source "$BUN_INSTALL/_bun"
 
-. "$HOME/.local/bin/env"
+# Deno
+[[ -f "$HOME/.deno/env" ]] && . "$HOME/.deno/env"
+if [[ -d "$HOME/.deno/bin" ]]; then
+  [[ ":$FPATH:" != *":$HOME/.zsh/completions:"* ]] && \
+    export FPATH="$HOME/.deno/completions:$FPATH"
+fi
 
-# opencode
-export PATH=/Users/josevelazquez/.opencode/bin:$PATH
+# OpenCode
+[[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
 
 opencode() {
-	OPENCODE_DISABLE_DEFAULT_PLUGINS=1 command /Users/josevelazquez/.opencode/bin/opencode "$@"
+  OPENCODE_DISABLE_DEFAULT_PLUGINS=1 command opencode "$@"
 }
 
-export PROJECTS=/Users/josevelazquez/projects
+# uv / rustup env shim (if installed)
+[[ -f "$HOME/.local/bin/env" ]] && . "$HOME/.local/bin/env"
+# =========== END PATHS ================
 
 
+# Projects root — can be overridden in .config/zsh/local.zsh
+export PROJECTS="${PROJECTS:-$HOME/projects}"
+
+
+# =========== PLATFORM-SPECIFIC ================
+_zsh_platform_dir="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/platform"
+if [[ "$(uname)" == "Darwin" ]]; then
+  [[ -f "$_zsh_platform_dir/darwin.zsh" ]] && source "$_zsh_platform_dir/darwin.zsh"
+elif [[ "$(uname)" == "Linux" ]]; then
+  [[ -f "$_zsh_platform_dir/linux.zsh" ]] && source "$_zsh_platform_dir/linux.zsh"
+fi
+unset _zsh_platform_dir
+# =========== END PLATFORM-SPECIFIC ================
+
+
+# =========== DOCKER HELPERS ================
+function oai-lb {
+  docker volume create oai-lb-data
+  docker run -d --name oai-lb \
+    -p 2455:2455 -p 1455:1455 \
+    -v codex-lb-data:/var/lib/codex-lb \
+    ghcr.io/soju6/codex-lb:latest
+}
+# =========== END DOCKER HELPERS ================
+
+
+# =========== TMUX HOOKS ================
 tmux-window-name() {
-	($TMUX_PLUGIN_MANAGER_PATH/tmux-window-name/scripts/rename_session_windows.py &)
+  if [[ -n "$TMUX_PLUGIN_MANAGER_PATH" ]]; then
+    ($TMUX_PLUGIN_MANAGER_PATH/tmux-window-name/scripts/rename_session_windows.py &)
+  fi
 }
 
 add-zsh-hook chpwd tmux-window-name
+# =========== END TMUX HOOKS ================
