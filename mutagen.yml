@@ -1,0 +1,22 @@
+sync:
+  dotfiles:
+    alpha: "/Users/josevelazquez/dotfiles"
+    beta: "ubuntu@devbox.tail4c22db.ts.net:~/dotfiles"
+    mode: "two-way-safe"
+    ignore:
+      vcs: true
+      paths:
+        - "node_modules"
+        - ".local/share"
+        - ".local/state"
+        - ".cache"
+        - ".DS_Store"
+        - "mutagen.yml.lock"
+  projects:
+    alpha: "/Users/josevelazquez/projects"
+    beta: "ubuntu@devbox.tail4c22db.ts.net:~/projects"
+    mode: "two-way-safe"
+    ignore:
+      vcs: true
+      paths:
+        - "node_modules"

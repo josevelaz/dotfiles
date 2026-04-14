@@ -1,8 +1,0 @@
-[
-  {
-    "content": "Fix duplicate className and remaining inline styles in show.tsx",
-    "status": "completed",
-    "priority": "high",
-    "id": "1"
-  }
-]
