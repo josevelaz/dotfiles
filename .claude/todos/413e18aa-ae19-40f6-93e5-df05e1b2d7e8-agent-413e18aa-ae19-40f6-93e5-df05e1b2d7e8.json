@@ -1,8 +1,0 @@
-[
-  {
-    "content": "Fix the inertia config test to properly mock DTOs and test the resolver function",
-    "status": "completed",
-    "priority": "high",
-    "id": "1"
-  }
-]
