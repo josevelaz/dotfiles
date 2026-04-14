@@ -4,3 +4,6 @@
 
 # Machine-local zsh overrides (copy from .config/zsh/local.example.zsh)
 .config/zsh/local.zsh
+
+.local/share/
+.local/state/
