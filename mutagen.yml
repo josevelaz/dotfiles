@@ -20,3 +20,4 @@ sync:
       vcs: true
       paths:
         - "node_modules"
+        - "build"

@@ -16,7 +16,7 @@
     },
   },
   "plugin": [
-    "@opencode_weave/weave@0.7.6-preview.2",
+    "@opencode_weave/weave",
     "@tarquinen/opencode-dcp@beta",
     "@mohak34/opencode-notifier@latest",
     "@franlol/opencode-md-table-formatter@latest",
@@ -85,10 +85,10 @@
   },
   "provider": {
     "openai": {
-      "name": "OpenAI",
+      "name": "OpenAI | LB",
       "options": {
-        // "baseURL": "http://127.0.0.1:2455/v1",
-        // "apiKey": "{env:CODEX_LB_API_KEY}",
+        "baseURL": "https://devbox.tail4c22db.ts.net/v1",
+        "apiKey": "{env:CODEX_LB_API_KEY}",
         "timeout": 1200000,
         "chunkTimeout": 600000
       },
