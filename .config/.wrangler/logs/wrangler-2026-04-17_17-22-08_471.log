@@ -1,0 +1,34 @@
+
+--- 2026-04-17T17:22:08.729Z debug
+🪵  Writing logs to "/home/ubuntu/.config/.wrangler/logs/wrangler-2026-04-17_17-22-08_471.log"
+---
+
+--- 2026-04-17T17:22:08.728Z debug
+.env file not found at "/home/ubuntu/projects/pawlytics/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-17T17:22:08.730Z debug
+.env file not found at "/home/ubuntu/projects/pawlytics/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-17T17:22:08.739Z log
+
+ ⛅️ wrangler 4.83.0
+───────────────────
+---
+
+--- 2026-04-17T17:22:08.742Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command started","timestamp":1776446528742,"properties":{"amplitude_session_id":1776446528740,"amplitude_event_id":0,"wranglerVersion":"4.83.0","wranglerMajorVersion":4,"wranglerMinorVersion":83,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"argsUsed":[],"argsCombination":"","sanitizedCommand":"init","sanitizedArgs":{}}}
+---
+
+--- 2026-04-17T17:22:08.931Z debug
+Using npm as package manager.
+---
+
+--- 2026-04-17T17:22:08.932Z log
+🌀 Running `npm create cloudflare elysia-on-cloudflare --`...
+---
+
+--- 2026-04-17T17:23:00.640Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command completed","timestamp":1776446580640,"properties":{"amplitude_session_id":1776446528740,"amplitude_event_id":1,"wranglerVersion":"4.83.0","wranglerMajorVersion":4,"wranglerMinorVersion":83,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"argsUsed":[],"argsCombination":"","sanitizedCommand":"init","sanitizedArgs":{},"durationMs":51909}}
+---

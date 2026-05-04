@@ -10,7 +10,13 @@ Install baseline packages before cloning:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y \
-  git zsh tmux stow fzf ripgrep fd-find curl unzip neovim zoxide
+  git zsh tmux stow fzf ripgrep fd-find curl unzip zoxide python3-pip snapd
+```
+
+Install Neovim from `snap`, not `apt` — Ubuntu's `apt` package is usually too old for this setup:
+
+```bash
+sudo snap install nvim --classic
 ```
 
 > `fd-find` installs as `fdfind` on Ubuntu/Debian. The `linux.zsh` platform file aliases it to `fd` automatically.
@@ -78,11 +84,14 @@ tmux uses TPM (tmux Plugin Manager). On first use:
 
 ```bash
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+python3 -m pip install --user libtmux
 ```
 
 Start tmux, then press `prefix + I` (capital I) to install all plugins listed in `.tmux.conf`.
 
 > `prefix` is `C-a` (Ctrl+A) in this config.
+>
+> `libtmux` is required by the `tmux-window-name` plugin. Without it, tmux will show Python errors while changing windows.
 
 ---
 
@@ -260,14 +269,16 @@ Paste the following into a terminal-capable AI agent to automate this setup:
 You are on an Ubuntu VPS with terminal access. Prepare this machine for the portable dotfiles workflow without introducing macOS-only config.
 
 Tasks:
-1. Ensure these packages are installed via apt: git, zsh, tmux, stow, fzf, zoxide, ripgrep, fd-find, curl, unzip, neovim.
-2. Install antidote zsh plugin manager: git clone --depth=1 https://github.com/mattmc3/antidote.git ~/.antidote
-3. Clone or update the dotfiles repo into ~/dotfiles.
-4. Run the bootstrap helper in dry-run mode: bash ~/dotfiles/.local/bin/stow-dotfiles.sh -n --profile ubuntu
-5. Review the dry-run output to confirm macOS-only dirs (ghostty, sketchybar, yabai, skhd, karabiner) are excluded, then apply: bash ~/dotfiles/.local/bin/stow-dotfiles.sh --profile ubuntu
-6. Install tmux plugin manager: git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-7. Switch the login shell to zsh: chsh -s $(which zsh)
-8. Validate: run zsh -n ~/.zshrc, then tmux -L check start-server \; source-file ~/.tmux.conf \; kill-server
+1. Ensure these packages are installed via apt: git, zsh, tmux, stow, fzf, zoxide, ripgrep, fd-find, curl, unzip, python3-pip, snapd.
+2. Install Neovim with snap, not apt: sudo snap install nvim --classic
+3. Install antidote zsh plugin manager: git clone --depth=1 https://github.com/mattmc3/antidote.git ~/.antidote
+4. Clone or update the dotfiles repo into ~/dotfiles.
+5. Run the bootstrap helper in dry-run mode: bash ~/dotfiles/.local/bin/stow-dotfiles.sh -n --profile ubuntu
+6. Review the dry-run output to confirm macOS-only dirs (ghostty, sketchybar, yabai, skhd, karabiner) are excluded, then apply: bash ~/dotfiles/.local/bin/stow-dotfiles.sh --profile ubuntu
+7. Install tmux plugin manager: git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+8. Install the Python dependency required by tmux-window-name: python3 -m pip install --user libtmux
+9. Switch the login shell to zsh: chsh -s $(which zsh)
+10. Validate: run zsh -n ~/.zshrc, then tmux -L check start-server \; source-file ~/.tmux.conf \; kill-server
 
 Constraints:
 - Keep macOS-only config out of the Ubuntu setup.

@@ -1,3 +1,10 @@
+export TERM="xterm-ghostty"
+
+function devbox {
+  tailscale ssh ubuntu@devbox
+}
+
+
 # =========== SECRETS / LOCAL OVERRIDES ================
 # Source optional machine-local secrets and overrides (not committed to repo)
 [[ -f ~/.zsh_secrets.sh ]] && source ~/.zsh_secrets.sh
@@ -26,6 +33,9 @@ fi
 unset _antidote_path
 # =========== END ANTIDOTE ================
 
+
+# Local bin
+export PATH="$PATH:$HOME/.local/bin"
 
 # =========== OH MY POSH ================
 if command -v oh-my-posh &>/dev/null && [[ "$TERM_PROGRAM" != "Apple_Terminal" ]]; then
@@ -56,11 +66,14 @@ export _ZO_EXCLUDE_DIRS="$_ZO_EXCLUDE_DIRS:node_modules/*"
 command -v zoxide &>/dev/null && eval "$(zoxide init --cmd cd zsh)"
 # ============ END ZOXIDE ==============
 
+# =========== OPENCODE EXPERIMENTAL FEATURES ================
 export OPENCODE_EXPERIMENTAL_LSP_TOOL=1
+export OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT=1
+# ========== END OPENCODE EXPERIMENTAL FEATURES ============
 
 # =========== PATHS ================
-# Local bin
-export PATH="$PATH:$HOME/.local/bin"
+# Snap
+[[ -d "/snap/bin" ]] && export PATH="$PATH:/snap/bin"
 
 # Volta (Node version manager)
 export VOLTA_HOME="$HOME/.volta"
@@ -84,9 +97,6 @@ fi
 # OpenCode
 [[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
 
-opencode() {
-  OPENCODE_DISABLE_DEFAULT_PLUGINS=1 command opencode "$@"
-}
 
 # uv / rustup env shim (if installed)
 [[ -f "$HOME/.local/bin/env" ]] && . "$HOME/.local/bin/env"
@@ -122,9 +132,35 @@ function oai-lb {
 # =========== TMUX HOOKS ================
 tmux-window-name() {
   if [[ -n "$TMUX_PLUGIN_MANAGER_PATH" ]]; then
-    ($TMUX_PLUGIN_MANAGER_PATH/tmux-window-name/scripts/rename_session_windows.py &)
+    "$TMUX_PLUGIN_MANAGER_PATH/tmux-window-name/scripts/rename_session_windows.py" >/dev/null 2>&1 &!
   fi
 }
 
 add-zsh-hook chpwd tmux-window-name
 # =========== END TMUX HOOKS ================
+
+# pnpm
+export PNPM_HOME="/home/ubuntu/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+alias tms="tmux-sessionizer"
+
+# sqz — context intelligence layer (auto-installed)
+sqz_run() {
+    "$@" 2>&1 | SQZ_CMD="$*" sqz compress
+}
+sqz_sudo() {
+    sudo "$@" 2>&1 | SQZ_CMD="sudo $*" sqz compress
+}
+preexec() {
+    export __SQZ_CMD="$1"
+}
+# sqz — end of auto-installed block
+
+
+# bun completions
+[ -s "/home/ubuntu/.bun/_bun" ] && source "/home/ubuntu/.bun/_bun"

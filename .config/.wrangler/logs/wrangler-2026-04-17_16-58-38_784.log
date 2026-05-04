@@ -1,0 +1,147 @@
+
+--- 2026-04-17T16:58:39.103Z debug
+🪵  Writing logs to "/home/ubuntu/.config/.wrangler/logs/wrangler-2026-04-17_16-58-38_784.log"
+---
+
+--- 2026-04-17T16:58:39.102Z debug
+.env file not found at "/home/ubuntu/projects/pawlytics/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-17T16:58:39.104Z debug
+.env file not found at "/home/ubuntu/projects/pawlytics/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-17T16:58:39.214Z log
+
+ ⛅️ wrangler 4.83.0
+───────────────────
+---
+
+--- 2026-04-17T16:58:39.226Z log
+
+Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+---
+
+--- 2026-04-17T16:58:39.228Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command started","timestamp":1776445119228,"properties":{"amplitude_session_id":1776445119223,"amplitude_event_id":0,"wranglerVersion":"4.83.0","wranglerMajorVersion":4,"wranglerMinorVersion":83,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"jsonc","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"argsUsed":[],"argsCombination":"","sanitizedCommand":"deploy","sanitizedArgs":{}}}
+---
+
+--- 2026-04-17T16:58:39.263Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"autoconfig_process_started","timestamp":1776445119263,"properties":{"amplitude_session_id":1776445119262,"amplitude_event_id":0,"wranglerVersion":"4.83.0","wranglerMajorVersion":4,"wranglerMinorVersion":83,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"category":"Workers","os":"linux:x64","autoConfigId":"22d4cc87-68e2-4cdc-9e88-ff2d483cd627","command":"wrangler deploy","dryRun":false}}
+---
+
+--- 2026-04-17T16:58:39.264Z debug
+Running autoconfig detection in /home/ubuntu/projects/pawlytics...
+---
+
+--- 2026-04-17T16:58:39.265Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"autoconfig_detection_started","timestamp":1776445119265,"properties":{"amplitude_session_id":1776445119264,"amplitude_event_id":0,"wranglerVersion":"4.83.0","wranglerMajorVersion":4,"wranglerMinorVersion":83,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"category":"Workers","os":"linux:x64","autoConfigId":"22d4cc87-68e2-4cdc-9e88-ff2d483cd627","command":"wrangler deploy"}}
+---
+
+--- 2026-04-17T16:58:39.276Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"autoconfig_process_ended","timestamp":1776445119276,"properties":{"amplitude_session_id":1776445119276,"amplitude_event_id":0,"wranglerVersion":"4.83.0","wranglerMajorVersion":4,"wranglerMinorVersion":83,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"category":"Workers","os":"linux:x64","autoConfigId":"22d4cc87-68e2-4cdc-9e88-ff2d483cd627","command":"wrangler deploy","dryRun":false,"success":true}}
+---
+
+--- 2026-04-17T16:58:39.287Z log
+[custom build] Running: npm run build
+---
+
+--- 2026-04-17T16:58:39.551Z log
+[custom build] 
+---
+
+--- 2026-04-17T16:58:39.551Z log
+[custom build] > pawlytics@0.0.0 build
+---
+
+--- 2026-04-17T16:58:39.551Z log
+[custom build] > go run github.com/syumai/workers/cmd/workers-assets-gen -mode=go && GOOS=js GOARCH=wasm go build -o ./build/app.wasm .
+---
+
+--- 2026-04-17T16:58:39.551Z log
+[custom build] 
+---
+
+--- 2026-04-17T16:58:39.552Z log
+[custom build] 
+---
+
+--- 2026-04-17T16:58:39.608Z log
+[custom build] no required module provides package github.com/syumai/workers/cmd/workers-assets-gen: go.mod file not found in current directory or any parent directory; see 'go help modules'
+---
+
+--- 2026-04-17T16:58:39.609Z log
+[custom build] 
+---
+
+--- 2026-04-17T16:58:39.693Z error
+✘ [ERROR] Error: Command failed with exit code 1: npm run build
+
+  no required module provides package github.com/syumai/workers/cmd/workers-assets-gen: go.mod file
+  not found in current directory or any parent directory; see 'go help modules'
+  
+  > pawlytics@0.0.0 build
+  > go run github.com/syumai/workers/cmd/workers-assets-gen -mode=go && GOOS=js GOARCH=wasm go build
+  -o ./build/app.wasm .
+  
+      at makeError
+  (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:53869:18)
+      at handlePromise
+  (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:54336:29)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runCommand
+  (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:135493:5)
+      at async runCustomBuild
+  (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:135506:5)
+      at async getEntry
+  (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:232336:3)
+      at async Object.handler
+  (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:233402:23)
+      at async /home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:182085:26
+      at async Object.handler
+  (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:182034:7) {
+    shortMessage: 'Command failed with exit code 1: npm run build',
+    command: 'npm run build',
+    escapedCommand: 'npm run build',
+    exitCode: 1,
+    signal: undefined,
+    signalDescription: undefined,
+    stdout: '\n' +
+      '> pawlytics@0.0.0 build\n' +
+      '> go run github.com/syumai/workers/cmd/workers-assets-gen -mode=go && GOOS=js GOARCH=wasm go
+  build -o ./build/app.wasm .\n',
+    stderr: "no required module provides package github.com/syumai/workers/cmd/workers-assets-gen:
+  go.mod file not found in current directory or any parent directory; see 'go help modules'",
+    failed: true,
+    timedOut: false,
+    isCanceled: false,
+    killed: false
+  }
+
+
+---
+
+--- 2026-04-17T16:58:39.695Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command errored","timestamp":1776445119695,"properties":{"amplitude_session_id":1776445119223,"amplitude_event_id":1,"wranglerVersion":"4.83.0","wranglerMajorVersion":4,"wranglerMinorVersion":83,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"jsonc","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"argsUsed":[],"argsCombination":"","sanitizedCommand":"deploy","sanitizedArgs":{},"durationMs":588,"errorType":"UserError"}}
+---
+
+--- 2026-04-17T16:58:39.697Z log
+
+---
+
+--- 2026-04-17T16:58:39.698Z error
+✘ [ERROR] Running custom build `npm run build` failed. There are likely more logs from your build command above.
+
+
+---
+
+--- 2026-04-17T16:58:39.698Z debug
+Error: Running custom build `npm run build` failed. There are likely more logs from your build command above.
+    at runCommand (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:135496:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async runCustomBuild (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:135506:5)
+    at async getEntry (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:232336:3)
+    at async Object.handler (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:233402:23)
+    at async /home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:182085:26
+    at async Object.handler (/home/ubuntu/projects/pawlytics/node_modules/wrangler/wrangler-dist/cli.js:182034:7)
+---

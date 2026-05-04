@@ -1,0 +1,74 @@
+
+--- 2026-04-15T23:18:54.476Z debug
+🪵  Writing logs to "/home/ubuntu/.config/.wrangler/logs/wrangler-2026-04-15_23-18-54_060.log"
+---
+
+--- 2026-04-15T23:18:54.476Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-15T23:18:54.477Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-15T23:18:54.498Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command started","timestamp":1776295134498,"properties":{"amplitude_session_id":1776295134495,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"jsonc","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"argsUsed":["format","samplingRate","search"],"argsCombination":"format, samplingRate, search","sanitizedCommand":"tail","sanitizedArgs":{"format":"pretty"}}}
+---
+
+--- 2026-04-15T23:18:54.547Z log
+
+ ⛅️ wrangler 4.80.0 (update available 4.83.0)
+─────────────────────────────────────────────
+---
+
+--- 2026-04-15T23:18:54.550Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"begin log stream","timestamp":1776295134550,"properties":{"amplitude_session_id":1776295134549,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"category":"Workers","os":"linux:x64"}}
+---
+
+--- 2026-04-15T23:18:54.554Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/scripts/action-canine-training/tails
+---
+
+--- 2026-04-15T23:18:54.554Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:18:54.555Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:18:54.555Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:18:54.555Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:18:55.056Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:18:55.057Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:18:55.057Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:18:55.057Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:18:55.077Z log
+Successfully created tail, expires at 2026-04-16T02:31:31Z
+---
+
+--- 2026-04-15T23:18:55.279Z log
+Connected to action-canine-training, waiting for logs...
+---
+
+--- 2026-04-15T23:18:55.280Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command completed","timestamp":1776295135280,"properties":{"amplitude_session_id":1776295134495,"amplitude_event_id":1,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"jsonc","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"argsUsed":["format","samplingRate","search"],"argsCombination":"format, samplingRate, search","sanitizedCommand":"tail","sanitizedArgs":{"format":"pretty"},"durationMs":802}}
+---

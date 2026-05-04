@@ -20,6 +20,7 @@ Repo-specific rules:
 Agent behavior:
 - Read 2000 lines when opening files for context; run tests after changes.
 - Make small, reversible commits; run pre-commit hooks locally.
+- Use `$git-worktrees` when creating or managing Git worktrees, especially to choose the correct path policy for bare vs normal repos.
 
 Contact: maintainers via repo issues for unclear conventions.
 

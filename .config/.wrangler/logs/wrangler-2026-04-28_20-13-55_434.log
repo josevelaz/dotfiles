@@ -1,0 +1,36 @@
+
+--- 2026-04-28T20:13:57.714Z debug
+🪵  Writing logs to "/home/ubuntu/.config/.wrangler/logs/wrangler-2026-04-28_20-13-55_434.log"
+---
+
+--- 2026-04-28T20:13:57.714Z log
+Found a non-empty CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE variable for binding. Hyperdrive will connect to this database during local development.
+---
+
+--- 2026-04-28T20:13:57.715Z debug
+local dev variables file not found at ".dev.vars". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-28T20:13:57.716Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-28T20:13:57.716Z log
+Using secrets defined in .env.local
+---
+
+--- 2026-04-28T20:14:03.427Z log
+Found a non-empty CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE variable for binding. Hyperdrive will connect to this database during local development.
+---
+
+--- 2026-04-28T20:14:03.428Z debug
+local dev variables file not found at ".dev.vars". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-28T20:14:03.428Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-28T20:14:03.428Z log
+Using secrets defined in .env.local
+---

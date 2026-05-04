@@ -1,0 +1,22 @@
+{
+  "lastChangelogVersion": "0.72.1",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "kimi-k2.6",
+  "defaultThinkingLevel": "medium",
+  "packages": [
+    "npm:pi-mcp-adapter",
+    "npm:pi-subagents",
+    "npm:pi-lens",
+    "npm:pi-markdown-preview",
+    "npm:pi-btw",
+    "npm:pi-web-access",
+    "npm:pi-vim"
+  ],
+  "knowledge-search": {
+    "paths": [
+      "~/obsidian_vaults/notes"
+    ]
+  },
+  "hideThinkingBlock": false,
+  "theme": "rose-pine"
+}

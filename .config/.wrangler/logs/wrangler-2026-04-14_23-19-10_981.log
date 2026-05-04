@@ -1,0 +1,30 @@
+
+--- 2026-04-14T23:19:11.353Z debug
+🪵  Writing logs to "/home/ubuntu/.config/.wrangler/logs/wrangler-2026-04-14_23-19-10_981.log"
+---
+
+--- 2026-04-14T23:19:11.352Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-14T23:19:11.354Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-14T23:19:11.367Z log
+
+ ⛅️ wrangler 4.80.0 (update available 4.82.2)
+─────────────────────────────────────────────
+---
+
+--- 2026-04-14T23:19:11.380Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command started","timestamp":1776208751380,"properties":{"amplitude_session_id":1776208751377,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"jsonc","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"argsUsed":[],"argsCombination":"","sanitizedCommand":"login","sanitizedArgs":{}}}
+---
+
+--- 2026-04-14T23:19:11.413Z log
+Attempting to login via OAuth...
+---
+
+--- 2026-04-14T23:19:11.433Z log
+Visit this link to authenticate: https://dash.cloudflare.com/oauth2/auth?response_type=code&client_id=54d11594-84e4-41aa-b438-e81b8fa78ee7&redirect_uri=http%3A%2F%2Flocalhost%3A8976%2Foauth%2Fcallback&scope=account%3Aread%20user%3Aread%20workers%3Awrite%20workers_kv%3Awrite%20workers_routes%3Awrite%20workers_scripts%3Awrite%20workers_tail%3Aread%20d1%3Awrite%20pages%3Awrite%20zone%3Aread%20ssl_certs%3Awrite%20ai%3Awrite%20ai-search%3Awrite%20ai-search%3Arun%20queues%3Awrite%20pipelines%3Awrite%20secrets_store%3Awrite%20containers%3Awrite%20cloudchamber%3Awrite%20connectivity%3Aadmin%20offline_access&state=23rMD3Pm7CnOAxPZlnJsNWQ77G-_g5aL&code_challenge=1I9hBaNzCq0sd0-0J3D_EFzYWEda73LPlSgDLv7WUB0&code_challenge_method=S256
+---

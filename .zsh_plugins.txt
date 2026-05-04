@@ -4,6 +4,6 @@ zsh-users/zsh-completions
 
 MichaelAquilina/zsh-auto-notify
 
-zsh-users/zsh-syntax-highlighting
-
 zsh-users/zsh-autosuggestions
+
+zsh-users/zsh-syntax-highlighting

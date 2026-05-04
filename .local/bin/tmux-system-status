@@ -1,0 +1,276 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/tmux"
+STATE_FILE="$CACHE_DIR/system-status.cpu"
+RAM_BAR_WIDTH=8
+
+THM_MUTED="#6e6a86"
+THM_SUBTLE="#908caa"
+THM_TEXT="#e0def4"
+THM_LOVE="#eb6f92"
+THM_GOLD="#f6c177"
+THM_ROSE="#ebbcba"
+THM_PINE="#31748f"
+THM_FOAM="#9ccfd8"
+THM_IRIS="#c4a7e7"
+THM_HL_MED="#403d52"
+
+style() {
+    local color="$1"
+    local text="$2"
+
+    printf '#[fg=%s]%s' "$color" "$text"
+}
+
+separator() {
+    style "$THM_MUTED" ' | '
+}
+
+label_style() {
+    style "$THM_IRIS" "$1"
+}
+
+usage_color() {
+    local percent="$1"
+
+    if ((percent >= 85)); then
+        printf '%s' "$THM_LOVE"
+    elif ((percent >= 65)); then
+        printf '%s' "$THM_GOLD"
+    elif ((percent >= 35)); then
+        printf '%s' "$THM_FOAM"
+    else
+        printf '%s' "$THM_PINE"
+    fi
+}
+
+repeat_char() {
+    local count="$1"
+    local char="$2"
+    local out=""
+    local i
+
+    for ((i = 0; i < count; i++)); do
+        out+="$char"
+    done
+
+    printf '%s' "$out"
+}
+
+spark() {
+    local percent="$1"
+    local -a blocks=(▁ ▂ ▃ ▄ ▅ ▆ ▇ █)
+    local level=$((percent * (${#blocks[@]} - 1) / 100))
+
+    printf '%s' "${blocks[$level]}"
+}
+
+vps_name() {
+    if [[ -n "${TMUX_STATUS_VPS_NAME:-}" ]]; then
+        printf '%s\n' "$TMUX_STATUS_VPS_NAME"
+    elif command -v hostname &>/dev/null; then
+        hostname -s
+    elif [[ -r /etc/hostname ]]; then
+        tr -d '[:space:]' < /etc/hostname
+    else
+        printf 'vps\n'
+    fi
+}
+
+read_cpu_snapshot() {
+    local cpu user nice system idle iowait irq softirq steal guest guest_nice
+    local active total
+
+    while read -r cpu user nice system idle iowait irq softirq steal guest guest_nice; do
+        [[ "$cpu" == cpu[0-9]* ]] || continue
+
+        active=$((user + nice + system + irq + softirq + steal))
+        total=$((active + idle + iowait))
+
+        printf '%s %s %s\n' "${cpu#cpu}" "$active" "$total"
+    done < /proc/stat
+}
+
+cpu_segments() {
+    if [[ ! -r /proc/stat ]]; then
+        printf 'CPU: n/a'
+        return
+    fi
+
+    mkdir -p "$CACHE_DIR"
+
+    local previous current
+
+    if [[ -r "$STATE_FILE" ]]; then
+        previous="$(<"$STATE_FILE")"
+        current="$(read_cpu_snapshot)"
+    else
+        previous="$(read_cpu_snapshot)"
+        sleep 0.15
+        current="$(read_cpu_snapshot)"
+    fi
+
+    printf '%s\n' "$current" > "$STATE_FILE"
+
+    declare -A prev_active=()
+    declare -A prev_total=()
+    local idx active total
+
+    while read -r idx active total; do
+        [[ -n "${idx:-}" ]] || continue
+        prev_active["$idx"]="$active"
+        prev_total["$idx"]="$total"
+    done <<< "$previous"
+
+    local -a parts=()
+    local usage delta_active delta_total
+    local max_cores="${TMUX_STATUS_MAX_CORES:-0}"
+    local shown=0
+
+    while read -r idx active total; do
+        [[ -n "${idx:-}" ]] || continue
+
+        if ((max_cores > 0 && shown >= max_cores)); then
+            break
+        fi
+
+        usage=0
+
+        if [[ -n "${prev_total[$idx]:-}" ]]; then
+            delta_active=$((active - prev_active[$idx]))
+            delta_total=$((total - prev_total[$idx]))
+
+            if ((delta_total > 0 && delta_active >= 0)); then
+                usage=$(((100 * delta_active + delta_total / 2) / delta_total))
+            fi
+        fi
+
+        ((usage < 0)) && usage=0
+        ((usage > 100)) && usage=100
+
+        local color
+        color="$(usage_color "$usage")"
+        parts+=("$(label_style "C$((idx + 1)):") $(style "$THM_TEXT" "${usage}%") $(style "$color" "$(spark "$usage")")")
+        shown=$((shown + 1))
+    done <<< "$current"
+
+    if ((${#parts[@]} == 0)); then
+        printf 'CPU: n/a'
+        return
+    fi
+
+    local IFS=' '
+    printf '%s' "${parts[*]}"
+}
+
+ram_percent() {
+    if [[ ! -r /proc/meminfo ]]; then
+        printf 'n/a'
+        return
+    fi
+
+    local total=""
+    local available=""
+    local key value unit
+
+    while read -r key value unit; do
+        case "$key" in
+            MemTotal:)
+                total="$value"
+                ;;
+            MemAvailable:)
+                available="$value"
+                ;;
+        esac
+
+        if [[ -n "$total" && -n "$available" ]]; then
+            break
+        fi
+    done < /proc/meminfo
+
+    if [[ -z "$total" || -z "$available" || "$total" -eq 0 ]]; then
+        printf 'n/a'
+        return
+    fi
+
+    local used=$((total - available))
+    local percent=$(((100 * used + total / 2) / total))
+
+    printf '%s' "$percent"
+}
+
+ram_graph() {
+    local percent="$1"
+    local width="${2:-$RAM_BAR_WIDTH}"
+    local filled=$(((percent * width + 99) / 100))
+    local fill_color
+
+    ((filled < 0)) && filled=0
+    ((filled > width)) && filled="$width"
+
+    fill_color="$(usage_color "$percent")"
+
+    printf '%s%s' \
+        "$(style "$fill_color" "$(repeat_char "$filled" '█')")" \
+        "$(style "$THM_HL_MED" "$(repeat_char "$((width - filled))" '░')")"
+}
+
+ssd_percent() {
+    if ! command -v df &>/dev/null; then
+        printf 'n/a'
+        return
+    fi
+
+    local filesystem blocks used available percent mountpoint
+
+    while read -r filesystem blocks used available percent mountpoint; do
+        [[ "$filesystem" == "Filesystem" ]] && continue
+
+        percent="${percent%%%}"
+        printf '%s%%' "$percent"
+        return
+    done < <(df -P / 2>/dev/null)
+
+    printf 'n/a'
+}
+
+main() {
+    local host cpu ram ssd ssd_value ssd_color
+
+    host="$(vps_name)"
+    cpu="$(cpu_segments)"
+    ram="$(ram_percent)"
+    ssd="$(ssd_percent)"
+
+    if [[ "$ram" == 'n/a' ]]; then
+        printf '%s%s%s%s%s%s%s#[default]\n' \
+            "$(style "$THM_ROSE" "$host")" \
+            "$(separator)" \
+            "$cpu" \
+            "$(separator)" \
+            "$(label_style 'RAM:') $(style "$THM_SUBTLE" 'n/a')" \
+            "$(separator)" \
+            "$(label_style 'SSD:') $(style "$THM_SUBTLE" "$ssd")"
+        return
+    fi
+
+    ssd_value="${ssd%%%}"
+    if [[ "$ssd_value" =~ ^[0-9]+$ ]]; then
+        ssd_color="$(usage_color "$ssd_value")"
+    else
+        ssd_color="$THM_SUBTLE"
+    fi
+
+    printf '%s%s%s%s%s%s%s#[default]\n' \
+        "$(style "$THM_ROSE" "$host")" \
+        "$(separator)" \
+        "$cpu" \
+        "$(separator)" \
+        "$(label_style 'RAM:') $(style "$THM_TEXT" "${ram}%") $(ram_graph "$ram")" \
+        "$(separator)" \
+        "$(label_style 'SSD:') $(style "$ssd_color" "$ssd")"
+}
+
+main "$@"

@@ -1,0 +1,102 @@
+
+--- 2026-04-15T23:15:12.026Z debug
+🪵  Writing logs to "/home/ubuntu/.config/.wrangler/logs/wrangler-2026-04-15_23-15-11_599.log"
+---
+
+--- 2026-04-15T23:15:12.026Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-15T23:15:12.028Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-15T23:15:12.055Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command started","timestamp":1776294912055,"properties":{"amplitude_session_id":1776294912052,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"jsonc","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"argsUsed":["format","samplingRate","search"],"argsCombination":"format, samplingRate, search","sanitizedCommand":"tail","sanitizedArgs":{"format":"pretty"}}}
+---
+
+--- 2026-04-15T23:15:12.115Z log
+
+ ⛅️ wrangler 4.80.0 (update available 4.83.0)
+─────────────────────────────────────────────
+---
+
+--- 2026-04-15T23:15:12.117Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"begin log stream","timestamp":1776294912117,"properties":{"amplitude_session_id":1776294912116,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"category":"Workers","os":"linux:x64"}}
+---
+
+--- 2026-04-15T23:15:12.122Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/scripts/action-canine-training/tails
+---
+
+--- 2026-04-15T23:15:12.122Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:15:12.123Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:15:12.123Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:15:12.123Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:15:12.586Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:15:12.587Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:15:12.587Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:15:12.587Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:15:12.595Z log
+Successfully created tail, expires at 2026-04-16T02:31:31Z
+---
+
+--- 2026-04-15T23:15:12.801Z log
+Connected to action-canine-training, waiting for logs...
+---
+
+--- 2026-04-15T23:15:12.802Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command completed","timestamp":1776294912802,"properties":{"amplitude_session_id":1776294912052,"amplitude_event_id":1,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"jsonc","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"argsUsed":["format","samplingRate","search"],"argsCombination":"format, samplingRate, search","sanitizedCommand":"tail","sanitizedArgs":{"format":"pretty"},"durationMs":773}}
+---
+
+--- 2026-04-15T23:15:45.841Z log
+POST https://actioncaninetraining.com/api/auth/email-otp/send-verification-otp - Ok @ 4/15/2026, 11:15:45 PM
+---
+
+--- 2026-04-15T23:15:45.842Z log
+  (error) [auth.route] auth.handler threw {
+  method: 'POST',
+  url: 'https://actioncaninetraining.com/api/auth/email-otp/send-verification-otp',
+  name: 'Error',
+  message: 'DATABASE_URL or HYPERDRIVE connection string is required',
+  stack: 'Error: DATABASE_URL or HYPERDRIVE connection string is required\n' +
+    '    at getDb (assets/cf-bindings.server-99b6nxWz.js:16619:11)\n' +
+    '    at buildAuth (assets/index-DjIBLVza.js:57544:14)\n' +
+    '    at getAuth (assets/index-DjIBLVza.js:57661:10)\n' +
+    '    at Object.handler (assets/index-DjIBLVza.js:57664:26)\n' +
+    '    at handleAuth (assets/router-DBZD4DXr.js:8369:33)\n' +
+    '    at POST (assets/router-DBZD4DXr.js:8407:30)\n' +
+    '    at assets/worker-entry-Dlz7J9tu.js:17953:28\n' +
+    '    at next (assets/worker-entry-Dlz7J9tu.js:17930:22)\n' +
+    '    at executeMiddleware (assets/worker-entry-Dlz7J9tu.js:17948:10)\n' +
+    '    at handleServerRoutes (assets/worker-entry-Dlz7J9tu.js:18165:17)'
+}
+---
+
+--- 2026-04-15T23:15:45.845Z log
+  (error) { status: 500, unhandled: true, message: 'HTTPError' }
+---

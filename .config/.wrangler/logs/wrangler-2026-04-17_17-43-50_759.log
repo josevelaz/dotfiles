@@ -1,0 +1,172 @@
+
+--- 2026-04-17T17:43:51.024Z debug
+🪵  Writing logs to "/home/ubuntu/.config/.wrangler/logs/wrangler-2026-04-17_17-43-50_759.log"
+---
+
+--- 2026-04-17T17:43:51.024Z debug
+.env file not found at "/home/ubuntu/projects/pawlytics/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-17T17:43:51.025Z debug
+.env file not found at "/home/ubuntu/projects/pawlytics/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-17T17:43:51.038Z log
+
+ ⛅️ wrangler 4.83.0
+───────────────────
+---
+
+--- 2026-04-17T17:43:51.041Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command started","timestamp":1776447831041,"properties":{"amplitude_session_id":1776447831039,"amplitude_event_id":0,"wranglerVersion":"4.83.0","wranglerMajorVersion":4,"wranglerMinorVersion":83,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"bun","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"argsUsed":[],"argsCombination":"","sanitizedCommand":"dev","sanitizedArgs":{}}}
+---
+
+--- 2026-04-17T17:43:51.075Z debug
+setting config
+---
+
+--- 2026-04-17T17:43:51.075Z debug
+Updating config... undefined undefined
+---
+
+--- 2026-04-17T17:43:51.104Z debug
+local dev variables file not found at ".dev.vars". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-17T17:43:51.104Z debug
+.env file not found at "/home/ubuntu/projects/pawlytics/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-17T17:43:51.104Z debug
+.env file not found at "/home/ubuntu/projects/pawlytics/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-17T17:43:51.318Z debug
+RemoteRuntimeController teardown beginning...
+---
+
+--- 2026-04-17T17:43:51.318Z debug
+RemoteRuntimeController teardown complete
+---
+
+--- 2026-04-17T17:43:51.327Z log
+⎔ Starting local server...
+---
+
+--- 2026-04-17T17:43:51.333Z debug
+[InspectorProxyWorker] handleProxyControllerIncomingMessage {"type":"reloadStart"}
+---
+
+--- 2026-04-17T17:43:51.790Z debug
+[InspectorProxyWorker] handleProxyControllerIncomingMessage {"type":"reloadComplete","proxyData":{"userWorkerUrl":{"protocol":"http:","hostname":"127.0.0.1","port":"38623"},"userWorkerInspectorUrl":{"protocol":"ws:","hostname":"127.0.0.1","port":"33469","pathname":"/core:user:pawlytics"},"userWorkerInnerUrlOverrides":{"protocol":"http:"},"headers":{"MF-Proxy-Shared-Secret":"7f3d1b8c-a4d5-4734-9bfd-aca31e26533b"},"liveReload":false,"proxyLogsToController":false}}
+---
+
+--- 2026-04-17T17:43:51.791Z debug
+[InspectorProxyWorker] reconnectRuntimeWebSocket
+---
+
+--- 2026-04-17T17:43:51.792Z debug
+[InspectorProxyWorker] NEW RUNTIME WEBSOCKET http://127.0.0.1:33469/core:user:pawlytics
+---
+
+--- 2026-04-17T17:43:51.793Z debug
+[InspectorProxyWorker] SEND TO DEVTOOLS {"method":"Runtime.executionContextsCleared"}
+---
+
+--- 2026-04-17T17:43:51.797Z debug
+[InspectorProxyWorker] RUNTIME WEBSOCKET OPENED
+---
+
+--- 2026-04-17T17:43:51.798Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Runtime.enable","id":100000001}
+---
+
+--- 2026-04-17T17:43:51.799Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Network.enable","id":100000002}
+---
+
+--- 2026-04-17T17:43:51.800Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE {
+  method: 'Runtime.executionContextCreated',
+  params: {
+    context: {
+      id: 492073761,
+      origin: '',
+      name: 'Worker',
+      uniqueId: '1131665686244257367.-2769988628075390405'
+    }
+  }
+}
+---
+
+--- 2026-04-17T17:43:51.802Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000001, result: {} }
+---
+
+--- 2026-04-17T17:43:51.803Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000002, method: 'Network.enable', result: {} }
+---
+
+--- 2026-04-17T17:44:01.796Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Runtime.getIsolateId","id":100000003}
+---
+
+--- 2026-04-17T17:44:01.799Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000003, result: { id: 'e6e40bb50ec8197b' } }
+---
+
+--- 2026-04-17T17:44:07.988Z debug
+DevEnv teardown beginning...
+---
+
+--- 2026-04-17T17:44:07.988Z debug
+ConfigController teardown beginning...
+---
+
+--- 2026-04-17T17:44:07.989Z debug
+BundlerController teardown beginning...
+---
+
+--- 2026-04-17T17:44:07.991Z debug
+LocalRuntimeController teardown beginning...
+---
+
+--- 2026-04-17T17:44:07.991Z log
+⎔ Shutting down local server...
+---
+
+--- 2026-04-17T17:44:07.991Z debug
+RemoteRuntimeController teardown beginning...
+---
+
+--- 2026-04-17T17:44:07.992Z debug
+RemoteRuntimeController teardown complete
+---
+
+--- 2026-04-17T17:44:07.992Z debug
+ProxyController teardown beginning...
+---
+
+--- 2026-04-17T17:44:07.992Z debug
+ConfigController teardown complete
+---
+
+--- 2026-04-17T17:44:08.003Z debug
+ProxyController teardown complete
+---
+
+--- 2026-04-17T17:44:08.014Z debug
+LocalRuntimeController teardown complete
+---
+
+--- 2026-04-17T17:44:08.047Z debug
+BundlerController teardown complete
+---
+
+--- 2026-04-17T17:44:08.047Z debug
+DevEnv teardown complete
+---
+
+--- 2026-04-17T17:44:08.049Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command completed","timestamp":1776447848049,"properties":{"amplitude_session_id":1776447831039,"amplitude_event_id":1,"wranglerVersion":"4.83.0","wranglerMajorVersion":4,"wranglerMinorVersion":83,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"bun","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"argsUsed":[],"argsCombination":"","sanitizedCommand":"dev","sanitizedArgs":{},"durationMs":17022}}
+---

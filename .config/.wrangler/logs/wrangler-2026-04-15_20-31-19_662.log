@@ -1,0 +1,93 @@
+
+--- 2026-04-15T20:31:20.057Z debug
+🪵  Writing logs to "/home/ubuntu/.config/.wrangler/logs/wrangler-2026-04-15_20-31-19_662.log"
+---
+
+--- 2026-04-15T20:31:20.057Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-15T20:31:20.059Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-15T20:31:20.081Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command started","timestamp":1776285080081,"properties":{"amplitude_session_id":1776285080077,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"jsonc","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"argsUsed":["format","samplingRate","status"],"argsCombination":"format, samplingRate, status","sanitizedCommand":"tail","sanitizedArgs":{"format":"pretty","status":["error"]}}}
+---
+
+--- 2026-04-15T20:31:20.132Z log
+
+ ⛅️ wrangler 4.80.0 (update available 4.83.0)
+─────────────────────────────────────────────
+---
+
+--- 2026-04-15T20:31:20.134Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"begin log stream","timestamp":1776285080134,"properties":{"amplitude_session_id":1776285080133,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"category":"Workers","os":"linux:x64"}}
+---
+
+--- 2026-04-15T20:31:20.138Z debug
+-- START CF API REQUEST: GET https://api.cloudflare.com/client/v4/memberships
+---
+
+--- 2026-04-15T20:31:20.138Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T20:31:20.139Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T20:31:20.139Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T20:31:20.139Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T20:31:20.733Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T20:31:20.734Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T20:31:20.734Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T20:31:20.734Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T20:31:20.736Z debug
+Saving to cache: {"account":{"id":"791380772df6fb775517d2c73ee9e63c","name":"Jose.carlos.velazquez@hotmail.com's Account"}}
+---
+
+--- 2026-04-15T20:31:20.737Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command errored","timestamp":1776285080737,"properties":{"amplitude_session_id":1776285080077,"amplitude_event_id":1,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"jsonc","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"argsUsed":["format","samplingRate","status"],"argsCombination":"format, samplingRate, status","sanitizedCommand":"tail","sanitizedArgs":{"format":"pretty","status":["error"]},"durationMs":676,"errorType":"UserError"}}
+---
+
+--- 2026-04-15T20:31:20.739Z log
+
+---
+
+--- 2026-04-15T20:31:20.825Z error
+✘ [ERROR] A sampling rate must be between 0 and 1 in order to have any effect.
+
+  For example, a sampling rate of 0.25 means 25% of events will be logged.
+
+
+---
+
+--- 2026-04-15T20:31:20.826Z debug
+Error: A sampling rate must be between 0 and 1 in order to have any effect.
+For example, a sampling rate of 0.25 means 25% of events will be logged.
+    at parseSamplingRate (/home/ubuntu/projects/actions-canine-latest/node_modules/wrangler/wrangler-dist/cli.js:239731:11)
+    at translateCLICommandToFilterMessage (/home/ubuntu/projects/actions-canine-latest/node_modules/wrangler/wrangler-dist/cli.js:239705:21)
+    at Object.handler (/home/ubuntu/projects/actions-canine-latest/node_modules/wrangler/wrangler-dist/cli.js:284966:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async /home/ubuntu/projects/actions-canine-latest/node_modules/wrangler/wrangler-dist/cli.js:180800:26
+    at async Object.handler (/home/ubuntu/projects/actions-canine-latest/node_modules/wrangler/wrangler-dist/cli.js:180749:7)
+---

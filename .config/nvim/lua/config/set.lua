@@ -45,3 +45,9 @@ vim.opt.colorcolumn = "80"
 
 -- vim.opt.spell = true
 -- vim.opt.spelllang = { "en_us" }
+
+-- Enable markdown-specific formatting (wrap, linebreak, textwidth) in the autocommands.
+-- Set to `false` in your init.lua or before requiring autocommands to disable.
+if vim.g.markdown_word_wrap == nil then
+  vim.g.markdown_word_wrap = true
+end

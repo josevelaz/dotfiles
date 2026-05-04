@@ -16,6 +16,9 @@ set -e
 # We must resolve symlinks first so the path math is correct when called via a
 # stowed symlink (e.g. ~/.local/bin/stow-dotfiles.sh → ../../dotfiles/.local/bin/…).
 _script_path="${BASH_SOURCE[0]}"
+if [[ "$_script_path" != */* ]]; then
+  _script_path="$(command -v -- "$_script_path")"
+fi
 while [[ -L "$_script_path" ]]; do
   _link_target="$(readlink "$_script_path")"
   if [[ "$_link_target" = /* ]]; then
@@ -26,6 +29,8 @@ while [[ -L "$_script_path" ]]; do
 done
 SCRIPT_DIR="$(cd "$(dirname "$_script_path")" && pwd)"
 DOTFILES_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+STOW_BASE_DIR="$(dirname "$DOTFILES_DIR")"
+STOW_PACKAGE="$(basename "$DOTFILES_DIR")"
 unset _script_path _link_target
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
@@ -98,6 +103,11 @@ if [[ ! -d "$DOTFILES_DIR" ]]; then
   exit 1
 fi
 
+if [[ ! -d "$STOW_BASE_DIR/$STOW_PACKAGE" ]]; then
+  echo "Error: stow package directory not found at $STOW_BASE_DIR/$STOW_PACKAGE" >&2
+  exit 1
+fi
+
 # ── Build ignore list based on profile ───────────────────────────────────────
 # These directories only make sense on a macOS desktop machine.
 # They are excluded from ubuntu/server profiles to avoid leaking
@@ -112,6 +122,9 @@ if [[ "$PROFILE" == "ubuntu" || "$PROFILE" == "server" ]]; then
 fi
 
 # ── Execute stow ──────────────────────────────────────────────────────────────
+# Run stow from INSIDE the dotfiles directory (package = ".") so that
+# the stow dir ($DOTFILES_DIR) differs from the target ($HOME).
+# When stow dir == target dir, stow 2.4+ skips the entire package.
 cd "$DOTFILES_DIR"
 
 echo "Profile  : $PROFILE"

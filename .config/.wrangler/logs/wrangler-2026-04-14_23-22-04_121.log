@@ -1,0 +1,62 @@
+
+--- 2026-04-14T23:22:04.489Z debug
+🪵  Writing logs to "/home/ubuntu/.config/.wrangler/logs/wrangler-2026-04-14_23-22-04_121.log"
+---
+
+--- 2026-04-14T23:22:04.489Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-14T23:22:04.491Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-14T23:22:04.503Z log
+
+ ⛅️ wrangler 4.80.0 (update available 4.82.2)
+─────────────────────────────────────────────
+---
+
+--- 2026-04-14T23:22:04.515Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command started","timestamp":1776208924515,"properties":{"amplitude_session_id":1776208924514,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"jsonc","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"argsUsed":[],"argsCombination":"","sanitizedCommand":"login","sanitizedArgs":{}}}
+---
+
+--- 2026-04-14T23:22:04.547Z log
+Attempting to login via OAuth...
+---
+
+--- 2026-04-14T23:22:04.568Z log
+Visit this link to authenticate: https://dash.cloudflare.com/oauth2/auth?response_type=code&client_id=54d11594-84e4-41aa-b438-e81b8fa78ee7&redirect_uri=http%3A%2F%2Flocalhost%3A8976%2Foauth%2Fcallback&scope=account%3Aread%20user%3Aread%20workers%3Awrite%20workers_kv%3Awrite%20workers_routes%3Awrite%20workers_scripts%3Awrite%20workers_tail%3Aread%20d1%3Awrite%20pages%3Awrite%20zone%3Aread%20ssl_certs%3Awrite%20ai%3Awrite%20ai-search%3Awrite%20ai-search%3Arun%20queues%3Awrite%20pipelines%3Awrite%20secrets_store%3Awrite%20containers%3Awrite%20cloudchamber%3Awrite%20connectivity%3Aadmin%20offline_access&state=1JtdhC_q4w-QiclAFiteeqOofs~tHDaF&code_challenge=3Kv-8RJkJEniRf83O3ndD2W6CkgOhNcWoVlwiDESUns&code_challenge_method=S256
+---
+
+--- 2026-04-14T23:23:03.840Z debug
+fetching auth token grant_type=authorization_code&code=jZNl5sy0mdoEeP4ivg3QiQFB9Chl8JH-svqHcd4IQik.F9yhJUuwcBaVF5Rrhdq4KW6_Lbu64kE5E0mfNqrjIn4&redirect_uri=http%3A%2F%2Flocalhost%3A8976%2Foauth%2Fcallback&client_id=54d11594-84e4-41aa-b438-e81b8fa78ee7&code_verifier=aXNoRlkuTmh2QWNDTWZ2RTRMfnRvWVlhcnhzeTZkSUxuSEQyMXpmU3dMYXdRWm9qMTQ1Tmo4SmNSUl9fWkg4TEE5OGcyaGE4LUNhT2kxRkZ2WGNGSGJ5N3RqUXA5RkZX
+---
+
+--- 2026-04-14T23:23:03.841Z debug
+Checking if domain has Access enabled: dash.cloudflare.com
+---
+
+--- 2026-04-14T23:23:03.841Z debug
+Access switch not cached for: dash.cloudflare.com
+---
+
+--- 2026-04-14T23:23:03.887Z debug
+Caching access switch for: dash.cloudflare.com
+---
+
+--- 2026-04-14T23:23:03.887Z debug
+Fetching auth token from https://dash.cloudflare.com/oauth2/token
+---
+
+--- 2026-04-14T23:23:04.353Z log
+Successfully logged in.
+---
+
+--- 2026-04-14T23:23:04.355Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"login user","timestamp":1776208984355,"properties":{"amplitude_session_id":1776208984354,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"category":"Workers","os":"linux:x64"}}
+---
+
+--- 2026-04-14T23:23:04.358Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command completed","timestamp":1776208984358,"properties":{"amplitude_session_id":1776208924514,"amplitude_event_id":1,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"jsonc","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"agent":null,"argsUsed":[],"argsCombination":"","sanitizedCommand":"login","sanitizedArgs":{},"durationMs":59866}}
+---

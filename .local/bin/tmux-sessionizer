@@ -65,14 +65,20 @@ resolve_selected_path() {
     local path="$1"
 
     if [[ "$path" == "~" ]]; then
-        printf '%s\n' "$HOME"
+        path="$HOME"
     elif [[ "$path" == "~/"* ]]; then
-        printf '%s\n' "$HOME/${path#~/}"
-    elif [[ "$path" == "$HOME/~/"* ]]; then
-        printf '%s\n' "$HOME/${path#"$HOME/~/"}"
-    else
-        printf '%s\n' "$path"
+        path="$HOME/${path#~/}"
     fi
+
+    while [[ "$path" == "$HOME/~/"* ]]; do
+        path="$HOME/${path#"$HOME/~/"}"
+    done
+
+    if [[ -d "$path" ]]; then
+        path="$(realpath "$path")"
+    fi
+
+    printf '%s\n' "$path"
 }
 
 session_idx=""
@@ -285,6 +291,8 @@ emit_search_entry() {
         search_children="true"
         path="${path%/}"
     fi
+
+    path="$(resolve_selected_path "$path")"
 
     [[ -d "$path" ]] || return
 

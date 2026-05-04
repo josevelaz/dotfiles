@@ -1,0 +1,2077 @@
+
+--- 2026-04-15T23:16:46.015Z debug
+🪵  Writing logs to "/home/ubuntu/.config/.wrangler/logs/wrangler-2026-04-15_23-16-45_565.log"
+---
+
+--- 2026-04-15T23:16:46.015Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-15T23:16:46.017Z debug
+.env file not found at "/home/ubuntu/projects/actions-canine-latest/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-04-15T23:16:46.036Z log
+
+ ⛅️ wrangler 4.80.0 (update available 4.83.0)
+─────────────────────────────────────────────
+---
+
+--- 2026-04-15T23:16:46.041Z info
+Using redirected Wrangler configuration.
+ - Configuration being used: "dist/server/wrangler.json"
+ - Original user's configuration: "wrangler.jsonc"
+ - Deploy configuration file: ".wrangler/deploy/config.json"
+---
+
+--- 2026-04-15T23:16:46.054Z log
+
+Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+---
+
+--- 2026-04-15T23:16:46.057Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command started","timestamp":1776295006057,"properties":{"amplitude_session_id":1776295006049,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"json","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":true,"agent":null,"argsUsed":[],"argsCombination":"","sanitizedCommand":"deploy","sanitizedArgs":{}}}
+---
+
+--- 2026-04-15T23:16:46.096Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"autoconfig_process_started","timestamp":1776295006096,"properties":{"amplitude_session_id":1776295006095,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"category":"Workers","os":"linux:x64","autoConfigId":"6eb28c60-f775-444a-8545-c598ee0a1119","command":"wrangler deploy","dryRun":false}}
+---
+
+--- 2026-04-15T23:16:46.098Z debug
+Running autoconfig detection in /home/ubuntu/projects/actions-canine-latest...
+---
+
+--- 2026-04-15T23:16:46.099Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"autoconfig_detection_started","timestamp":1776295006099,"properties":{"amplitude_session_id":1776295006098,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"category":"Workers","os":"linux:x64","autoConfigId":"6eb28c60-f775-444a-8545-c598ee0a1119","command":"wrangler deploy"}}
+---
+
+--- 2026-04-15T23:16:46.124Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"autoconfig_process_ended","timestamp":1776295006124,"properties":{"amplitude_session_id":1776295006123,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"category":"Workers","os":"linux:x64","autoConfigId":"6eb28c60-f775-444a-8545-c598ee0a1119","command":"wrangler deploy","dryRun":false,"success":true}}
+---
+
+--- 2026-04-15T23:16:46.217Z debug
+Starting verifyWorkerMatchesCITag() with tag: undefined, name: action-canine-training
+---
+
+--- 2026-04-15T23:16:46.217Z debug
+No WRANGLER_CI_MATCH_TAG variable provided, aborting verifyWorkerMatchesCITag()
+---
+
+--- 2026-04-15T23:16:46.221Z debug
+-- START CF API REQUEST: GET https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/services/action-canine-training
+---
+
+--- 2026-04-15T23:16:46.221Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:46.221Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:46.222Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:46.222Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:46.822Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:16:46.823Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:46.823Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:46.823Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:46.828Z debug
+-- START CF API REQUEST: GET https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/scripts/action-canine-training/deployments
+---
+
+--- 2026-04-15T23:16:46.828Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:46.828Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:46.828Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:46.828Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:47.022Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:16:47.022Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:47.022Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:47.022Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:47.108Z info
+Attaching additional modules:
+---
+
+--- 2026-04-15T23:16:47.172Z log
+┌──────────────────────────────────────────────────┬──────┬─────────────┐
+│ Name                                             │ Type │ Size        │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/AppBreadcrumbs-ChhB9ERB.js                │ esm  │ 2.04 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/AppNavbar-DqcX1r21.js                     │ esm  │ 7.27 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/CmsPage-B2FIGxM7.js                       │ esm  │ 3.67 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/DocsMarkdown-BLJxcBtK.js                  │ esm  │ 7.42 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/DocsSidebar-Cd_x-vwt.js                   │ esm  │ 2.66 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/ImageWithFallback-BgQSqZQR.js             │ esm  │ 1.49 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/PawPrint-B3FlXh1q.js                      │ esm  │ 1.09 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/__root-j4DqZO0N.js                        │ esm  │ 0.77 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public-B8HY7pIJ.js                       │ esm  │ 21.99 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.about-DL4GRW_d.js                 │ esm  │ 1.29 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.articles-BNSKv1pq.js              │ esm  │ 0.30 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.articles._slug-O7bA39HT.js        │ esm  │ 7.50 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.articles.index-BCzHbu9U.js        │ esm  │ 3.51 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.auth.login-D9RtCvZU.js            │ esm  │ 11.85 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.auth.logout-PuN9Q3bw.js           │ esm  │ 1.54 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.contact-5CiV-QsE.js               │ esm  │ 1.29 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.index-CYaOjGaL.js                 │ esm  │ 71.22 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.privacy-policy-BvCapfj0.js        │ esm  │ 1.30 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.request-booking-DBAykG3J.js       │ esm  │ 69.66 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.services._serviceSlug-DWCFlZx6.js │ esm  │ 10.59 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_public.terms-of-service-Dh5Y0Iwr.js      │ esm  │ 1.30 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/_tanstack-start-manifest_v-Cw7AVZr9.js    │ esm  │ 13.08 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin-BYFW_zgO.js                         │ esm  │ 1.58 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin-DdDVN6i0.js                         │ esm  │ 9.62 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin.billing-DZ7UKRjj.js                 │ esm  │ 16.67 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin.bookings-anex1AGw.js                │ esm  │ 24.83 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin.content-Bur8R31U.js                 │ esm  │ 25.51 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin.customers-BTxb6Mvn.js               │ esm  │ 52.59 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin.group-classes-C36rVZhQ.js           │ esm  │ 1.32 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin.help-CahC5fFX.js                    │ esm  │ 0.31 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin.help._slug-DjMQc3B8.js              │ esm  │ 3.08 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin.help.index-DoX7jmHT.js              │ esm  │ 4.51 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin.index-CMmM3t15.js                   │ esm  │ 21.39 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/admin.requests-Mp1iAvdF.js                │ esm  │ 55.35 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/arrow-left-Ce70cn3T.js                    │ esm  │ 0.27 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/arrow-right-D8jpwLEP.js                   │ esm  │ 0.27 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/articles-Bqq6NYHd.js                      │ esm  │ 4.04 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/auth-client-BpEQBPiM.js                   │ esm  │ 35.58 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/book-open-BvWYXiIn.js                     │ esm  │ 0.40 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/brain-CsiCZojR.js                         │ esm  │ 0.71 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/bun-sqlite-dialect-C8OaCWSL-DMXaEyjz.js   │ esm  │ 4.51 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/calendar-CyVRUA1e.js                      │ esm  │ 18.24 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/calendar-check-z3fkRX0l.js                │ esm  │ 0.45 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/calendar-sync.server-K0A4iNrb.js          │ esm  │ 5.79 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/cf-bindings.server-BB9qqp6A.js            │ esm  │ 525.55 KiB  │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/chevron-down-D7zNIEAe.js                  │ esm  │ 0.22 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/chevron-left-CaRZX65s.js                  │ esm  │ 0.22 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/chevron-up-Cca6Xu9c.js                    │ esm  │ 0.22 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/circle-check-BHMwbm5i.js                  │ esm  │ 0.29 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/circle-check-big-D6OCJ7eE.js              │ esm  │ 0.31 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/circle-question-mark-DnZ5KRxJ.js          │ esm  │ 0.38 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/circle-x-Bj-UPS9g.js                      │ esm  │ 0.32 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/clipboard-list-ivrh-ye9.js                │ esm  │ 0.59 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/cms-status-oyBlRwVq.js                    │ esm  │ 3.17 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/createServerRpc-MmKTvD9c.js               │ esm  │ 0.31 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/createSsrRpc-DLGDtOsd.js                  │ esm  │ 0.44 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/credit-card-3PraD4RV.js                   │ esm  │ 0.32 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/crypto-C_v5nGhL.js                        │ esm  │ 0.49 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/currentScopes-sSexYEut.js                 │ esm  │ 29.31 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/d1-sqlite-dialect-sYHNqBte-B-p-zWt2.js    │ esm  │ 4.27 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/dashboard-KJtussKw.js                     │ esm  │ 5.83 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/dog-B24I2l7f.js                           │ esm  │ 0.81 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/dollar-sign-CSoEvIwi.js                   │ esm  │ 0.33 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/events-0ihWDhcD.js                        │ esm  │ 1.15 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/exports-BGFJa3xr.js                       │ esm  │ 1.14 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/external-link-kR4LvPYt.js                 │ esm  │ 0.37 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/faqs-CGkg5K36.js                          │ esm  │ 3.13 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/file-text-5rUMTBvn.js                     │ esm  │ 0.46 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/film-DhRcJhT6.js                          │ esm  │ 0.95 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/graduation-cap-BZtv9pHp.js                │ esm  │ 0.47 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/index--nEYJnRC.js                         │ esm  │ 399.90 KiB  │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/index-7OtBSRp8.js                         │ esm  │ 4.13 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/index-BYfuIovZ.js                         │ esm  │ 9.49 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/index-D0faba-V.js                         │ esm  │ 8.72 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/index-D3QVQldx.js                         │ esm  │ 499.88 KiB  │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/index-lXCnDjVx.js                         │ esm  │ 1924.05 KiB │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/info-D311Nog8.js                          │ esm  │ 0.31 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/log-Cv677W27.js                           │ esm  │ 3.17 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/mail-B2O8dVnc.js                          │ esm  │ 0.31 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/message-square-C7uPHnKm.js                │ esm  │ 0.36 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/metrics-C0J7MNh3.js                       │ esm  │ 3.80 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/metrics-CQDtt4SE.js                       │ esm  │ 3.06 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/nanoid-CIhS8X5c.js                        │ esm  │ 0.08 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/node-sqlite-dialect-CTh0Gq-A.js           │ esm  │ 4.52 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/pages-DwmNJSSP.js                         │ esm  │ 19.92 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/paw-print-vYj0Tem7.js                     │ esm  │ 0.50 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/payments-B1DJ4yp3.js                      │ esm  │ 4.64 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/phone-x2UUG4ro.js                         │ esm  │ 0.43 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal-CrHCQ9Z5.js                        │ esm  │ 10.53 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.billing-IHGsG-nk.js                │ esm  │ 8.91 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.bookings-CMVzunCM.js               │ esm  │ 15.50 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.classes-yoXlUZj0.js                │ esm  │ 22.48 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.documents-DeYFnjai.js              │ esm  │ 9.88 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.help-C8tV9jLR.js                   │ esm  │ 0.31 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.help._slug-BqKJ1ibX.js             │ esm  │ 3.08 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.help.index-QY5n0BUc.js             │ esm  │ 4.50 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.index-CUUmpe2o.js                  │ esm  │ 19.63 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.pets-y5dehM-c.js                   │ esm  │ 19.72 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.profile-Cum6u3cd.js                │ esm  │ 24.56 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.requests-DQv-tR_4.js               │ esm  │ 14.11 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.schedule-Bf2GEHxK.js               │ esm  │ 11.96 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/portal.timeline-C-X-vnyF.js               │ esm  │ 12.34 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/proxy-Bx-tczlH.js                         │ esm  │ 263.90 KiB  │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/public-content-adapters-Dg4U1RJW.js       │ esm  │ 5.92 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/public-site-context-tk9CXVPV.js           │ esm  │ 1.27 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/refresh-cw-5ljQNC_-.js                    │ esm  │ 0.44 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/repository-BJ_ud83K.js                    │ esm  │ 2.93 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/repository-BRUCVgOk.js                    │ esm  │ 9.21 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/repository-C5NPuARG.js                    │ esm  │ 2.05 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/repository-C6EbeXbV.js                    │ esm  │ 76.98 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/repository-CcPJVmCp.js                    │ esm  │ 4.10 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/repository-D28SkY7v.js                    │ esm  │ 4.65 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/repository-pYs3Dhiq.js                    │ esm  │ 3.51 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/request-status-DxO4vyEJ.js                │ esm  │ 0.30 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/root-context.server-B0S1MhPH.js           │ esm  │ 0.74 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/router-CB5CXjWj.js                        │ esm  │ 324.74 KiB  │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/server-B2fCBIMm.js                        │ esm  │ 3.98 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/server-BEdm1W8F.js                        │ esm  │ 11.88 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/server-Cf-bzO74.js                        │ esm  │ 9.63 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/server-Ctvzpx4W.js                        │ esm  │ 15.86 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/server-DAqD97Wg.js                        │ esm  │ 23.15 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/server-OvLtIciX.js                        │ esm  │ 9.47 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/server-QAffzXn4.js                        │ esm  │ 8.17 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/server-eAJEFsj3.js                        │ esm  │ 9.24 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/server-geK6pY_-.js                        │ esm  │ 13.01 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/server-k9dNOrjX.js                        │ esm  │ 10.39 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/server-kf4M7aTF.js                        │ esm  │ 8.84 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/service-icon-map-CMpSgBWB.js              │ esm  │ 3.52 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/services-BVrOEtuU.js                      │ esm  │ 7.00 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/shield-check-DBe8k0Eh.js                  │ esm  │ 0.45 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/site-settings-BtZsNf48.js                 │ esm  │ 0.32 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/site-settings-C84mDemH.js                 │ esm  │ 4.62 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/star-DcuhLQk0.js                          │ esm  │ 0.58 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/start-HYkvq4Ni.js                         │ esm  │ 0.06 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/sticky-note-XkgsFiNg.js                   │ esm  │ 0.33 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/strapi-CVA2Kvle.js                        │ esm  │ 0.59 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/strapi-media-DvYScD0j.js                  │ esm  │ 0.39 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/strapi-sdk.server-DRxIRobK.js             │ esm  │ 96.43 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/testimonials-C8TmSImj.js                  │ esm  │ 3.96 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/trace-BSAmkams.js                         │ esm  │ 35.67 KiB   │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/trash-2-B3t-eMur.js                       │ esm  │ 0.45 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/triangle-alert-CoDMI7Jp.js                │ esm  │ 0.41 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/trophy-cYDzeoB9.js                        │ esm  │ 0.60 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/validators-0TKe3-1D.js                    │ esm  │ 1.22 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/validators-BmX8mirY.js                    │ esm  │ 5.88 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/validators-BykejExu.js                    │ esm  │ 3.33 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/validators-CXbBWiM3.js                    │ esm  │ 0.66 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/validators-DEr7iUEX.js                    │ esm  │ 0.91 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/validators-DOGebD-8.js                    │ esm  │ 1.20 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/validators-Dt5PcS0D.js                    │ esm  │ 0.69 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/validators-muiVrUeg.js                    │ esm  │ 2.47 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/validators-tJjDK8gL.js                    │ esm  │ 6.19 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/video-D-qdzSNO.js                         │ esm  │ 0.38 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/window-location-dlbgy8iQ.js               │ esm  │ 0.11 KiB    │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ assets/worker-entry-hZDzhWba.js                  │ esm  │ 740.24 KiB  │
+├──────────────────────────────────────────────────┼──────┼─────────────┤
+│ Total (155 modules)                              │      │ 5918.60 KiB │
+└──────────────────────────────────────────────────┴──────┴─────────────┘
+---
+
+--- 2026-04-15T23:16:47.175Z info
+🌀 Building list of assets...
+---
+
+--- 2026-04-15T23:16:47.178Z info
+✨ Read 100 files from the assets directory /home/ubuntu/projects/actions-canine-latest/dist/client
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/.assetsignore
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/branding
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/drizzle.svg
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/favicon.ico
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/logo192.png
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/logo512.png
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/manifest.json
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/robots.txt
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/branding/action-canine-logo.png
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/AppBreadcrumbs-Cxya1ffN.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/AppNavbar-DPYaZxOF.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/CmsPage-fie-cfYC.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/DocsMarkdown-4TQx9-rp.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/DocsSidebar-DIK5EQiC.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/ImageWithFallback-BQ1vAfgQ.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/PawPrint-D01yXFrf.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/_public-Be6t6wYy.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/_public.about-BWKWoIZz.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/_public.articles-BT2IxSV8.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/_public.articles._slug-_ZI4aPbL.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/_public.articles.index-DKIClCdS.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/_public.auth.login-DoMaA_Fm.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/_public.auth.logout-DegN7Ldr.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/_public.contact-BCQrAqbJ.js
+---
+
+--- 2026-04-15T23:16:47.178Z debug
+/assets/_public.index-DmzAn6AB.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/_public.privacy-policy-63HQf6Lu.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/_public.request-booking-D5q0d3eh.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/_public.services._serviceSlug-D222XePw.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/_public.terms-of-service-Op3vOGW_.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin-BJmgQNhM.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin-KJZsG8pG.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin.billing-CRerPjMy.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin.bookings-CzVio9Rj.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin.content-vNKtTqak.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin.customers-CUtMjkER.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin.group-classes-CP2I-BC8.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin.help-BI-Wze0F.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin.help._slug-hukM8Q1Z.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin.help.index-CVvVcBzu.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin.index-Z2bHfTgq.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/admin.requests-Oila-2Ld.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/arrow-left-rt78hD4P.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/arrow-right-D6Y67NLs.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/auth-client-DHIUsl8Z.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/book-open-FJMgM4ds.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/brain-CCicNaGJ.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/calendar-check-CJkQtgh-.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/chevron-down-Br13lYfx.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/chevron-left-BNWjJilt.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/chevron-up-s2W313c1.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/circle-check-CotZxCUo.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/circle-check-big-CPvd3E-A.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/circle-question-mark-D55caTD9.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/circle-x-DHqh1VJq.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/clipboard-list-CmQo4Z0a.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/credit-card-BF8KDjoB.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/dog-Dqy4OaBS.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/dollar-sign-CBBd4Ft1.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/external-link-CbE02lAd.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/file-text-BsGaXNGs.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/graduation-cap-C6fhsLKV.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/index-BtLM4N1s.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/index-Dx4zo-E9.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/info-BJPntoNi.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/mail-lt8o3mKf.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/main-jgHsOlLD.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/message-square-DMkGUbny.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/paw-print-CZLGLZrA.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/phone-tuEDfJP6.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal-BTXkYyKU.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.billing-CZWxyCif.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.bookings-DJt8MOhQ.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.classes-Dw-VXpSD.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.documents-wSQmXyrn.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.help-Bq3ZdtNt.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.help._slug-BGkjEH-H.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.help.index-CHOCyOzc.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.index-BJWITxr-.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.pets-Bl-s_2wL.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.profile-DJLFk2XP.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.requests-CqnTx5eT.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.schedule-88LHnwX6.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/portal.timeline-RbBgDxZp.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/proxy-DINXk3rh.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/public-content-adapters-DVoPZ9T7.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/public-site-context-Dru81ntx.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/refresh-cw-C8e2Bhbj.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/server-D8URLRVL.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/service-icon-map-guP4j5cv.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/shield-check-DtB__nki.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/star-CEZTt-Eh.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/sticky-note-C3rEBBOU.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/storage-CPL0zz-r.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/styles-CDbZwL7T.css
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/trash-2-Fr4SoSzs.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/triangle-alert-BZLJ5XMM.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/trophy-deTHs6Xu.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/video-BC2mL03o.js
+---
+
+--- 2026-04-15T23:16:47.179Z debug
+/assets/window-location-BA_HrvMY.js
+---
+
+--- 2026-04-15T23:16:47.181Z debug
+Ignoring asset: .assetsignore
+---
+
+--- 2026-04-15T23:16:47.230Z info
+🌀 Starting asset upload...
+---
+
+--- 2026-04-15T23:16:47.231Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/scripts/action-canine-training/assets-upload-session
+---
+
+--- 2026-04-15T23:16:47.231Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:47.231Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:47.231Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:47.231Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:49.267Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:16:49.267Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.267Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.267Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:49.268Z info
+🌀 Found 88 new or modified static assets to upload. Proceeding with upload...
+---
+
+--- 2026-04-15T23:16:49.269Z info
++ /assets/chevron-down-Br13lYfx.js
+---
+
+--- 2026-04-15T23:16:49.269Z info
++ /assets/arrow-left-rt78hD4P.js
+---
+
+--- 2026-04-15T23:16:49.269Z info
++ /assets/circle-check-big-CPvd3E-A.js
+---
+
+--- 2026-04-15T23:16:49.269Z info
++ /assets/portal.help-Bq3ZdtNt.js
+---
+
+--- 2026-04-15T23:16:49.269Z info
++ /assets/credit-card-BF8KDjoB.js
+---
+
+--- 2026-04-15T23:16:49.269Z info
++ /assets/admin.group-classes-CP2I-BC8.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/circle-question-mark-D55caTD9.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/_public.contact-BCQrAqbJ.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/external-link-CbE02lAd.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/calendar-check-CJkQtgh-.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/phone-tuEDfJP6.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/file-text-BsGaXNGs.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/admin-BJmgQNhM.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/brain-CCicNaGJ.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/PawPrint-D01yXFrf.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/AppBreadcrumbs-Cxya1ffN.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/_public.articles.index-DKIClCdS.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/service-icon-map-guP4j5cv.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/index-Dx4zo-E9.js
+---
+
+--- 2026-04-15T23:16:49.270Z info
++ /assets/admin-KJZsG8pG.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/portal.billing-CZWxyCif.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/portal.documents-wSQmXyrn.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/admin.billing-CRerPjMy.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/portal.requests-CqnTx5eT.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/_public-Be6t6wYy.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/admin.index-Z2bHfTgq.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/admin.customers-CUtMjkER.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/auth-client-DHIUsl8Z.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/proxy-DINXk3rh.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/main-jgHsOlLD.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/chevron-up-s2W313c1.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/arrow-right-D6Y67NLs.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/_public.articles-BT2IxSV8.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/info-BJPntoNi.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/mail-lt8o3mKf.js
+---
+
+--- 2026-04-15T23:16:49.271Z info
++ /assets/sticky-note-C3rEBBOU.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/video-BC2mL03o.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/_public.privacy-policy-63HQf6Lu.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/triangle-alert-BZLJ5XMM.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/shield-check-DtB__nki.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/trash-2-Fr4SoSzs.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/paw-print-CZLGLZrA.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/star-CEZTt-Eh.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/dog-Dqy4OaBS.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/public-site-context-Dru81ntx.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/portal.help._slug-BGkjEH-H.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/DocsSidebar-DIK5EQiC.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/portal.help.index-CHOCyOzc.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/public-content-adapters-DVoPZ9T7.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/_public.articles._slug-_ZI4aPbL.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/_public.auth.login-DoMaA_Fm.js
+---
+
+--- 2026-04-15T23:16:49.272Z info
++ /assets/_public.services._serviceSlug-D222XePw.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/portal.timeline-RbBgDxZp.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/portal.profile-DJLFk2XP.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/_public.auth.logout-DegN7Ldr.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/portal.classes-Dw-VXpSD.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/_public.request-booking-D5q0d3eh.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/_public.index-DmzAn6AB.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/index-BtLM4N1s.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/chevron-left-BNWjJilt.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/circle-check-CotZxCUo.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/admin.help-BI-Wze0F.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/circle-x-DHqh1VJq.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/dollar-sign-CBBd4Ft1.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/message-square-DMkGUbny.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/_public.about-BWKWoIZz.js
+---
+
+--- 2026-04-15T23:16:49.273Z info
++ /assets/_public.terms-of-service-Op3vOGW_.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/book-open-FJMgM4ds.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/refresh-cw-C8e2Bhbj.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/graduation-cap-C6fhsLKV.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/clipboard-list-CmQo4Z0a.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/trophy-deTHs6Xu.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/storage-CPL0zz-r.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/ImageWithFallback-BQ1vAfgQ.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/admin.help._slug-hukM8Q1Z.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/CmsPage-fie-cfYC.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/admin.help.index-CVvVcBzu.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/AppNavbar-DPYaZxOF.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/DocsMarkdown-4TQx9-rp.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/portal-BTXkYyKU.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/portal.schedule-88LHnwX6.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/portal.bookings-DJt8MOhQ.js
+---
+
+--- 2026-04-15T23:16:49.274Z info
++ /assets/portal.pets-Bl-s_2wL.js
+---
+
+--- 2026-04-15T23:16:49.275Z info
++ /assets/portal.index-BJWITxr-.js
+---
+
+--- 2026-04-15T23:16:49.275Z info
++ /assets/admin.content-vNKtTqak.js
+---
+
+--- 2026-04-15T23:16:49.275Z info
++ /assets/admin.requests-Oila-2Ld.js
+---
+
+--- 2026-04-15T23:16:49.275Z info
++ /assets/admin.bookings-CzVio9Rj.js
+---
+
+--- 2026-04-15T23:16:49.275Z info
++ /assets/server-D8URLRVL.js
+---
+
+--- 2026-04-15T23:16:49.313Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/assets/upload?base64=true
+---
+
+--- 2026-04-15T23:16:49.313Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.313Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.313Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.320Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/assets/upload?base64=true
+---
+
+--- 2026-04-15T23:16:49.320Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.320Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.320Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.328Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/assets/upload?base64=true
+---
+
+--- 2026-04-15T23:16:49.328Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.329Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.329Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.344Z debug
+BODY: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.344Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:49.352Z debug
+BODY: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.352Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:49.366Z debug
+BODY: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:49.366Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:51.683Z debug
+-- START CF API RESPONSE: Accepted 202
+---
+
+--- 2026-04-15T23:16:51.684Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:51.684Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:51.685Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:51.686Z info
+Uploaded 29 of 88 assets
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/chevron-left-BNWjJilt.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/circle-check-CotZxCUo.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/admin.help-BI-Wze0F.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/circle-x-DHqh1VJq.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/dollar-sign-CBBd4Ft1.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/message-square-DMkGUbny.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/_public.about-BWKWoIZz.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/_public.terms-of-service-Op3vOGW_.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/book-open-FJMgM4ds.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/refresh-cw-C8e2Bhbj.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/graduation-cap-C6fhsLKV.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/clipboard-list-CmQo4Z0a.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/trophy-deTHs6Xu.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/storage-CPL0zz-r.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/ImageWithFallback-BQ1vAfgQ.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/admin.help._slug-hukM8Q1Z.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/CmsPage-fie-cfYC.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/admin.help.index-CVvVcBzu.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/AppNavbar-DPYaZxOF.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/DocsMarkdown-4TQx9-rp.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/portal-BTXkYyKU.js
+---
+
+--- 2026-04-15T23:16:51.688Z debug
+✨ /assets/portal.schedule-88LHnwX6.js
+---
+
+--- 2026-04-15T23:16:51.689Z debug
+✨ /assets/portal.bookings-DJt8MOhQ.js
+---
+
+--- 2026-04-15T23:16:51.689Z debug
+✨ /assets/portal.pets-Bl-s_2wL.js
+---
+
+--- 2026-04-15T23:16:51.689Z debug
+✨ /assets/portal.index-BJWITxr-.js
+---
+
+--- 2026-04-15T23:16:51.689Z debug
+✨ /assets/admin.content-vNKtTqak.js
+---
+
+--- 2026-04-15T23:16:51.689Z debug
+✨ /assets/admin.requests-Oila-2Ld.js
+---
+
+--- 2026-04-15T23:16:51.689Z debug
+✨ /assets/admin.bookings-CzVio9Rj.js
+---
+
+--- 2026-04-15T23:16:51.689Z debug
+✨ /assets/server-D8URLRVL.js
+---
+
+--- 2026-04-15T23:16:51.738Z debug
+-- START CF API RESPONSE: Accepted 202
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:51.739Z info
+Uploaded 59 of 88 assets
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/chevron-down-Br13lYfx.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/arrow-left-rt78hD4P.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/circle-check-big-CPvd3E-A.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/portal.help-Bq3ZdtNt.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/credit-card-BF8KDjoB.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/admin.group-classes-CP2I-BC8.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/circle-question-mark-D55caTD9.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/_public.contact-BCQrAqbJ.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/external-link-CbE02lAd.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/calendar-check-CJkQtgh-.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/phone-tuEDfJP6.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/file-text-BsGaXNGs.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/admin-BJmgQNhM.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/brain-CCicNaGJ.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/PawPrint-D01yXFrf.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/AppBreadcrumbs-Cxya1ffN.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/_public.articles.index-DKIClCdS.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/service-icon-map-guP4j5cv.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/index-Dx4zo-E9.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/admin-KJZsG8pG.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/portal.billing-CZWxyCif.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/portal.documents-wSQmXyrn.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/admin.billing-CRerPjMy.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/portal.requests-CqnTx5eT.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/_public-Be6t6wYy.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/admin.index-Z2bHfTgq.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/admin.customers-CUtMjkER.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/auth-client-DHIUsl8Z.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/proxy-DINXk3rh.js
+---
+
+--- 2026-04-15T23:16:51.739Z debug
+✨ /assets/main-jgHsOlLD.js
+---
+
+--- 2026-04-15T23:16:52.924Z debug
+-- START CF API RESPONSE: Created 201
+---
+
+--- 2026-04-15T23:16:52.924Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:52.924Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:52.924Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:52.925Z info
+Uploaded 88 of 88 assets
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/chevron-up-s2W313c1.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/arrow-right-D6Y67NLs.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/_public.articles-BT2IxSV8.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/info-BJPntoNi.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/mail-lt8o3mKf.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/sticky-note-C3rEBBOU.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/video-BC2mL03o.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/_public.privacy-policy-63HQf6Lu.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/triangle-alert-BZLJ5XMM.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/shield-check-DtB__nki.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/trash-2-Fr4SoSzs.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/paw-print-CZLGLZrA.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/star-CEZTt-Eh.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/dog-Dqy4OaBS.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/public-site-context-Dru81ntx.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/portal.help._slug-BGkjEH-H.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/DocsSidebar-DIK5EQiC.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/portal.help.index-CHOCyOzc.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/public-content-adapters-DVoPZ9T7.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/_public.articles._slug-_ZI4aPbL.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/_public.auth.login-DoMaA_Fm.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/_public.services._serviceSlug-D222XePw.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/portal.timeline-RbBgDxZp.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/portal.profile-DJLFk2XP.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/_public.auth.logout-DegN7Ldr.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/portal.classes-Dw-VXpSD.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/_public.request-booking-D5q0d3eh.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/_public.index-DmzAn6AB.js
+---
+
+--- 2026-04-15T23:16:52.925Z debug
+✨ /assets/index-BtLM4N1s.js
+---
+
+--- 2026-04-15T23:16:52.925Z log
+✨ Success! Uploaded 88 files (9 already uploaded) (3.65 sec)
+
+---
+
+--- 2026-04-15T23:16:53.141Z log
+Total Upload: 5918.81 KiB / gzip: 1166.39 KiB
+---
+
+--- 2026-04-15T23:16:53.142Z debug
+-- START CF API REQUEST: GET https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/scripts/action-canine-training/settings
+---
+
+--- 2026-04-15T23:16:53.142Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:53.142Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:53.142Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:53.142Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:53.343Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:16:53.343Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:53.343Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:53.343Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:53.353Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/scripts/action-canine-training/versions
+---
+
+--- 2026-04-15T23:16:53.353Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:53.353Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:53.353Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:53.410Z debug
+BODY: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:53.410Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:55.978Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:16:55.979Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:55.979Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:55.979Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:55.980Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/scripts/action-canine-training/deployments
+---
+
+--- 2026-04-15T23:16:55.980Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:55.980Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:55.980Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:55.980Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:56.595Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:16:56.595Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:56.595Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:56.595Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:56.596Z debug
+-- START CF API REQUEST: PATCH https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/scripts/action-canine-training/script-settings
+---
+
+--- 2026-04-15T23:16:56.596Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:56.596Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:56.596Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:56.596Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:57.029Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:16:57.029Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.029Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.029Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:57.029Z log
+Worker Startup Time: 19 ms
+---
+
+--- 2026-04-15T23:16:57.032Z log
+Your Worker has access to the following bindings:
+---
+
+--- 2026-04-15T23:16:57.032Z log
+Binding                                                           Resource                  
+---
+
+--- 2026-04-15T23:16:57.032Z log
+env.HYPERDRIVE (8d8d3b0ec26e4db2ae5a4d9139be2970)                 Hyperdrive Config         
+---
+
+--- 2026-04-15T23:16:57.032Z log
+env.STORAGE (actions-canine-storage)                              R2 Bucket                 
+---
+
+--- 2026-04-15T23:16:57.032Z log
+env.NODE_ENV ("production")                                       Environment Variable      
+---
+
+--- 2026-04-15T23:16:57.033Z log
+env.APP_URL ("https://actioncaninetraining.com")                  Environment Variable      
+---
+
+--- 2026-04-15T23:16:57.033Z log
+env.EMAIL_FROM ("actioncaninetraining.com")                       Environment Variable      
+---
+
+--- 2026-04-15T23:16:57.033Z log
+env.VITE_STRAPI_URL ("https://cms.actioncaninetraining.com")      Environment Variable      
+---
+
+--- 2026-04-15T23:16:57.033Z log
+env.STRAPI_API_URL ("https://cms.actioncaninetraining.com")       Environment Variable      
+---
+
+--- 2026-04-15T23:16:57.033Z log
+
+---
+
+--- 2026-04-15T23:16:57.034Z log
+Uploaded action-canine-training (10.21 sec)
+---
+
+--- 2026-04-15T23:16:57.035Z debug
+-- START CF API REQUEST: GET https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/subdomain
+---
+
+--- 2026-04-15T23:16:57.035Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.035Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.035Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.035Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:57.206Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:16:57.206Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.206Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.206Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:57.207Z debug
+-- START CF API REQUEST: GET https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/scripts/action-canine-training/subdomain
+---
+
+--- 2026-04-15T23:16:57.207Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.207Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.207Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.207Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:57.591Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:16:57.591Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.591Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.591Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:57.592Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/791380772df6fb775517d2c73ee9e63c/workers/scripts/action-canine-training/subdomain
+---
+
+--- 2026-04-15T23:16:57.592Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.592Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.592Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.592Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-04-15T23:16:57.844Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-04-15T23:16:57.845Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.845Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-04-15T23:16:57.845Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-04-15T23:16:57.846Z log
+Deployed action-canine-training triggers (0.81 sec)
+---
+
+--- 2026-04-15T23:16:57.846Z log
+  https://action-canine-training.jose-carlos-velazquez.workers.dev
+---
+
+--- 2026-04-15T23:16:57.847Z log
+Current Version ID: 42406790-421c-4d80-8100-5894ead72abc
+---
+
+--- 2026-04-15T23:16:57.849Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"deploy worker script","timestamp":1776295017848,"properties":{"amplitude_session_id":1776295017847,"amplitude_event_id":0,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"agent":null,"category":"Workers","os":"linux:x64","usesTypeScript":false,"durationMs":11630}}
+---
+
+--- 2026-04-15T23:16:57.852Z debug
+Metrics dispatcher: Posting data {"deviceId":"45b54f24-95c1-451d-875a-1ec00c15a0ea","event":"wrangler command completed","timestamp":1776295017852,"properties":{"amplitude_session_id":1776295006049,"amplitude_event_id":1,"wranglerVersion":"4.80.0","wranglerMajorVersion":4,"wranglerMinorVersion":80,"wranglerPatchVersion":0,"osPlatform":"Linux","osVersion":"#37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"json","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":true,"agent":null,"argsUsed":[],"argsCombination":"","sanitizedCommand":"deploy","sanitizedArgs":{},"durationMs":11834}}
+---

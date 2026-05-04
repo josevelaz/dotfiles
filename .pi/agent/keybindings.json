@@ -1,0 +1,11 @@
+{
+  "tui.editor.pageUp": ["pageUp", "ctrl+u"],
+  "tui.editor.pageDown": ["pageDown", "ctrl+d"],
+  "tui.select.pageUp": ["pageUp", "ctrl+u"],
+  "tui.select.pageDown": ["pageDown", "ctrl+d"],
+  "tui.editor.deleteCharForward": "delete",
+  "tui.editor.deleteToLineStart": "alt+u",
+  "app.exit": "ctrl+q",
+  "app.session.new": "ctrl+n",
+  "app.model.select": ["ctrl+l", "alt+m"]
+}
