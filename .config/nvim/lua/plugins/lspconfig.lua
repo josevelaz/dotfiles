@@ -96,7 +96,8 @@ return {
 			end
 
 			require("mason-lspconfig").setup({
-				ensure_installed = ensure_installed,
+				-- Keep servers configured, but don't auto-install them on startup.
+				ensure_installed = {},
 				automatic_enable = true,
 			})
 		end,

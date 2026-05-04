@@ -6,6 +6,7 @@
 - Always leave the built-in `Type your own answer` option available.
 - Do not ask me a plain-text question in chat.
 - Do not add an `Other` option; rely on the built-in `Type your own answer` option instead.
+- Always load the @git-worktree skill when working with Git repositories. Only exception is **~/dotfiles/**.
 
 ## Commits
 

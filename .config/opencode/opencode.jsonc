@@ -1,7 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "autoupdate": false,
+  "small_model": "github-copilot/gpt-4o",
   "permission": {
+    "question": "allow",
     "lsp": "allow",
     "read": {
       "~/obsidian_vaults/notes/*": "allow",
@@ -9,21 +10,34 @@
       "~/*": "ask"
     },
     "edit": {
-      "~/*": "deny",
+      "~/*": "deny"
     },
     "external_directory": {
-      "/tmp/*": "allow",
-    },
+      "/tmp/*": "allow"
+    }
   },
   "plugin": [
-    "@opencode_weave/weave",
+    "/home/ubuntu/projects/opencode-weave/dist/index.js",
+    "/home/ubuntu/projects/opencode-annotator.nvim/dist/index.js",
+    "opencode-mem",
     "@tarquinen/opencode-dcp@beta",
     "@mohak34/opencode-notifier@latest",
     "@franlol/opencode-md-table-formatter@latest",
-    // Local workstation-only plugins — add these back in a machine-local override
-    // if needed. See .config/opencode/opencode.local.example.jsonc for instructions.
+    "@cortexkit/aft-opencode@latest"
   ],
   "mcp": {
+    "resend": {
+      "enabled": false,
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "resend-mcp"
+      ],
+      "environment": {
+        "RESEND_API_KEY": "{env:RESEND_API_KEY}"
+      }
+    },
     "strapi-mcp": {
       "enabled": false,
       "type": "local",
@@ -81,43 +95,6 @@
         "@railway/mcp-server",
         "railway-mcp-server"
       ]
-    }
-  },
-  "provider": {
-    "openai": {
-      "name": "OpenAI | LB",
-      "options": {
-        "baseURL": "https://devbox.tail4c22db.ts.net/v1",
-        "apiKey": "{env:CODEX_LB_API_KEY}",
-        "timeout": 1200000,
-        "chunkTimeout": 600000
-      },
-      "models": {
-        "gpt-5.4": {
-          "name": "GPT-5.4",
-          "reasoning": true,
-          "options": {
-            "reasoningEffort": "high",
-            "reasoningSummary": "detailed",
-          },
-          "limit": {
-            "context": 1050000,
-            "output": 128000
-          }
-        },
-        "gpt-5.4-mini": {
-          "name": "GPT-5.4 Mini",
-          "reasoning": true,
-          "options": {
-            "reasoningEffort": "high",
-            "reasoningSummary": "detailed"
-          },
-          "limit": {
-            "context": 272000,
-            "output": 128000
-          },
-        },
-      }
     }
   }
 }

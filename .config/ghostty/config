@@ -710,7 +710,9 @@ mouse-scroll-multiplier = 1
 # On macOS, background opacity is disabled when the terminal enters native
 # fullscreen. This is because the background becomes gray and it can cause
 # widgets to show through which isn't generally desirable.
-background-opacity = 1
+background-opacity = 0.7
+
+background-blur = macos-glass-regular
 
 # A positive value enables blurring of the background when background-opacity
 # is less than 1. The value is the blur radius to apply. A value of 20
@@ -718,7 +720,7 @@ background-opacity = 1
 # rendering issues as well as performance issues.
 # 
 # This is only supported on macOS.
-background-blur-radius = 0
+# background-blur-radius = 0
 
 # The opacity level (opposite of transparency) of an unfocused split.
 # Unfocused splits by default are slightly faded out to make it easier to see
@@ -2038,4 +2040,4 @@ enquiry-response =
 # 
 # Changing this value at runtime works after a small delay.
 auto-update = check
-command = /bin/zsh -lc "~/.local/bin/tmux-sessionizer"
+# command = /bin/zsh -lc "~/.local/bin/tmux-sessionizer"

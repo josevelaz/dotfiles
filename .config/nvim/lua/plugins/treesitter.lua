@@ -21,8 +21,8 @@ return {
 				"json",
 				"yaml",
 			},
-			-- Autoinstall languages that are not installed
-			auto_install = true,
+			-- Avoid auto-install attempts during startup/file open.
+			auto_install = false,
 			highlight = {
 				enable = true,
 				-- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
@@ -39,7 +39,7 @@ return {
 				install_dir = opts.install_dir,
 			})
 
-			ts.install(opts.ensure_installed)
+			-- Install parsers manually with :TSInstall when the CLI is available.
 
 			local highlight_enabled = opts.highlight and opts.highlight.enable ~= false
 			local group = vim.api.nvim_create_augroup("nvim_treesitter_main", { clear = true })
