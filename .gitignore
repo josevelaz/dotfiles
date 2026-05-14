@@ -14,3 +14,5 @@
 .local/share/
 .local/state/
 .local/lib/
+
+.zsh_secrets
