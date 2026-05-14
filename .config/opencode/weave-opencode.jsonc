@@ -10,7 +10,7 @@
   },
   "agents": {
     "loom": {
-      "model": "opencode-go/kimi-k2.6",
+      "model": "openai/gpt-5.5",
       "modelOptions": {
         "reasoningEffort": "medium"
       },
@@ -24,9 +24,9 @@
     },
     "tapestry": {
       "temperature": 0.0,
-      "model": "github-copilot/gpt-5.4",
+      "model": "openai/gpt-5.5",
       "modelOptions": {
-        "reasoningEffort": "medium"
+        "reasoningEffort": "high"
       },
       "fallback_models": [
         "github-copilot/gpt-5.4"
@@ -43,11 +43,7 @@
       }
     },
     "shuttle": {
-      "model": "opencode-go/kimi-k2.6",
-      "fallback_models": [
-        "github-copilot/claude-sonnet-4.6",
-        "anthropic/claude-sonnet-4-6",
-      ],
+      "model": "anthropic/claude-sonnet-4-6",
       "skills": [
         "typescript-advanced-types",
         "animate",
@@ -55,63 +51,61 @@
       ]
     },
     "pattern": {
-      "model": "github-copilot/gpt-5.5",
+      "model": "openai/gpt-5.5",
+      "modelOptions": {
+        "reasoningEffort": "xhigh"
+      },
       "fallback_models": [
         "github-copilot/gpt-5.4"
-      ],
-      "modelOptions": {
-        "reasoningEffort": "high"
-      }
+      ]
     },
     "thread": {
-      "model": "github-copilot/claude-haiku-4.5",
+      "model": "openai/gpt-5.5",
+      "modelOptions": {
+        "reasoningEffort": "medium"
+      }
       "fallback_models": [
         "github-copilot/claude-sonnet-4.6"
       ]
     },
     "spindle": {
-      "model": "openai/gpt-5.4",
+      "model": "openai/gpt-5.5",
       "fallback_models": [
         "github-copilot/gpt-5.4"
       ],
       "prompt_append": "Use context7 to search documentation on libraries, or frameworks. Use grep mcp to search code samples in github.",
       "modelOptions": {
-        "reasoningEffort": "medium"
-      }
+        "reasoningEffort": "xhigh"
+      },
     },
     "weft": {
-      "model": "github-copilot/gpt-5.4",
+      "model": "openai/gpt-5.5",
       "fallback_models": [
         "github-copilot/gpt-5.5"
       ],
       "modelOptions": {
         "reasoningEffort": "xhigh"
-      }
+      },
     },
     "warp": {
-      "model": "github-copilot/gpt-5.4",
+      "model": "anthropic/claude-opus-4-6",
       "fallback_models": [
-        "github-copilot/gpt-5.5"
+        "openai/gpt-5.5"
       ],
       "modelOptions": {
         "reasoningEffort": "xhigh"
-      }
+      },
     }
   },
   "custom_agents": {
     "sentinel": {
       "prompt_file": ".opencode/prompts/browser-tester.md",
-      "model": "opencode-go/kimi-k2.6",
+      "model": "openai/gpt-5.5",
       "fallback_models": [
         "github-copilot/gpt-5.5"
       ],
       "modelOptions": {
-        "thinking": {
-          "type": "adaptive"
-        },
-        "output_config": {
-          "effort": "high"
-        }
+        "reasoningEffort": "high"
       },
       "mode": "all",
       "display_name": "Sentinel (QA Agent)",
@@ -139,48 +133,6 @@
       ],
       "temperature": 0.4,
       "prompt_append": "Preserve design consistency. Reuse shared components. Match existing button, input, spacing, and typography patterns."
-    },
-    "backend": {
-      "description": "Node.js and TypeScript backend work, APIs, auth, services, and database logic",
-      "fallback_models": [
-        "github-copilot/gpt-5.5"
-      ],
-      "model": "opencode-go/kimi-k2.6",
-      "temperature": 0.1,
-      "prompt_append": "Keep changes minimal, safe, and aligned with current patterns. Flag auth, migration, and permission implications."
-    },
-    "infra": {
-      "description": "AWS, CDK, Docker, CI/CD, environment and deployment work",
-      "model": "anthropic/claude-sonnet-4-6",
-      "temperature": 0.0,
-      "prompt_append": "Be conservative. Prefer least privilege, safe rollout assumptions, and explicit notes on operational risk."
-    },
-    "tests": {
-      "description": "Targeted automated tests and regression coverage",
-      "model": "openai/gpt-5.4",
-      "fallback_models": [
-        "github-copilot/gpt-5.4"
-      ],
-      "temperature": 0.0,
-      "prompt_append": "Write focused tests only for the changed behavior. Cover the main path and relevant edge cases."
-    },
-    "refactor": {
-      "description": "Behavior-preserving cleanup and deduplication",
-      "model": "opencode-go/kimi-k2.6",
-      "fallback_models": [
-        "github-copilot/gpt-5.5"
-      ],
-      "temperature": 0.0,
-      "prompt_append": "Preserve behavior exactly. Minimize diff size. Avoid opportunistic rewrites."
-    },
-    "critical-review-fix": {
-      "description": "High-risk follow-up implementation after review or security findings",
-      "fallback_models": [
-        "github-copilot/gpt-5.5"
-      ],
-      "model": "openai/gpt-5.5",
-      "temperature": 0.0,
-      "prompt_append": "Use maximum rigor and make the smallest correct change."
     }
   }
 }

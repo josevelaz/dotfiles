@@ -1,0 +1,9 @@
+{
+  "favorites": [
+    "anthropic:claude-opus-4-6",
+    "openai-codex:gpt-5.5",
+    "opencode-go:glm-5.1",
+    "opencode-go:kimi-k2.6",
+    "anthropic:claude-sonnet-4-6"
+  ]
+}

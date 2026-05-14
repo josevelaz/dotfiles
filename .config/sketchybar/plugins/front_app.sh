@@ -6,7 +6,7 @@
 # https://felixkratz.github.io/SketchyBar/config/events#events-and-scripting
 
 ITEM_NAME="${NAME:-front_app}"
-YABAI_BIN="/usr/local/bin/yabai"
+YABAI_BIN="yabai"
 
 APP_NAME="$INFO"
 

@@ -1,6 +1,6 @@
 local colors = require("theme")
 
-local YABAI_BIN = "/usr/local/bin/yabai"
+local YABAI_BIN = "yabai"
 
 local function current_front_app()
   local handle = io.popen(YABAI_BIN .. " -m query --windows --window 2>/dev/null | jq -r '.app // empty'")

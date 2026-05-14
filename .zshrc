@@ -79,6 +79,9 @@ export OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT=1
 export VOLTA_HOME="$HOME/.volta"
 [[ -d "$VOLTA_HOME/bin" ]] && export PATH="$VOLTA_HOME/bin:$PATH"
 
+# Java 17 (Homebrew OpenJDK)
+[ -f "$HOME/.java-env" ] && . "$HOME/.java-env"
+
 # Go bin
 [[ -d "$HOME/go/bin" ]] && export PATH="$PATH:$HOME/go/bin"
 
@@ -156,7 +159,8 @@ sqz_run() {
 sqz_sudo() {
     sudo "$@" 2>&1 | SQZ_CMD="sudo $*" sqz compress
 }
-preexec() {
+add-zsh-hook preexec _sqz_preexec
+_sqz_preexec() {
     export __SQZ_CMD="$1"
 }
 # sqz — end of auto-installed block
@@ -164,3 +168,6 @@ preexec() {
 
 # bun completions
 [ -s "/home/ubuntu/.bun/_bun" ] && source "/home/ubuntu/.bun/_bun"
+
+# opencode
+export PATH=/Users/jose/.opencode/bin:$PATH

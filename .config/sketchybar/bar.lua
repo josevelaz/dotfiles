@@ -9,7 +9,7 @@ sbar.bar({
 	border_color = colors.bar_border,
 	border_width = 1,
 	margin = 4,
-	corner_radius = 10,
+	corner_radius = 20,
 	y_offset = 6,
 	padding_left = 8,
 	padding_right = 8,

@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "small_model": "github-copilot/gpt-4o",
+  "small_model": "anthropic/claude-haiku-3-5-latest",
   "permission": {
     "question": "allow",
     "lsp": "allow",
@@ -17,8 +17,8 @@
     }
   },
   "plugin": [
-    "/home/ubuntu/projects/opencode-weave/dist/index.js",
-    "/home/ubuntu/projects/opencode-annotator.nvim/dist/index.js",
+    "opencode-claude-auth@latest",
+    "@opencode_weave/weave",
     "opencode-mem",
     "@tarquinen/opencode-dcp@beta",
     "@mohak34/opencode-notifier@latest",

@@ -18,7 +18,7 @@ sbar.default({
   },
   background = {
     height = 28,
-    corner_radius = 9,
+    corner_radius = 12,
     color = colors.surface,
     border_color = colors.highlight_med,
     border_width = 1,

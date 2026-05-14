@@ -54,7 +54,6 @@ local function apply_markdown_settings(bufnr)
   end
 
   vim.bo[bufnr].textwidth = 80
-  vim.bo[bufnr].conceallevel = 0
 
   for _, winid in ipairs(vim.api.nvim_list_wins()) do
     if vim.api.nvim_win_get_buf(winid) == bufnr then

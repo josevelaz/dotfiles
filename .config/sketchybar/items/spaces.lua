@@ -8,7 +8,7 @@ local GROUP_HORIZONTAL_PADDING = 4
 local GROUP_VERTICAL_HEIGHT = 28
 local EMPTY_SPACE_OUTER_GAP = 12
 local OCCUPIED_SPACE_GAP = 12
-local YABAI_BIN = "/usr/local/bin/yabai"
+local YABAI_BIN = "yabai"
 
 local spaces = {}
 

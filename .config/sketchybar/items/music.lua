@@ -35,9 +35,7 @@ local music = sbar.add("item", "music", {
   },
   padding_left = 0,
   icon = {
-    string = "􁁒",
-    padding_left = 36,
-    padding_right = 8,
+    drawing = false,
   },
   update_freq = 10,
   scroll_texts = true,
