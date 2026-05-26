@@ -121,6 +121,30 @@ unset _zsh_platform_dir
 # =========== END PLATFORM-SPECIFIC ================
 
 
+# =========== PORT KILLER ================
+function killport {
+  local port="$1"
+  if [[ -z "$port" ]]; then
+    echo "Usage: killport <port>" >&2
+    return 1
+  fi
+  local pids
+  pids=$(lsof -ti tcp:"$port" 2>/dev/null)
+  if [[ -z "$pids" ]]; then
+    echo "No process found on port $port"
+    return 0
+  fi
+  echo "Killing process(es) on port $port:"
+  echo "$pids" | while read -r pid; do
+    local info
+    info=$(ps -p "$pid" -o pid=,comm= 2>/dev/null)
+    echo "  → PID $info"
+    kill -9 "$pid" 2>/dev/null && echo "    ✓ killed" || echo "    ✗ failed (permission denied?)"
+  done
+}
+# =========== END PORT KILLER ================
+
+
 # =========== DOCKER HELPERS ================
 function oai-lb {
   docker volume create oai-lb-data
