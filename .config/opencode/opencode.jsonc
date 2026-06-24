@@ -1,56 +1,71 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "small_model": "anthropic/claude-haiku-3-5-latest",
+  "instructions": [
+    "DESIGN.md"
+  ],
   "permission": {
     "question": "allow",
     "lsp": "allow",
-    "read": {
-      "~/obsidian_vaults/notes/*": "allow",
-      "~/.agent-browser/tmp/screenshots/*": "allow",
-      "~/*": "ask"
-    },
+    "read": "allow",
+    "aft_*": "allow",
     "edit": {
       "~/*": "deny"
     },
     "external_directory": {
-      "/tmp/*": "allow"
+      "/tmp/*": "allow",
+      "/dev/*": "allow",
+      "~/.local/share/cortexkit/aft/opencode/bash-tasks": "allow",
+      "~/dotfiles/.local/share/opencode/worktree": "allow"
+    }
+  },
+  "provider": {
+    "xai": {
+      "models": {
+        "grok-composer-2.5-fast": {
+          "name": "Composer 2.5 Fast"
+        },
+        "grok-build-0.1": {
+          "name": "Grok Build"
+        }
+      }
+    },
+    "openai": {
+      "options": {
+        "baseURL": "http://127.0.0.1:17321",
+        "apiKey": "{env:CODEX_LB_KEY}",
+        "headers": {
+          "sleeve-provider": "codex",
+          "sleeve-harness": "opencode"
+        }
+      }
+    },
+    "anthropic": {
+      "options": {
+        "headers": {
+          "sleeve-provider": "anthropic",
+          "sleeve-harness": "opencode"
+        },
+        "baseURL": "http://127.0.0.1:17321"
+      }
+    },
+    "opencode": {
+      "options": {
+        "headers": {
+          "sleeve-provider": "opencode",
+          "sleeve-harness": "opencode"
+        },
+        "baseURL": "http://127.0.0.1:17321"
+      }
     }
   },
   "plugin": [
-    "opencode-claude-auth@latest",
+    "@ex-machina/opencode-anthropic-auth",
     "@opencode_weave/weave",
-    "opencode-mem",
-    "@tarquinen/opencode-dcp@beta",
-    "@mohak34/opencode-notifier@latest",
     "@franlol/opencode-md-table-formatter@latest",
-    "@cortexkit/aft-opencode@latest"
+    "@cortexkit/aft-opencode@latest",
+    "@honcho-ai/opencode-honcho"
   ],
   "mcp": {
-    "resend": {
-      "enabled": false,
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "resend-mcp"
-      ],
-      "environment": {
-        "RESEND_API_KEY": "{env:RESEND_API_KEY}"
-      }
-    },
-    "strapi-mcp": {
-      "enabled": false,
-      "type": "local",
-      "command": [
-        "npx",
-        "strapi-mcp"
-      ],
-      "environment": {
-        "STRAPI_URL": "https://strapi-production-a933.up.railway.app",
-        "STRAPI_ADMIN_EMAIL": "{env:STRAPI_ADMIN_EMAIL}",
-        "STRAPI_ADMIN_PASSWORD": "{env:STRAPI_ADMIN_PASSWORD}"
-      }
-    },
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
@@ -58,43 +73,20 @@
         "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
       }
     },
-    "vibma": {
-      "enabled": false,
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@ufira/vibma@latest",
-        "--edit"
-      ]
-    },
     "grep": {
       "type": "remote",
       "url": "https://mcp.grep.app"
     },
-    "reactotron": {
-      "enabled": false,
+    "asana": {
       "type": "remote",
-      "url": "http://localhost:4567/mcp"
+      "url": "https://mcp.asana.com/v2/mcp",
+      "oauth": {
+        "clientId": "1215734563644920",
+        "clientSecret": "{env:ASANA_CLIENT_SECRET}"
+      }
     },
-    "linear": {
-      "enabled": false,
-      "type": "remote",
-      "url": "https://mcp.linear.app/mcp",
-      "oauth": {}
-    },
-    "railway": {
-      "enabled": false,
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "-p",
-        "graphql@16",
-        "-p",
-        "@railway/mcp-server",
-        "railway-mcp-server"
-      ]
-    }
+  },
+  "compaction": {
+    "prune": false
   }
 }

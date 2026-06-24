@@ -1,14 +1,15 @@
 {
-  "lastChangelogVersion": "0.74.0",
+  "lastChangelogVersion": "0.79.0",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",
-  "defaultThinkingLevel": "medium",
+  "defaultThinkingLevel": "high",
   "packages": [
     "npm:pi-lens",
     "npm:pi-markdown-preview",
     "npm:pi-btw",
     "npm:pi-web-access",
-    "npm:pi-vim"
+    "npm:pi-vim",
+    "npm:@agney/pi-honcho-memory"
   ],
   "knowledge-search": {
     "paths": [

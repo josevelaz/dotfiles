@@ -1,0 +1,1 @@
+{"binaries":["agentfs"],"binary_aliases":{},"cdylibs":[],"cstaticlibs":[],"install_layout":"cargo-home","install_prefix":"/Users/jose/.cargo","modify_path":true,"provider":{"source":"cargo-dist","version":"0.30.2"},"source":{"app_name":"agentfs","name":"agentfs","owner":"tursodatabase","release_type":"github"},"version":"0.6.4"}

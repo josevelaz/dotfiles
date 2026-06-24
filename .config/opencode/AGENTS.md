@@ -1,12 +1,10 @@
 # Mandatory workflow
-- If you need to ask me anything at all, use the `question` tool.
-- If you need my input, approval, confirmation, clarification, or prioritization, use the `question` tool.
-- If you are blocked on missing user input, do not end the turn or ask in plain chat; call the `question` tool instead.
-- Always provide concrete options in the `question` tool.
-- Always leave the built-in `Type your own answer` option available.
-- Do not ask me a plain-text question in chat.
-- Do not add an `Other` option; rely on the built-in `Type your own answer` option instead.
-- Always load the @git-worktree skill when working with Git repositories. Only exception is **~/dotfiles/**.
+
+- When calling bash commands that could potentially be stuck, use `gtimeout` so
+  the session does not hang.
+- When you have a markdown artifact that requires the user's review like a plan
+  or a spec, load the @herdr skill and create a new pane which loads the file
+  using neovim (`nvim`).
 
 ## Commits
 

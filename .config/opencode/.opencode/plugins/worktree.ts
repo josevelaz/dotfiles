@@ -12,7 +12,8 @@
  */
 
 import type { Database } from "bun:sqlite"
-import { access, copyFile, cp, mkdir, rm, stat, symlink } from "node:fs/promises"
+import { constants as fsConstants } from "node:fs"
+import { access, copyFile, cp, lstat, mkdir, realpath, rm, stat, symlink } from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
 import { type Plugin, tool } from "@opencode-ai/plugin"
@@ -32,6 +33,13 @@ import { z } from "zod"
 
 import { getProjectId } from "./kdco-primitives/get-project-id"
 import {
+	type ActiveLaunchContext,
+	buildSessionLaunchArgv,
+	parseActiveLaunchContext,
+	serializePersistedLaunchMetadata,
+	toPersistedLaunchMetadata,
+} from "./worktree/launch-context"
+import {
 	addSession,
 	clearPendingDelete,
 	getPendingDelete,
@@ -41,7 +49,7 @@ import {
 	removeSession,
 	setPendingDelete,
 } from "./worktree/state"
-import { openTerminal } from "./worktree/terminal"
+import { openTerminal, type TerminalResult } from "./worktree/terminal"
 
 /** Maximum retries for database initialization */
 const DB_MAX_RETRIES = 3
@@ -119,6 +127,8 @@ const branchNameSchema = z
  * Config file: .opencode/worktree.jsonc
  */
 const worktreeConfigSchema = z.object({
+	/** Custom base path for worktree storage. Supports ~ for home directory. */
+	worktreePath: z.string().optional(),
 	sync: z
 		.object({
 			/** Files to copy from main worktree (relative paths only) */
@@ -154,6 +164,141 @@ class WorktreeError extends Error {
 		super(`${operation}: ${message}`)
 		this.name = "WorktreeError"
 	}
+}
+
+type ResolveExecutable = (command: string) => string | null | undefined
+type ValidateProfileAvailability = (
+	ocxBin: string,
+	profile: string,
+) => Promise<Result<void, string>>
+
+interface LaunchExecutableValidationOptions {
+	resolveExecutable?: ResolveExecutable
+	pathExists?: (absolutePath: string) => Promise<boolean>
+}
+
+function isPathLikeCommand(command: string): boolean {
+	return command.includes("/") || command.includes("\\")
+}
+
+function resolveStableLaunchBinaryPath(
+	ocxBin: string,
+	baseDirectory: string,
+	resolveExecutable: ResolveExecutable,
+): Result<string, string> {
+	if (isPathLikeCommand(ocxBin)) {
+		const resolvedPath = path.isAbsolute(ocxBin) ? ocxBin : path.resolve(baseDirectory, ocxBin)
+		return Result.ok(resolvedPath)
+	}
+
+	const resolvedFromPath = resolveExecutable(ocxBin)
+	if (!resolvedFromPath) {
+		return Result.err(`Configured OCX binary "${ocxBin}" is not available in PATH.`)
+	}
+
+	const resolvedPath = path.isAbsolute(resolvedFromPath)
+		? resolvedFromPath
+		: path.resolve(baseDirectory, resolvedFromPath)
+
+	return Result.ok(resolvedPath)
+}
+
+async function pathPointsToLaunchableBinary(absolutePath: string): Promise<boolean> {
+	try {
+		const stats = await stat(absolutePath)
+		if (stats.isDirectory()) {
+			return false
+		}
+
+		await access(absolutePath, fsConstants.X_OK)
+		return true
+	} catch {
+		return false
+	}
+}
+
+async function ensureLaunchContextExecutable(
+	launchContext: ActiveLaunchContext,
+	baseDirectory: string,
+	options: LaunchExecutableValidationOptions = {},
+): Promise<ActiveLaunchContext> {
+	if (launchContext.mode === "plain") {
+		return launchContext
+	}
+
+	const { ocxBin, profile } = launchContext
+	const resolveExecutable = options.resolveExecutable ?? ((command: string) => Bun.which(command))
+	const pathExists = options.pathExists ?? pathPointsToLaunchableBinary
+	const resolvedPathResult = resolveStableLaunchBinaryPath(ocxBin, baseDirectory, resolveExecutable)
+	if (!resolvedPathResult.ok) {
+		throw new WorktreeError(
+			`${resolvedPathResult.error} Repair the parent OCX profile (${profile}) and recreate this worktree session.`,
+			"launch",
+		)
+	}
+
+	const resolvedPath = resolvedPathResult.value
+	const isLaunchable = await pathExists(resolvedPath)
+	if (!isLaunchable) {
+		throw new WorktreeError(
+			`Configured OCX binary "${ocxBin}" resolved to "${resolvedPath}" but is missing or stale. Repair the parent OCX profile (${profile}) and recreate this worktree session.`,
+			"launch",
+		)
+	}
+
+	return {
+		mode: "ocx",
+		ocxBin: resolvedPath,
+		profile,
+	}
+}
+
+async function validateOcxProfileAvailability(
+	ocxBin: string,
+	profile: string,
+): Promise<Result<void, string>> {
+	try {
+		const proc = Bun.spawn([ocxBin, "profile", "show", profile, "--global", "--json"], {
+			stdout: "pipe",
+			stderr: "pipe",
+		})
+		const [exitCode, stdout, stderr] = await Promise.all([
+			proc.exited,
+			new Response(proc.stdout).text(),
+			new Response(proc.stderr).text(),
+		])
+
+		if (exitCode === 0) {
+			return Result.ok(undefined)
+		}
+
+		const detail = stderr.trim() || stdout.trim() || `exit ${exitCode}`
+		return Result.err(detail)
+	} catch (error) {
+		return Result.err(error instanceof Error ? error.message : String(error))
+	}
+}
+
+async function ensureLaunchContextProfile(
+	launchContext: ActiveLaunchContext,
+	validateProfileAvailability: ValidateProfileAvailability = validateOcxProfileAvailability,
+): Promise<void> {
+	if (launchContext.mode === "plain") {
+		return
+	}
+
+	const validationResult = await validateProfileAvailability(
+		launchContext.ocxBin,
+		launchContext.profile,
+	)
+	if (validationResult.ok) {
+		return
+	}
+
+	throw new WorktreeError(
+		`Configured OCX profile "${launchContext.profile}" is missing or stale. ${validationResult.error} Repair the parent OCX profile and recreate this worktree session.`,
+		"launch",
+	)
 }
 
 // =============================================================================
@@ -202,6 +347,57 @@ interface ForkResult {
 	rootSessionId: string
 	planCopied: boolean
 	delegationsCopied: boolean
+}
+
+interface FinalizeWorktreeLaunchOptions {
+	database: Database
+	worktreePath: string
+	launchArgv: string[]
+	branch: string
+	forkedSessionId: string
+	sessionRecord: {
+		id: string
+		branch: string
+		path: string
+		createdAt: string
+		launchMode: "plain" | "ocx"
+		profile: string | null
+		ocxBin: string | null
+	}
+	log: Logger
+	openTerminalFn?: (cwd: string, argv?: string[], windowName?: string) => Promise<TerminalResult>
+	addSessionFn?: typeof addSession
+	deleteForkedSessionFn?: (sessionId: string) => Promise<void>
+}
+
+async function finalizeWorktreeLaunch(
+	options: FinalizeWorktreeLaunchOptions,
+): Promise<TerminalResult> {
+	const openTerminalFn = options.openTerminalFn ?? openTerminal
+	const addSessionFn = options.addSessionFn ?? addSession
+	const deleteForkedSessionFn =
+		options.deleteForkedSessionFn ??
+		(async (_sessionId: string) => {
+			// Default no-op for tests without cleanup side effects.
+		})
+
+	const terminalResult = await openTerminalFn(
+		options.worktreePath,
+		options.launchArgv,
+		options.branch,
+	)
+
+	if (!terminalResult.success) {
+		await deleteForkedSessionFn(options.forkedSessionId).catch((cleanupError) => {
+			options.log.warn(
+				`[worktree] Failed to clean up forked session ${options.forkedSessionId} after launch failure: ${cleanupError}`,
+			)
+		})
+		return terminalResult
+	}
+
+	addSessionFn(options.database, options.sessionRecord)
+	return terminalResult
 }
 
 /**
@@ -440,8 +636,9 @@ async function createWorktree(
 	repoRoot: string,
 	branch: string,
 	baseBranch?: string,
+	basePath?: string,
 ): Promise<Result<string, string>> {
-	const worktreePath = await getWorktreePath(repoRoot, branch)
+	const worktreePath = await getWorktreePath(repoRoot, branch, basePath)
 
 	// Ensure parent directory exists
 	await mkdir(path.dirname(worktreePath), { recursive: true })
@@ -495,6 +692,85 @@ function isPathSafe(filePath: string, baseDir: string, log: Logger): boolean {
 	return true
 }
 
+function isWithinRealRoot(rootRealPath: string, candidateRealPath: string): boolean {
+	const relative = path.relative(rootRealPath, candidateRealPath)
+	return relative === "" || (!!relative && !relative.startsWith("..") && !path.isAbsolute(relative))
+}
+
+async function resolveExistingPathWithinRoot(
+	rootDir: string,
+	relativePath: string,
+	log: Logger,
+): Promise<string | null> {
+	const rootRealPath = await realpath(rootDir).catch(() => null)
+	if (!rootRealPath) {
+		log.warn(`[worktree] Failed to resolve worktree root: ${rootDir}`)
+		return null
+	}
+
+	const candidatePath = path.resolve(rootDir, relativePath)
+	const candidateRealPath = await realpath(candidatePath).catch(() => null)
+	if (!candidateRealPath) return null
+
+	if (!isWithinRealRoot(rootRealPath, candidateRealPath)) {
+		log.warn(`[worktree] Rejected path escaping worktree via symlink: ${relativePath}`)
+		return null
+	}
+
+	return candidateRealPath
+}
+
+async function ensureDirectoryWithinRoot(
+	rootDir: string,
+	relativeDir: string,
+	log: Logger,
+): Promise<string | null> {
+	const rootRealPath = await realpath(rootDir).catch(() => null)
+	if (!rootRealPath) {
+		log.warn(`[worktree] Failed to resolve worktree root: ${rootDir}`)
+		return null
+	}
+
+	const rootPath = path.resolve(rootDir)
+	const targetDir = path.resolve(rootDir, relativeDir)
+	const resolvedRootRelative = path.relative(rootPath, targetDir)
+	if (
+		resolvedRootRelative !== "" &&
+		(resolvedRootRelative.startsWith("..") || path.isAbsolute(resolvedRootRelative))
+	) {
+		log.warn(`[worktree] Rejected path escaping worktree: ${relativeDir}`)
+		return null
+	}
+
+	const rootRelative = path.relative(rootDir, targetDir)
+	const parts = rootRelative.split(path.sep).filter(Boolean)
+	let cursor = rootDir
+
+	for (const part of parts) {
+		cursor = path.join(cursor, part)
+		const entry = await lstat(cursor).catch(() => null)
+		if (entry?.isSymbolicLink()) {
+			log.warn(`[worktree] Rejected symlinked target parent: ${relativeDir}`)
+			return null
+		}
+		if (entry && !entry.isDirectory()) {
+			log.warn(`[worktree] Rejected non-directory target parent: ${relativeDir}`)
+			return null
+		}
+		if (!entry) {
+			await mkdir(cursor)
+		}
+	}
+
+	const finalRealPath = await realpath(targetDir).catch(() => null)
+	if (!finalRealPath || !isWithinRealRoot(rootRealPath, finalRealPath)) {
+		log.warn(`[worktree] Rejected path escaping worktree via symlink: ${relativeDir}`)
+		return null
+	}
+
+	return targetDir
+}
+
 /**
  * Copy files from source directory to target directory.
  * Skips missing files silently (production pattern).
@@ -508,7 +784,9 @@ async function copyFiles(
 	for (const file of files) {
 		if (!isPathSafe(file, sourceDir, log)) continue
 
-		const sourcePath = path.join(sourceDir, file)
+		const sourcePath = await resolveExistingPathWithinRoot(sourceDir, file, log)
+		if (!sourcePath) continue
+
 		const targetPath = path.join(targetDir, file)
 
 		try {
@@ -520,7 +798,14 @@ async function copyFiles(
 
 			// Ensure target directory exists
 			const targetFileDir = path.dirname(targetPath)
-			await mkdir(targetFileDir, { recursive: true })
+			const targetFileRelativeDir = path.relative(targetDir, targetFileDir)
+			if (!(await ensureDirectoryWithinRoot(targetDir, targetFileRelativeDir, log))) continue
+
+			const existingTarget = await lstat(targetPath).catch(() => null)
+			if (existingTarget?.isSymbolicLink()) {
+				log.warn(`[worktree] Rejected symlinked target file: ${file}`)
+				continue
+			}
 
 			// Copy file
 			await Bun.write(targetPath, sourceFile)
@@ -551,20 +836,29 @@ async function symlinkDirs(
 	for (const dir of dirs) {
 		if (!isPathSafe(dir, sourceDir, log)) continue
 
-		const sourcePath = path.join(sourceDir, dir)
+		const sourcePath = await resolveExistingPathWithinRoot(sourceDir, dir, log)
+		if (!sourcePath) continue
+
 		const targetPath = path.join(targetDir, dir)
 
 		try {
 			// Check if source directory exists
 			const fileStat = await stat(sourcePath).catch(() => null)
-			if (!fileStat || !fileStat.isDirectory()) {
+			if (!fileStat?.isDirectory()) {
 				log.debug(`[worktree] Skipping missing directory: ${dir}`)
 				continue
 			}
 
 			// Ensure parent directory exists
 			const targetParentDir = path.dirname(targetPath)
-			await mkdir(targetParentDir, { recursive: true })
+			const targetParentRelativeDir = path.relative(targetDir, targetParentDir)
+			if (!(await ensureDirectoryWithinRoot(targetDir, targetParentRelativeDir, log))) continue
+
+			const existingTarget = await lstat(targetPath).catch(() => null)
+			if (existingTarget?.isSymbolicLink()) {
+				log.warn(`[worktree] Rejected symlinked target: ${dir}`)
+				continue
+			}
 
 			// Remove existing target if it exists (might be empty dir from git)
 			await rm(targetPath, { recursive: true, force: true })
@@ -604,6 +898,16 @@ async function runHooks(cwd: string, commands: string[], log: Logger): Promise<v
 }
 
 /**
+ * Resolve a path that may contain a leading `~` to the user's home directory.
+ */
+function resolveHomePath(p: string): string {
+	if (p === "~" || p.startsWith("~/") || p.startsWith("~\\")) {
+		return path.join(os.homedir(), p.slice(1))
+	}
+	return p
+}
+
+/**
  * Load worktree-specific configuration from .opencode/worktree.jsonc
  * Auto-creates config file with helpful defaults if it doesn't exist.
  */
@@ -619,6 +923,10 @@ async function loadWorktreeConfig(directory: string, log: Logger): Promise<Workt
 
   // Worktree plugin configuration
   // Documentation: https://github.com/kdcokenny/ocx
+
+  // Custom base path for worktree storage (supports ~)
+  // Default: ~/.local/share/opencode/worktree
+  // "worktreePath": "~/my-worktrees",
 
   "sync": {
     // Files to copy from main worktree to new worktrees
@@ -658,7 +966,11 @@ async function loadWorktreeConfig(directory: string, log: Logger): Promise<Workt
 			log.error(`[worktree] Invalid worktree.jsonc syntax`)
 			return worktreeConfigSchema.parse({})
 		}
-		return worktreeConfigSchema.parse(parsed)
+		const config = worktreeConfigSchema.parse(parsed)
+		if (config.worktreePath) {
+			config.worktreePath = resolveHomePath(config.worktreePath)
+		}
+		return config
 	} catch (error) {
 		log.warn(`[worktree] Failed to load config: ${error}`)
 		return worktreeConfigSchema.parse({})
@@ -669,7 +981,7 @@ async function loadWorktreeConfig(directory: string, log: Logger): Promise<Workt
 // PLUGIN ENTRY
 // =============================================================================
 
-export const WorktreePlugin: Plugin = async (ctx) => {
+const WorktreePlugin: Plugin = async (ctx) => {
 	const { directory, client } = ctx
 
 	const log = {
@@ -723,8 +1035,30 @@ export const WorktreePlugin: Plugin = async (ctx) => {
 						}
 					}
 
+					let activeLaunchContext: ActiveLaunchContext
+					try {
+						activeLaunchContext = parseActiveLaunchContext(
+							process.env as Record<string, string | undefined>,
+						)
+						activeLaunchContext = await ensureLaunchContextExecutable(
+							activeLaunchContext,
+							directory,
+						)
+						await ensureLaunchContextProfile(activeLaunchContext)
+					} catch (error) {
+						return `❌ ${error instanceof Error ? error.message : String(error)}`
+					}
+
+					// Load config first so worktreePath is available for createWorktree
+					const worktreeConfig = await loadWorktreeConfig(directory, log)
+
 					// Create worktree
-					const result = await createWorktree(directory, args.branch, args.baseBranch)
+					const result = await createWorktree(
+						directory,
+						args.branch,
+						args.baseBranch,
+						worktreeConfig.worktreePath,
+					)
 					if (!result.ok) {
 						return `Failed to create worktree: ${result.error}`
 					}
@@ -732,7 +1066,6 @@ export const WorktreePlugin: Plugin = async (ctx) => {
 					const worktreePath = result.value
 
 					// Sync files from main worktree
-					const worktreeConfig = await loadWorktreeConfig(directory, log)
 					const mainWorktreePath = directory // The repo root is the main worktree
 
 					// Copy files
@@ -771,25 +1104,34 @@ export const WorktreePlugin: Plugin = async (ctx) => {
 					log.debug(
 						`Forked session ${forkedSession.id}, plan: ${planCopied}, delegations: ${delegationsCopied}`,
 					)
+					const persistedLaunchMetadata = toPersistedLaunchMetadata(activeLaunchContext)
+					const launchArgv = buildSessionLaunchArgv(forkedSession.id, persistedLaunchMetadata)
+					const serializedLaunchMetadata = serializePersistedLaunchMetadata(persistedLaunchMetadata)
 
-					// Spawn worktree with forked session
-					const terminalResult = await openTerminal(
+					const terminalResult = await finalizeWorktreeLaunch({
+						database,
 						worktreePath,
-						`opencode --session ${forkedSession.id}`,
-						args.branch,
-					)
+						launchArgv,
+						branch: args.branch,
+						forkedSessionId: forkedSession.id,
+						sessionRecord: {
+							id: forkedSession.id,
+							branch: args.branch,
+							path: worktreePath,
+							createdAt: new Date().toISOString(),
+							launchMode: serializedLaunchMetadata.launchMode,
+							profile: serializedLaunchMetadata.profile,
+							ocxBin: serializedLaunchMetadata.ocxBin,
+						},
+						log,
+						deleteForkedSessionFn: async (sessionId: string) => {
+							await client.session.delete({ path: { id: sessionId } })
+						},
+					})
 
 					if (!terminalResult.success) {
-						log.warn(`[worktree] Failed to open terminal: ${terminalResult.error}`)
+						return `❌ Failed to launch worktree terminal: ${terminalResult.error ?? "unknown error"}\nWorktree created at ${worktreePath}. Verify launch settings and retry.`
 					}
-
-					// Record session for tracking (used by delete flow)
-					addSession(database, {
-						id: forkedSession.id,
-						branch: args.branch,
-						path: worktreePath,
-						createdAt: new Date().toISOString(),
-					})
 
 					return `Worktree created at ${worktreePath}\n\nA new terminal has been opened with OpenCode.`
 				},
@@ -858,4 +1200,16 @@ export const WorktreePlugin: Plugin = async (ctx) => {
 	}
 }
 
-export default WorktreePlugin
+const WorktreePluginWithInternals = Object.assign(WorktreePlugin, {
+	testInternals: {
+		isPathLikeCommand,
+		copyFiles,
+		ensureLaunchContextExecutable,
+		validateOcxProfileAvailability,
+		ensureLaunchContextProfile,
+		finalizeWorktreeLaunch,
+		symlinkDirs,
+	},
+} as const)
+
+export default WorktreePluginWithInternals

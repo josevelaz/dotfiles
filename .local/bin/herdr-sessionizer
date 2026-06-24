@@ -1,0 +1,278 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+CONFIG_FILE_NAME="herdr-sessionizer.conf"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/herdr-sessionizer"
+CONFIG_FILE="$CONFIG_DIR/$CONFIG_FILE_NAME"
+VERSION="0.2.0"
+HERDR_BIN="${HERDR_BIN_PATH:-herdr}"
+SESSION_FILE="${HERDR_SESSION_FILE:-${XDG_CONFIG_HOME:-$HOME/.config}/herdr/session.json}"
+ERROR_LOG="${XDG_CACHE_HOME:-$HOME/.cache}/herdr-sessionizer.err"
+
+if [[ -f "$CONFIG_FILE" ]]; then
+    # shellcheck disable=SC1090
+    source "$CONFIG_FILE"
+fi
+
+if [[ -f "$CONFIG_FILE_NAME" ]]; then
+    # shellcheck disable=SC1091
+    source "$CONFIG_FILE_NAME"
+fi
+
+usage() {
+    cat <<'EOF'
+Usage: herdr-sessionizer [--help] [--version] [SEARCH_PATH]
+
+Open an fzf picker for Herdr workspaces and configured directories.
+If a directory already has a workspace, focus it. Otherwise create one.
+EOF
+}
+
+show_failure_and_wait() {
+    local code="$1"
+
+    if [[ -f "$ERROR_LOG" ]]; then
+        cat "$ERROR_LOG" >&2
+    fi
+
+    if [[ -t 0 && -t 1 ]]; then
+        printf '\nherdr-sessionizer failed (exit %s). press enter to close...' "$code" >&2
+        read -r _ || true
+    fi
+
+    exit "$code"
+}
+
+require_cmd() {
+    command -v "$1" >/dev/null 2>&1 || {
+        echo "Error: $1 is not installed or not in PATH." >&2
+        exit 1
+    }
+}
+
+resolve_path() {
+    local path="$1"
+
+    if [[ "$path" == "~" ]]; then
+        path="$HOME"
+    elif [[ "$path" == "~/"* ]]; then
+        path="$HOME/${path#~/}"
+    fi
+
+    while [[ "$path" == "$HOME/~/"* ]]; do
+        path="$HOME/${path#"$HOME/~/"}"
+    done
+
+    if [[ -d "$path" ]]; then
+        path="$(realpath "$path")"
+    fi
+
+    printf '%s\n' "$path"
+}
+
+emit_search_entry() {
+    local entry="$1"
+    local path depth search_children
+
+    depth="${HS_MAX_DEPTH:-1}"
+    search_children="false"
+
+    if [[ "$entry" =~ ^(.+):([0-9]+)$ ]]; then
+        path="${BASH_REMATCH[1]}"
+        depth="${BASH_REMATCH[2]}"
+    else
+        path="$entry"
+    fi
+
+    if [[ "$path" == */ ]]; then
+        search_children="true"
+        path="${path%/}"
+    fi
+
+    path="$(resolve_path "$path")"
+    [[ -d "$path" ]] || return 0
+
+    if [[ "$search_children" == "true" ]]; then
+        find "$path" -mindepth 1 -maxdepth "$depth" -path '*/.git' -prune -o -type d -print
+    else
+        printf '%s\n' "$path"
+    fi
+}
+
+find_dirs() {
+    local entry
+    local -a search_paths
+
+    if [[ -n "${HS_SEARCH_PATHS+x}" ]]; then
+        search_paths=("${HS_SEARCH_PATHS[@]}")
+    else
+        search_paths=(~/ ~/personal ~/personal/dev/env/.config)
+    fi
+
+    if [[ -n "${HS_EXTRA_SEARCH_PATHS+x}" ]] && (( ${#HS_EXTRA_SEARCH_PATHS[@]} > 0 )); then
+        search_paths+=("${HS_EXTRA_SEARCH_PATHS[@]}")
+    fi
+
+    for entry in "${search_paths[@]}"; do
+        emit_search_entry "$entry"
+    done
+}
+
+user_selected=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -v|--version)
+            echo "herdr-sessionizer version $VERSION"
+            exit 0
+            ;;
+        *)
+            if [[ -n "$user_selected" ]]; then
+                echo "Error: too many arguments" >&2
+                usage >&2
+                exit 1
+            fi
+            user_selected="$1"
+            ;;
+    esac
+    shift
+done
+
+require_cmd "$HERDR_BIN"
+require_cmd fzf
+require_cmd python3
+require_cmd realpath
+
+mkdir -p "$(dirname "$ERROR_LOG")"
+:
+> "$ERROR_LOG"
+
+workspace_list="$($HERDR_BIN workspace list 2>"$ERROR_LOG")" || show_failure_and_wait "$?"
+
+if [[ -n "$user_selected" ]]; then
+    if [[ "$user_selected" == */ ]]; then
+        directory_candidates="$(emit_search_entry "$user_selected" 2>"$ERROR_LOG" | sort -u || true)"
+    else
+        directory_candidates="$(resolve_path "$user_selected")"
+    fi
+else
+    directory_candidates="$(find_dirs 2>"$ERROR_LOG" | sort -u || true)"
+fi
+
+if [[ -z "$directory_candidates" && -z "$workspace_list" ]]; then
+    printf 'No workspaces or directory candidates found.\n' > "$ERROR_LOG"
+    show_failure_and_wait 1
+fi
+
+set +e
+selection="$(printf '%s\n' "$workspace_list" | DIRECTORY_CANDIDATES="$directory_candidates" SESSION_FILE="$SESSION_FILE" python3 -c '
+import json
+import os
+import sys
+from pathlib import Path
+
+payload = json.load(sys.stdin)
+workspaces = payload.get("result", {}).get("workspaces", [])
+session_file = Path(os.environ["SESSION_FILE"]).expanduser()
+directory_candidates = [line for line in os.environ.get("DIRECTORY_CANDIDATES", "").splitlines() if line]
+
+identity_by_id = {}
+if session_file.exists():
+    try:
+        session = json.loads(session_file.read_text())
+    except Exception:
+        session = {}
+    for ws in session.get("workspaces", []):
+        workspace_id = ws.get("id")
+        identity_cwd = ws.get("identity_cwd")
+        if workspace_id and identity_cwd:
+            try:
+                identity_by_id[workspace_id] = str(Path(identity_cwd).expanduser().resolve())
+            except Exception:
+                identity_by_id[workspace_id] = identity_cwd
+
+workspace_by_cwd = {}
+
+for ws in workspaces:
+    focused = "*" if ws.get("focused") else " "
+    number = ws.get("number", "?")
+    label = ws.get("label") or "(unnamed)"
+    tab_count = ws.get("tab_count", 0)
+    pane_count = ws.get("pane_count", 0)
+    status = ws.get("agent_status") or "unknown"
+    workspace_id = ws.get("workspace_id", "")
+    identity_cwd = identity_by_id.get(workspace_id, "")
+    if identity_cwd:
+        workspace_by_cwd[identity_cwd] = ws
+        display = f"[HERDR] {focused} {number:>2}  {label}  [{tab_count}t/{pane_count}p]  {status}  {identity_cwd}"
+    else:
+        display = f"[HERDR] {focused} {number:>2}  {label}  [{tab_count}t/{pane_count}p]  {status}"
+    search_path = identity_cwd or label
+    print(f"{search_path}\t{label}\t{display}\tfocus\t{workspace_id}\t{identity_cwd}")
+
+seen_dirs = set()
+for directory in directory_candidates:
+    try:
+        resolved = str(Path(directory).expanduser().resolve())
+    except Exception:
+        resolved = directory
+    if resolved in seen_dirs:
+        continue
+    seen_dirs.add(resolved)
+    existing = workspace_by_cwd.get(resolved)
+    if existing:
+        continue
+
+    label = Path(resolved).name or resolved
+    display = f"[DIR]      +   {label}  {resolved}"
+    print(f"{resolved}\t{label}\t{display}\tcreate\t{resolved}\t{resolved}")
+' | fzf \
+        --delimiter=$'\t' \
+        --nth=1,2 \
+        --with-nth=3 \
+        --prompt='workspace> ' \
+        --height=100% \
+        --layout=reverse \
+        --border \
+        --cycle \
+        --ansi | head -n1)" 2>"$ERROR_LOG"
+selection_status=$?
+set -e
+
+case "$selection_status" in
+    0)
+        ;;
+    1|130)
+        exit 0
+        ;;
+    *)
+        show_failure_and_wait "$selection_status"
+        ;;
+esac
+
+if [[ -z "$selection" ]]; then
+    exit 0
+fi
+
+action="$(printf '%s\n' "$selection" | cut -f4)"
+target="$(printf '%s\n' "$selection" | cut -f5)"
+path="$(printf '%s\n' "$selection" | cut -f6)"
+
+case "$action" in
+    focus)
+        exec "$HERDR_BIN" workspace focus "$target"
+        ;;
+    create)
+        label="$(basename "$path")"
+        exec "$HERDR_BIN" workspace create --cwd "$path" --label "$label" --focus
+        ;;
+    *)
+        echo "Error: unsupported action: $action" >&2
+        exit 1
+        ;;
+esac

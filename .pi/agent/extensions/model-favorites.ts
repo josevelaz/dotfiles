@@ -9,8 +9,8 @@
  *                  enter            select
  *                  esc              cancel
  *
- *  tab         → cycle forward  through ★ favorites (falls back to all if none)
- *  shift+tab   → cycle backward through ★ favorites
+ *  alt+.       → cycle forward  through ★ favorites (falls back to all if none)
+ *  alt+,       → cycle backward through ★ favorites
  *
  * Favorites are persisted globally to ~/.pi/agent/model-favorites.json
  * so they survive across sessions.
@@ -268,7 +268,7 @@ export default function (pi: ExtensionAPI) {
     },
   });
 
-  // ── Cycling (tab / shift+tab) ─────────────────────────────────────────────
+  // ── Cycling (alt+. / alt+,) ───────────────────────────────────────────────
 
   function cycle(ctx: ExtensionContext, direction: 1 | -1) {
     const pool = cyclePool(ctx, favorites);
@@ -287,12 +287,12 @@ export default function (pi: ExtensionAPI) {
     });
   }
 
-  pi.registerShortcut("tab", {
+  pi.registerShortcut("alt+.", {
     description: "Cycle to next model  (★ favorites only, or all if none)",
     handler: ctx => cycle(ctx, 1),
   });
 
-  pi.registerShortcut("shift+tab", {
+  pi.registerShortcut("alt+,", {
     description: "Cycle to previous model  (★ favorites only, or all if none)",
     handler: ctx => cycle(ctx, -1),
   });

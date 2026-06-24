@@ -50,6 +50,26 @@ Stop and say so explicitly. List what you tried. Ask the user for: (a) access to
 
 Do not proceed to Phase 2 until you have a loop you believe in.
 
+### Environment-mismatch failures: shell works, app/tool does not
+
+Treat this as a strong, testable branch early.
+
+If a command works in the user's interactive shell but fails inside the app, agent, daemon, GUI launcher, or long-running service, suspect **launch-environment mismatch** before blaming the tool itself. Typical culprits:
+
+- process started before the dependency came up
+- different `PATH`, `HOME`, config dir, or socket path
+- different inherited env vars than the shell
+- stale background process that needs a real restart
+
+Build the loop by checking the same command in both places and diffing the environment that matters. For container/runtime issues, compare at least:
+
+- binary path (`which <cmd>`)
+- active context/config selection
+- relevant env vars
+- presence of the target socket/file/credential/config
+
+If the shell succeeds and the app fails, prefer conclusions like "wrong launch environment" or "stale process" over "tool is broken". Capture the minimal host-side probe and restart path needed to verify the mismatch.
+
 ## Phase 2 — Reproduce
 
 Run the loop. Watch the bug appear.

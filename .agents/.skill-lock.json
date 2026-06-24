@@ -205,22 +205,133 @@
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-05-14T18:19:02.120Z",
       "updatedAt": "2026-05-14T18:19:02.120Z"
+    },
+    "grill-me": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/productivity/grill-me/SKILL.md",
+      "skillFolderHash": "2a1ad17028306ebe45f0e49703fa28b9b2e7f499",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-05-21T19:42:14.140Z",
+      "updatedAt": "2026-05-21T19:42:14.140Z"
+    },
+    "sdd": {
+      "source": "liatrio-labs/spec-driven-workflow",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/liatrio-labs/spec-driven-workflow.git",
+      "skillPath": "skill/SKILL.md",
+      "skillFolderHash": "97a479375fc61614f90c3a5f14a1d6425ad35cbd",
+      "installedAt": "2026-05-27T20:51:27.301Z",
+      "updatedAt": "2026-05-27T20:51:27.301Z"
+    },
+    "thermo-nuclear-code-quality-review": {
+      "source": "cursor/plugins",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/cursor/plugins.git",
+      "skillPath": "cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
+      "skillFolderHash": "d9c8935dd560b3b6f5941247d04a1843f8c7cc35",
+      "installedAt": "2026-05-28T16:17:57.993Z",
+      "updatedAt": "2026-06-02T20:12:20.184Z"
+    },
+    "fix-merge-conflicts": {
+      "source": "cursor/plugins",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/cursor/plugins.git",
+      "skillPath": "cursor-team-kit/skills/fix-merge-conflicts/SKILL.md",
+      "skillFolderHash": "9a539a5c5359e25c9a57df5a741e42524f2fe3c8",
+      "installedAt": "2026-05-28T16:18:08.288Z",
+      "updatedAt": "2026-05-28T16:18:08.288Z"
+    },
+    "deslop": {
+      "source": "cursor/plugins",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/cursor/plugins.git",
+      "skillPath": "cursor-team-kit/skills/deslop/SKILL.md",
+      "skillFolderHash": "ac9ba043f9dd3b3a8850de6624ec5bc12e375599",
+      "installedAt": "2026-05-28T16:18:15.385Z",
+      "updatedAt": "2026-05-28T16:18:15.385Z"
+    },
+    "honcho-cli": {
+      "source": "plastic-labs/honcho",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/plastic-labs/honcho.git",
+      "skillPath": ".claude/skills/honcho-cli/SKILL.md",
+      "skillFolderHash": "f527cfdf36cfd3e729167e27297dbb916aac167d",
+      "installedAt": "2026-06-02T15:05:49.052Z",
+      "updatedAt": "2026-06-02T15:05:49.052Z"
+    },
+    "honcho-integration": {
+      "source": "plastic-labs/honcho",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/plastic-labs/honcho.git",
+      "skillPath": ".claude/skills/honcho-integration/SKILL.md",
+      "skillFolderHash": "5eaa1cc3c13685f64c3dac16cdfe32de23028284",
+      "installedAt": "2026-06-02T15:05:49.054Z",
+      "updatedAt": "2026-06-02T15:05:49.054Z"
+    },
+    "documentation-writer": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/github/awesome-copilot.git",
+      "skillPath": "skills/documentation-writer/SKILL.md",
+      "skillFolderHash": "016d8040a3f91c8360b1003e74fbf29f34c283f5",
+      "installedAt": "2026-06-11T03:38:54.112Z",
+      "updatedAt": "2026-06-11T03:38:54.112Z"
+    },
+    "write-a-skill": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/productivity/write-a-skill/SKILL.md",
+      "skillFolderHash": "2f252b35aa238879afc5a230ac30343708dee0b3",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-06-11T17:23:18.780Z",
+      "updatedAt": "2026-06-11T17:23:18.780Z"
+    },
+    "playwright-cli": {
+      "source": "microsoft/playwright-cli",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/microsoft/playwright-cli.git",
+      "skillPath": "skills/playwright-cli/SKILL.md",
+      "skillFolderHash": "6bf055ae36a2460e4a8f70eaec772ab7ac7e12e4",
+      "installedAt": "2026-06-11T20:16:36.971Z",
+      "updatedAt": "2026-06-11T20:16:36.971Z"
+    },
+    "herdr": {
+      "source": "ogulcancelik/herdr",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/ogulcancelik/herdr.git",
+      "skillPath": "SKILL.md",
+      "skillFolderHash": "469cf9cede389036f5799e2f41483413f1d7e60b",
+      "installedAt": "2026-06-12T19:35:59.464Z",
+      "updatedAt": "2026-06-12T19:35:59.464Z"
+    },
+    "writing-great-skills": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/productivity/writing-great-skills/SKILL.md",
+      "skillFolderHash": "9252419010c7944edb297aa79b3f61a338a4f1f2",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-06-24T04:33:40.614Z",
+      "updatedAt": "2026-06-24T04:33:40.614Z"
     }
   },
   "lastSelectedAgents": [
     "amp",
     "antigravity",
+    "antigravity-cli",
     "cline",
     "codex",
     "cursor",
     "deepagents",
-    "dexto",
-    "firebender",
     "gemini-cli",
     "github-copilot",
-    "kimi-cli",
+    "kimi-code-cli",
     "opencode",
-    "warp"
+    "warp",
+    "zed"
   ],
   "dismissed": {
     "findSkillsPrompt": true

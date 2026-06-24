@@ -49,7 +49,6 @@ alias vim="nvim"
 alias nvime="NVIM_APPNAME=nvim-experimental nvim"
 alias oc="opencode"
 
-
 # FZF styling
 export FZF_DEFAULT_OPTS="
 	--color=fg:#908caa,bg:#191724,hl:#ebbcba
@@ -68,7 +67,7 @@ command -v zoxide &>/dev/null && eval "$(zoxide init --cmd cd zsh)"
 
 # =========== OPENCODE EXPERIMENTAL FEATURES ================
 export OPENCODE_EXPERIMENTAL_LSP_TOOL=1
-export OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT=1
+export OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT=300000
 # ========== END OPENCODE EXPERIMENTAL FEATURES ============
 
 # =========== PATHS ================
@@ -166,6 +165,49 @@ tmux-window-name() {
 add-zsh-hook chpwd tmux-window-name
 # =========== END TMUX HOOKS ================
 
+
+# =========== HERDR TAB HOOKS ================
+typeset -g __HERDR_TAB_ID=""
+
+_herdr_tab_id() {
+  [[ ${HERDR_ENV:-0} == 1 ]] || return 1
+  [[ -n ${HERDR_PANE_ID:-} ]] || return 1
+  command -v herdr >/dev/null 2>&1 || return 1
+  command -v jq >/dev/null 2>&1 || return 1
+
+  if [[ -z "$__HERDR_TAB_ID" ]]; then
+    __HERDR_TAB_ID=$(herdr pane get "$HERDR_PANE_ID" 2>/dev/null | jq -re '.result.pane.tab_id') || {
+      __HERDR_TAB_ID=""
+      return 1
+    }
+  fi
+
+  print -r -- "$__HERDR_TAB_ID"
+}
+
+_herdr_rename_tab() {
+  local label="$1"
+  local tab_id
+
+  [[ -n "$label" ]] || return 0
+  tab_id=$(_herdr_tab_id) || return 0
+  herdr tab rename "$tab_id" "$label" >/dev/null 2>&1 || __HERDR_TAB_ID=""
+}
+
+_herdr_tab_preexec() {
+  local label="${(j: :)${(z)1}}"
+  _herdr_rename_tab "$label"
+}
+
+_herdr_tab_precmd() {
+  _herdr_rename_tab "${PWD/#$HOME/~}"
+}
+
+add-zsh-hook preexec _herdr_tab_preexec
+add-zsh-hook precmd _herdr_tab_precmd
+add-zsh-hook chpwd _herdr_tab_precmd
+# =========== END HERDR TAB HOOKS ================
+
 # pnpm
 export PNPM_HOME="/home/ubuntu/.local/share/pnpm"
 case ":$PATH:" in
@@ -195,3 +237,5 @@ _sqz_preexec() {
 
 # opencode
 export PATH=/Users/jose/.opencode/bin:$PATH
+
+. "$HOME/.cargo/env"
