@@ -13,6 +13,8 @@ local YABAI_BIN = "yabai"
 local spaces = {}
 local refresh_in_flight = false
 local refresh_pending = false
+local REFRESH_DEBOUNCE_SEC = 0.2
+local refresh_debounce_gen = 0
 
 local function same_apps(left, right)
 	if #left ~= #right then
@@ -224,13 +226,25 @@ local function refresh_all_spaces()
 	end)
 end
 
+local function schedule_refresh_all_spaces()
+	refresh_debounce_gen = refresh_debounce_gen + 1
+	local generation = refresh_debounce_gen
+
+	sbar.exec(string.format("sleep %s", REFRESH_DEBOUNCE_SEC), function()
+		if generation ~= refresh_debounce_gen then
+			return
+		end
+		refresh_all_spaces()
+	end)
+end
+
 local refresh_observer = sbar.add("item", "spaces.observer", {
 	drawing = false,
 	updates = true,
 })
 
 refresh_observer:subscribe("space_windows_change", function(_)
-	refresh_all_spaces()
+	schedule_refresh_all_spaces()
 end)
 
 sbar.exec(YABAI_BIN .. " -m query --spaces", function(space_info)
