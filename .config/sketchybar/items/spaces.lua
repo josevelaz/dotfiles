@@ -347,11 +347,12 @@ sbar.exec(YABAI_BIN .. " -m query --spaces", function(space_info)
 
 		set_space_state(space_data, space_data.selected)
 
-		-- Subscribe to space_change event for highlighting
+		-- Subscribe to space_change event for highlighting (selection only; apps refresh via coalesced window snapshot)
 		space_item:subscribe("space_change", function(env)
 			local selected = env.SELECTED == "true"
-			set_space_state(space_data, selected)
-			render_space_apps(space_data)
+			if space_data.selected ~= selected then
+				set_space_state(space_data, selected)
+			end
 		end)
 
 	end
