@@ -338,6 +338,4 @@ sbar.exec(YABAI_BIN .. " -m query --spaces", function(space_info)
 	end
 
 	refresh_all_spaces()
-
-	require("items.front_app")
 end)
