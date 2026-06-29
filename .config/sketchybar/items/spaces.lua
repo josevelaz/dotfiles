@@ -11,6 +11,8 @@ local OCCUPIED_SPACE_GAP = 12
 local YABAI_BIN = "yabai"
 
 local spaces = {}
+local refresh_in_flight = false
+local refresh_pending = false
 
 local function same_apps(left, right)
 	if #left ~= #right then
@@ -191,16 +193,33 @@ local function build_apps_by_space(windows)
 	return apps_by_space
 end
 
-local function refresh_all_spaces()
-	sbar.exec(YABAI_BIN .. " -m query --windows", function(windows)
-		local apps_by_space = build_apps_by_space(windows)
+local function apply_window_snapshot(windows)
+	local apps_by_space = build_apps_by_space(windows)
 
-		for _, space_data in ipairs(spaces) do
-			local apps = apps_by_space[space_data.id] or {}
-			if not same_apps(space_data.apps, apps) then
-				space_data.apps = apps
-				render_space_apps(space_data)
-			end
+	for _, space_data in ipairs(spaces) do
+		local apps = apps_by_space[space_data.id] or {}
+		if not same_apps(space_data.apps, apps) then
+			space_data.apps = apps
+			render_space_apps(space_data)
+		end
+	end
+end
+
+local function refresh_all_spaces()
+	if refresh_in_flight then
+		refresh_pending = true
+		return
+	end
+
+	refresh_in_flight = true
+
+	sbar.exec(YABAI_BIN .. " -m query --windows", function(windows)
+		apply_window_snapshot(windows)
+		refresh_in_flight = false
+
+		if refresh_pending then
+			refresh_pending = false
+			refresh_all_spaces()
 		end
 	end)
 end
