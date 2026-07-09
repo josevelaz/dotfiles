@@ -1,7 +1,7 @@
 -- Clock item
 local clock = sbar.add("item", "clock", {
   position = "right",
-  update_freq = 60,
+  update_freq = 45,
   icon = {
     drawing = false,
   },

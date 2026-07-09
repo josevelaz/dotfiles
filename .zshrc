@@ -1,8 +1,13 @@
+export OP_DEFAULT_ENVIRONMENT="43rm5gh7jf5dndejrsm5s5tcmm"
 export TERM="xterm-ghostty"
 
-function devbox {
-  tailscale ssh ubuntu@devbox
+openv() {
+  eval "$(
+    op environment read "$1" \
+      | sed 's/^/export /'
+  )"
 }
+
 
 
 # =========== SECRETS / LOCAL OVERRIDES ================
@@ -47,6 +52,7 @@ export EDITOR=$(which nvim)
 
 alias vim="nvim"
 alias nvime="NVIM_APPNAME=nvim-experimental nvim"
+# alias opencode='op run --environment $OP_DEFAULT_ENVIRONMENT -- opencode'
 alias oc="opencode"
 
 # FZF styling
@@ -239,3 +245,9 @@ _sqz_preexec() {
 export PATH=/Users/jose/.opencode/bin:$PATH
 
 . "$HOME/.cargo/env"
+
+# >>> grok installer >>>
+export PATH="$HOME/.grok/bin:$PATH"
+fpath=(~/.grok/completions/zsh $fpath)
+autoload -Uz compinit && compinit -C
+# <<< grok installer <<<

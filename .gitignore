@@ -71,7 +71,6 @@
 # Runtime session state and logs
 .weave/
 .config/opencode/.weave/runtime/
-.config/sketchybar/.weave/
 .config/herdr/*.log
 .config/herdr/session*.json
 .config/herdr/sessions/

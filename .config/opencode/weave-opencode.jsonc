@@ -10,13 +10,7 @@
   },
   "agents": {
     "loom": {
-      "model": "openai/gpt-5.4",
-      "modelOptions": {
-        "reasoningEffort": "medium"
-      },
-      "fallback_models": [
-        "github-copilot/gpt-5.4"
-      ],
+      "model": "openai/gpt-5.6-terra",
       "temperature": 0.1,
       "skills": [
         "feature-brainstorm"
@@ -24,13 +18,18 @@
     },
     "tapestry": {
       "temperature": 0.0,
-      "model": "openai/gpt-5.5",
+      "model": "openai/gpt-5.6-sol",
       "modelOptions": {
-        "reasoningEffort": "high"
+        // Anthropic Messages API options; retained for reference only.
+        // "thinking": {
+        //   "type": "adaptive"
+        // },
+        // "output_config": {
+        //   "effort": "xhigh"
+        // },
+        "reasoningEffort": "xhigh"
       },
-      "fallback_models": [
-        "github-copilot/gpt-5.4"
-      ],
+      "prompt_append": "After completing each task create a commit using conventional commits",
       "skills": [
         "tdd",
         "typescript-advanced-types",
@@ -43,88 +42,96 @@
       }
     },
     "shuttle": {
-      "model": "openai/gpt-5.4",
+      "model": "openai/gpt-5.6-luna",
       "skills": [
         "typescript-advanced-types",
-        "animate",
         "vercel-composition-patterns"
-      ]
+      ],
+      "prompt_append": "Load the tdd skill"
     },
     "pattern": {
-      "model": "anthropic/claude-opus-4-8",
-      "fallback_models": [
-        "github-copilot/gpt-5.4"
-      ]
+      "model": "openai/gpt-5.6-sol",
+      "modelOptions": {
+        // Anthropic Messages API options; retained for reference only.
+        // "thinking": {
+        //   "type": "adaptive"
+        // },
+        // "output_config": {
+        //   "effort": "xhigh"
+        // },
+        "reasoningEffort": "xhigh"
+      },
     },
     "thread": {
-      "model": "openai/gpt-5.4-mini-fast",
-      "fallback_models": [
-        "github-copilot/claude-sonnet-4.6"
-      ]
+      "model": "openai/gpt-5.6-luna",
     },
     "spindle": {
-      "model": "openai/gpt-5.4-mini-fast",
-      "fallback_models": [
-        "github-copilot/gpt-5.4"
-      ],
+      "model": "openai/gpt-5.6-luna",
       "prompt_append": "Use context7 to search documentation on libraries, or frameworks. Use grep mcp to search code samples in github."
     },
     "weft": {
-      "model": "anthropic/claude-opus-4-8",
-      "fallback_models": [
-        "github-copilot/gpt-5.5"
-      ],
+      "model": "openai/gpt-5.6-sol",
       "modelOptions": {
+        // Anthropic Messages API options; retained for reference only.
+        // "thinking": {
+        //   "type": "adaptive"
+        // },
+        // "output_config": {
+        //   "effort": "xhigh"
+        // },
         "reasoningEffort": "xhigh"
       },
       "prompt_append": "Load the skill @thermonuclear-code-quality-review"
     },
     "warp": {
-      "model": "anthropic/claude-opus-4-8",
-      "fallback_models": [
-        "openai/gpt-5.5"
-      ],
+      "model": "openai/gpt-5.6-sol",
       "modelOptions": {
+        // Anthropic Messages API options; retained for reference only.
+        // "thinking": {
+        //   "type": "adaptive"
+        // },
+        // "output_config": {
+        //   "effort": "xhigh"
+        // },
         "reasoningEffort": "xhigh"
       },
-    }
-  },
-  "custom_agents": {
-    "sentinel": {
-      "prompt_file": ".opencode/prompts/browser-tester.md",
-      "model": "openai/gpt-5.5",
-      "fallback_models": [
-        "github-copilot/gpt-5.5"
-      ],
-      "modelOptions": {
-        "reasoningEffort": "high"
+    },
+    "custom_agents": {
+      "sentinel": {
+        "prompt_file": ".opencode/prompts/browser-tester.md",
+        "model": "openai/gpt-5.6-terra",
+        "modelOptions": {
+          "reasoningEffort": "high"
+        },
+        "mode": "all",
+        "display_name": "Sentinel (QA Agent)",
+        "description": "An autonomous agent designed for testing of web applications. Sentinel simulates user interactions, identifies potential issues, and provides detailed feedback to improve the quality and usability of the application.",
+        "temperature": 0.2,
+        "top_p": 0.9,
+        "skills": [
+          "agent-browser",
+          "dogfood"
+        ],
+        "triggers": [
+          {
+            "domain": "Web",
+            "trigger": "Run exploratory testing and surface any issues"
+          }
+        ]
+      }
+    },
+    "categories": {
+      "mini": {
+        "description": "Use for fast, cost-efficient coding tasks in a known codebase when the requirements are clear and the change is mostly mechanical or localized. Prefer this agent for straightforward feature work, small bug fixes, boilerplate, CRUD flows, test updates, type fixes, simple refactors, implementation from an already-approved plan, and repetitive edits where speed and throughput matter.",
+        "model": "xai/grok-composer-2.5-fast",
+        "prompt_append": "Load the tdd skill"
       },
-      "mode": "all",
-      "display_name": "Sentinel (QA Agent)",
-      "description": "An autonomous agent designed for testing of web applications. Sentinel simulates user interactions, identifies potential issues, and provides detailed feedback to improve the quality and usability of the application.",
-      "temperature": 0.2,
-      "top_p": 0.9,
-      "skills": [
-        "agent-browser",
-        "dogfood"
-      ],
-      "triggers": [
-        {
-          "domain": "Web",
-          "trigger": "Run exploratory testing and surface any issues"
-        }
-      ]
-    }
-  },
-  "categories": {
-    "frontend": {
-      "description": "Any work that involves, UI, UX and design.",
-      "model": "anthropic/claude-opus-4-8",
-      "fallback_models": [
-        "github-copilot/claude-opus-4.6"
-      ],
-      "temperature": 0.4,
-      "prompt_append": "Preserve design consistency. Reuse shared components. Match existing button, input, spacing, and typography patterns."
+      "frontend": {
+        "description": "Specializes in crafting exceptional user interfaces and frontend experiences. Owns everything users see and interact with, including component architecture, responsive layouts, accessibility, visual polish, animations, performance, design system consistency, and developer ergonomics. Breaks complex interfaces into reusable components, follows existing design language, minimizes unnecessary re-renders, and prioritizes usability and maintainability. Choose this agent whenever the majority of the implementation involves UI, styling, component composition, client-side behavior, or frontend performance. Do not use for backend logic, infrastructure, data modeling, or server-side architecture unless those changes are incidental to the frontend implementation.",
+        "model": "anthropic/claude-opus-4-6",
+        "temperature": 0.4,
+        "prompt_append": "Preserve design consistency. Reuse shared components. Match existing button, input, spacing, and typography patterns."
+      }
     }
   }
 }

@@ -30,6 +30,22 @@ Avoid:
 - Oversized commits covering unrelated work
 - Commit messages focused only on what changed without useful context when context matters
 
+<!-- tavily -->
+Use the `tvly` (tavily) CLI for any web fetch operations. Do not use the native web fetch
+unless tavily in unavailable. 
+
+The following skills apply to the CLI
+| Name                  | Description                                                                                                              | Skill needed to load          |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| Search                | Web search returning LLM-optimized results with snippets and relevance scores.                                           | `skill:tavily-search`         |
+| Extract               | Extract clean markdown/text from one or more URLs, including JavaScript-rendered pages.                                  | `skill:tavily-extract`        |
+| Crawl                 | Crawl websites and extract content from multiple pages, saving as markdown or structured JSON.                           | `skill:tavily-crawl`          |
+| Research              | AI-powered deep research that gathers sources, analyzes them, and produces a cited report.                               | `skill:tavily-research`       |
+| Tavily Best Practices | Build production-ready Tavily integrations using best-practice workflows for search, extraction, crawling, and research. | `skill:tavily-best-practices` |
+
+
+<!-- tavily -->
+
 <!-- context7 -->
 Use the `ctx7` CLI to fetch current documentation whenever the user asks about a library, framework, SDK, API, CLI tool, or cloud service -- even well-known ones like React, Next.js, Prisma, Express, Tailwind, Django, or Spring Boot. This includes API syntax, configuration, version migration, library-specific debugging, setup instructions, and CLI tool usage. Use even when you think you know the answer -- your training data may not reflect recent changes. Prefer this over web search for library docs.
 

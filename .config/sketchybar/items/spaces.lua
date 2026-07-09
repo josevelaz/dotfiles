@@ -2,12 +2,16 @@ local sbar = require("sketchybar")
 local colors = require("theme")
 
 local MAX_APP_SLOTS = 5
-local APP_ITEM_WIDTH = 28
-local APP_INNER_PADDING = 2
-local GROUP_HORIZONTAL_PADDING = 4
-local GROUP_VERTICAL_HEIGHT = 28
-local EMPTY_SPACE_OUTER_GAP = 12
-local OCCUPIED_SPACE_GAP = 12
+local APP_ITEM_WIDTH = 24
+local APP_INNER_PADDING = 1
+local GROUP_HORIZONTAL_PADDING = 3
+local GROUP_VERTICAL_HEIGHT = 24
+local EMPTY_SPACE_OUTER_GAP = 8
+local OCCUPIED_SPACE_GAP = 8
+local INDICATOR_HEIGHT = 4
+local INDICATOR_RADIUS = 3
+local EMPTY_INDICATOR_WIDTH = 18
+local INDICATOR_Y_OFFSET = -12
 local YABAI_BIN = "yabai"
 
 local spaces = {}
@@ -45,6 +49,9 @@ local function sync_space_item(space_data)
 			drawing = show_space_number,
 			color = space_data.selected and colors.rose or colors.highlight_low,
 			border_color = space_data.selected and colors.iris or colors.highlight_med,
+			height = 22,
+			corner_radius = 8,
+			y_offset = 0,
 		},
 	})
 end
@@ -58,11 +65,22 @@ local function sync_space_group(space_data)
 			drawing = show_group,
 			color = space_data.selected and colors.overlay or colors.surface,
 			border_color = space_data.selected and colors.iris or colors.highlight_med,
-			border_width = 1,
+			border_width = 0,
 			corner_radius = 10,
 			height = GROUP_VERTICAL_HEIGHT,
 			padding_left = GROUP_HORIZONTAL_PADDING,
 			padding_right = GROUP_HORIZONTAL_PADDING,
+			y_offset = 0,
+		},
+	})
+
+	space_data.group_indicator:set({
+		drawing = show_group and space_data.selected,
+		background = {
+			drawing = show_group and space_data.selected,
+			height = INDICATOR_HEIGHT,
+			corner_radius = INDICATOR_RADIUS,
+			y_offset = INDICATOR_Y_OFFSET,
 		},
 	})
 
@@ -88,16 +106,13 @@ local function set_app_item(item, app_name)
 			drawing = true,
 			color = colors.none,
 			border_width = 0,
-			height = 26,
+			height = 22,
 			image = {
 				drawing = true,
 				string = "app." .. app_name,
-				scale = 0.72,
-				padding_left = 2,
+				scale = 0.64,
+				padding_left = 1,
 			},
-		},
-		image = {
-			drawing = false,
 		},
 		label = {
 			drawing = false,
@@ -114,13 +129,10 @@ local function set_overflow_item(item, overflow_count, selected, is_last)
 			drawing = true,
 			color = colors.none,
 			border_width = 0,
-			height = 26,
+			height = 22,
 			image = {
 				drawing = false,
 			},
-		},
-		image = {
-			drawing = false,
 		},
 		label = {
 			drawing = true,
@@ -256,15 +268,18 @@ sbar.exec(YABAI_BIN .. " -m query --spaces", function(space_info)
 		return left.index < right.index
 	end)
 
+	local last_space_id = nil
+
 	for _, space in ipairs(space_info) do
 		local space_id = space.index
+		last_space_id = space_id
 		local space_item = sbar.add("space", "space." .. space_id, {
 			space = space_id,
 			icon = {
 				string = tostring(space_id),
 				font = { size = 13 },
-				padding_left = 12,
-				padding_right = 12,
+				padding_left = 9,
+				padding_right = 9,
 			},
 			label = {
 				drawing = false,
@@ -273,9 +288,9 @@ sbar.exec(YABAI_BIN .. " -m query --spaces", function(space_info)
 				drawing = true,
 				color = colors.highlight_low,
 				border_color = colors.highlight_med,
-				border_width = 1,
-				corner_radius = 9,
-				height = 26,
+				border_width = 0,
+				corner_radius = 8,
+				height = 22,
 			},
 			padding_left = 2,
 			padding_right = EMPTY_SPACE_OUTER_GAP,
@@ -283,6 +298,7 @@ sbar.exec(YABAI_BIN .. " -m query --spaces", function(space_info)
 		})
 
 		local space_data = {
+			group_indicator = nil,
 			id = space_id,
 			item = space_item,
 			group = nil,
@@ -307,17 +323,17 @@ sbar.exec(YABAI_BIN .. " -m query --spaces", function(space_info)
 				label = {
 					drawing = false,
 					font = { size = 11 },
-					padding_left = 7,
-					padding_right = 7,
+					padding_left = 5,
+					padding_right = 5,
 				},
 				background = {
 					drawing = true,
 					color = colors.none,
 					border_width = 0,
-					height = 26,
+					height = 22,
 					image = {
 						drawing = false,
-						scale = 0.72,
+						scale = 0.64,
 					},
 				},
 				padding_right = APP_INNER_PADDING,
@@ -334,11 +350,23 @@ sbar.exec(YABAI_BIN .. " -m query --spaces", function(space_info)
 				drawing = false,
 				color = colors.surface,
 				border_color = colors.highlight_med,
-				border_width = 1,
+				border_width = 0,
 				corner_radius = 10,
 				height = GROUP_VERTICAL_HEIGHT,
 				padding_left = GROUP_HORIZONTAL_PADDING,
 				padding_right = GROUP_HORIZONTAL_PADDING,
+			},
+		})
+
+		space_data.group_indicator = sbar.add("bracket", "space." .. space_id .. ".group_indicator", group_members, {
+			drawing = space_data.selected,
+			background = {
+				drawing = space_data.selected,
+				color = colors.iris,
+				border_width = 0,
+				corner_radius = INDICATOR_RADIUS,
+				height = INDICATOR_HEIGHT,
+				y_offset = INDICATOR_Y_OFFSET,
 			},
 		})
 
@@ -369,6 +397,12 @@ sbar.exec(YABAI_BIN .. " -m query --spaces", function(space_info)
 			end
 		end)
 
+	end
+
+	if last_space_id then
+		sbar.exec("sketchybar --move front_app after space." .. last_space_id .. ".spacer")
+		sbar.exec("sketchybar --move music-artwork after front_app")
+		sbar.exec("sketchybar --move music after music-artwork")
 	end
 
 	refresh_all_spaces()

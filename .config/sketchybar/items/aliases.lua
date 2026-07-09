@@ -1,73 +1,57 @@
 local colors = require("theme")
 
+local alias_background = {
+  drawing = false,
+  border_width = 0,
+  padding_left = 0,
+  padding_right = 0,
+}
+
 -- Application aliases
 -- macOS Tahoe (26+): all menu bar items are owned by "Control Center"
--- Run: sketchybar --query default_menu_items   to find current names
--- macOS Tahoe: 3rd-party items lose their names on display 1 (become "Item-0").
--- We target display-1 entries by index so SLS capture works (same display as sketchybar).
--- Run the helper script to refresh indices after app restarts.
-local char = sbar.add("alias", "Control Center,Item-0(21)", {
-	position = "right",
-	background = {
-		drawing = false,
-		border_width = 0,
-		padding_left = -10,
-		padding_right = -10,
-	},
-	click_script = CONFIG_DIR .. "/plugins/char.sh",
-})
-char:set({ alias = { color = colors.text } })
+-- Run: sketchybar --query default_menu_items to find current names.
+-- SketchyBar v2.24.0 exposes stable names for some 3rd-party items again, but the
+-- visible status item is not always the bundle-id entry. Use the queried item that
+-- matches the actual menu extra width/placement, not just the prettiest identifier.
 
-local wispr = sbar.add("alias", "Control Center,Item-0(24)", {
-	position = "right",
-	background = {
-		drawing = false,
-		border_width = 0,
-		padding_left = -10,
-		padding_right = -10,
-	},
-	click_script = CONFIG_DIR .. "/plugins/wispr.sh",
-})
-wispr:set({ alias = { color = colors.text } })
-
-local onepassword = sbar.add("alias", "Control Center,bb3cc23c-6950-4e96-8b40-850e09f46934(22)", {
-	position = "right",
-	background = {
-		drawing = false,
-		border_width = 0,
-		padding_left = -10,
-		padding_right = -10,
-	},
-})
-onepassword:set({ alias = { color = colors.text } })
-
-local fantasical = sbar.add("alias", "Control Center,Fantastical", {
-	position = "right",
-	background = {
-		drawing = false,
-		border_width = 0,
-		padding_left = -10,
-		padding_right = -10,
-	},
-	click_script = CONFIG_DIR .. "/plugins/fantastical.sh",
+local anarlog = sbar.add("alias", "Control Center,com.hyprnote.stable", {
+  position = "right",
+  padding_left = -18,
+  padding_right = 0,
+  background = alias_background,
 })
 
--- local dato = sbar.add("alias", "Dato,UpcomingEvent", {
---   position = "right",
---   background = {
---     padding_left = -10,
---     padding_right = -10,
---   },
---   click_script = CONFIG_DIR .. "/plugins/dato.sh",
--- })
+local onepassword = sbar.add("alias", "Control Center,bb3cc23c-6950-4e96-8b40-850e09f46934", {
+  position = "right",
+  padding_left = -18,
+  padding_right = 0,
+  background = alias_background,
+})
 
--- local tunnelblick = sbar.add("alias", "Tunnelblick", {
--- 	position = "right",
--- 	background = {
--- 		drawing = false,
--- 		border_width = 0,
--- 		padding_left = -10,
--- 		padding_right = -10,
--- 	},
--- 	click_script = CONFIG_DIR .. "/plugins/vpn.sh",
--- })
+local codexbarcodex = sbar.add("alias", "Control Center,codexbar-codex", {
+  position = "right",
+  padding_left = -18,
+  padding_right = 0,
+  background = alias_background,
+})
+local codexbarclaude = sbar.add("alias", "Control Center,codexbar-claude", {
+  position = "right",
+  padding_left = -18,
+  padding_right = 0,
+  background = alias_background,
+})
+
+
+local fantastical = sbar.add("alias", "Control Center,Fantastical", {
+  position = "right",
+  padding_left = 0,
+  padding_right = 0,
+  background = alias_background,
+  click_script = CONFIG_DIR .. "/plugins/fantastical.sh",
+})
+
+anarlog:set({ padding_left = -18, padding_right = 0, background = alias_background })
+onepassword:set({ padding_left = -18, padding_right = 0, background = alias_background })
+codexbarcodex:set({ padding_left = -18, padding_right = 0, background = alias_background })
+codexbarclaude:set({ padding_left = -18, padding_right = 0, background = alias_background })
+fantastical:set({ padding_left = 0, padding_right = 0, background = alias_background })

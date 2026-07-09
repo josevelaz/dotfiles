@@ -113,7 +113,7 @@ fi
 # These directories only make sense on a macOS desktop machine.
 # They are excluded from ubuntu/server profiles to avoid leaking
 # desktop-only app config onto headless VPS environments.
-MACOS_ONLY_DIRS=(sketchybar yabai skhd karabiner ghostty)
+MACOS_ONLY_DIRS=(yabai skhd karabiner ghostty)
 
 STOW_EXTRA_ARGS=()
 if [[ "$PROFILE" == "ubuntu" || "$PROFILE" == "server" ]]; then

@@ -1,8 +1,11 @@
 {
   "/Users/jose": true,
   "/Users/jose/dotfiles": true,
+  "/Users/jose/dotfiles/.agents": true,
+  "/Users/jose/dotfiles/.config/sketchybar": true,
   "/Users/jose/projects/agent_skills_lab/agentic_summer": true,
   "/Users/jose/projects/argus": true,
   "/Users/jose/projects/atlas": true,
+  "/Users/jose/projects/olympus": true,
   "/Users/jose/projects/pldc-review-accelerator": true
 }

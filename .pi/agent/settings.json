@@ -1,15 +1,14 @@
 {
-  "lastChangelogVersion": "0.79.0",
+  "lastChangelogVersion": "0.80.3",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "high",
   "packages": [
-    "npm:pi-lens",
     "npm:pi-markdown-preview",
-    "npm:pi-btw",
-    "npm:pi-web-access",
     "npm:pi-vim",
-    "npm:@agney/pi-honcho-memory"
+    "npm:@agney/pi-honcho-memory",
+    "npm:@tavily/pi-extension",
+    "npm:pi-themes-rose-pine"
   ],
   "knowledge-search": {
     "paths": [
@@ -17,5 +16,6 @@
     ]
   },
   "hideThinkingBlock": false,
-  "theme": "rose-pine"
+  "theme": "rose-pine",
+  "doubleEscapeAction": "tree"
 }

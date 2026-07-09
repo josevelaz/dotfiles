@@ -8,18 +8,31 @@
     "lsp": "allow",
     "read": "allow",
     "aft_*": "allow",
+    "skill_manage": "allow",
+    "skill_pending_list": "allow",
+    "skill_pending_diff": "allow",
+    "skill_pending_reject": "allow",
+    "skill_pending_apply": "ask",
     "edit": {
-      "~/*": "deny"
+      "~/*": "ask"
     },
     "external_directory": {
-      "/tmp/*": "allow",
-      "/dev/*": "allow",
-      "~/.local/share/cortexkit/aft/opencode/bash-tasks": "allow",
-      "~/dotfiles/.local/share/opencode/worktree": "allow"
+      "/tmp/**": "allow",
+      "/dev/**": "allow",
+      "~/.local/share/cortexkit/aft/opencode/bash-tasks/**": "allow",
+      "~/dotfiles/.local/share/opencode/worktree/**": "allow",
+      "~/.local/share/opencode/self-improve/**": "ask"
     }
   },
   "provider": {
     "xai": {
+      "options": {
+        "baseURL": "http://127.0.0.1:17321",
+        "headers": {
+          "sleeve-provider": "xai",
+          "sleeve-harness": "opencode"
+        }
+      },
       "models": {
         "grok-composer-2.5-fast": {
           "name": "Composer 2.5 Fast"
@@ -32,7 +45,6 @@
     "openai": {
       "options": {
         "baseURL": "http://127.0.0.1:17321",
-        "apiKey": "{env:CODEX_LB_KEY}",
         "headers": {
           "sleeve-provider": "codex",
           "sleeve-harness": "opencode"
@@ -56,15 +68,41 @@
         },
         "baseURL": "http://127.0.0.1:17321"
       }
+    },
+    "opencode-go": {
+      "options": {
+        "headers": {
+          "sleeve-provider": "opencode-go",
+          "sleeve-harness": "opencode"
+        },
+        "baseURL": "http://127.0.0.1:17321"
+      }
     }
   },
   "plugin": [
     "@ex-machina/opencode-anthropic-auth",
-    "@opencode_weave/weave",
+    "@opencode_weave/weave@latest",
     "@franlol/opencode-md-table-formatter@latest",
     "@cortexkit/aft-opencode@latest",
     "@honcho-ai/opencode-honcho"
   ],
+  "agent": {
+    "build": {
+      "disable": true
+    },
+    "plan": {
+      "disable": true
+    },
+    "general": {
+      "disable": true
+    },
+    "explore": {
+      "disable": true
+    },
+    "scout": {
+      "disable": true
+    }
+  },
   "mcp": {
     "context7": {
       "type": "remote",
@@ -88,5 +126,5 @@
   },
   "compaction": {
     "prune": false
-  }
+  },
 }

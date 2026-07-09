@@ -1,5 +1,6 @@
 -- Load all item configurations
 require("items.spaces")
+require("items.front_app")
 require("items.clock")
 require("items.volume")
 require("items.battery")
@@ -10,7 +11,6 @@ if enable_aliases then
   require("items.aliases")
 end
 
-require("items.front_app")
 require("items.music")
 
 if enable_aliases then

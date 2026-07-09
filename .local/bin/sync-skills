@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Canonicalizes repo-local agent skills.
+#
+# Direction:
+#   skills/<name>          real skill directory (source of truth)
+#   .agents/skills/<name>  symlink -> ../../skills/<name>
+#
+# The script is idempotent. It migrates real directories accidentally created in
+# .agents/skills/ into skills/ and then makes/fixes the .agents/skills symlink.
+
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+skills_dir="$repo_root/skills"
+agents_skills_dir="$repo_root/.agents/skills"
+
+mkdir -p "$skills_dir" "$agents_skills_dir"
+
+changed=0
+
+link_agent_skill() {
+  local name="$1"
+  local link_path="$agents_skills_dir/$name"
+  local expected_target="../../skills/$name"
+
+  if [ -L "$link_path" ]; then
+    local current_target
+    current_target="$(readlink "$link_path")"
+    if [ "$current_target" = "$expected_target" ]; then
+      return 0
+    fi
+    rm "$link_path"
+  elif [ -e "$link_path" ]; then
+    echo "sync-skills: refusing to replace non-symlink .agents/skills/$name" >&2
+    return 1
+  fi
+
+  ln -s "$expected_target" "$link_path"
+  echo "sync-skills: linked .agents/skills/$name -> skills/$name"
+  changed=$((changed + 1))
+}
+
+# First migrate any real skill directories that landed in .agents/skills/.
+for path in "$agents_skills_dir"/*; do
+  [ -e "$path" ] || [ -L "$path" ] || continue
+  name="$(basename "$path")"
+
+  if [ -L "$path" ]; then
+    continue
+  fi
+
+  dest="$skills_dir/$name"
+  if [ -L "$dest" ]; then
+    rm "$dest"
+  elif [ -e "$dest" ]; then
+    echo "sync-skills: refusing to overwrite existing skills/$name" >&2
+    exit 1
+  fi
+
+  mv "$path" "$dest"
+  echo "sync-skills: moved .agents/skills/$name -> skills/$name"
+  changed=$((changed + 1))
+  link_agent_skill "$name"
+done
+
+# Then make/fix .agents/skills symlinks for every canonical skill directory.
+for path in "$skills_dir"/*; do
+  [ -e "$path" ] || [ -L "$path" ] || continue
+  name="$(basename "$path")"
+
+  if [ -L "$path" ]; then
+    echo "sync-skills: skipping symlink skills/$name" >&2
+    continue
+  fi
+
+  if [ ! -d "$path" ]; then
+    echo "sync-skills: skipping non-directory skills/$name" >&2
+    continue
+  fi
+
+  link_agent_skill "$name"
+done
+
+if [ "$changed" -eq 0 ]; then
+  echo "sync-skills: nothing to do"
+fi

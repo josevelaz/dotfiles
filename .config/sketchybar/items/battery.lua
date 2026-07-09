@@ -7,3 +7,11 @@ local battery = sbar.add("item", "battery", {
     border_width = 0,
   },
 })
+
+sbar.add("item", "status.separator.time_resources", {
+  position = "right",
+  width = 12,
+  icon = { drawing = false },
+  label = { drawing = false },
+  background = { drawing = false },
+})

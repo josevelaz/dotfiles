@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.jose.dotfiles.sync-skills</string>
+
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/jose/dotfiles/.local/bin/sync-skills</string>
+	</array>
+
+	<!-- Fires whenever the contents of skills/ change (file/dir created,
+	     removed, or renamed) — no polling, no external dependency. -->
+	<key>WatchPaths</key>
+	<array>
+		<string>/Users/jose/dotfiles/skills</string>
+	</array>
+
+	<!-- Also run once when the agent loads, to catch anything created
+	     while the agent wasn't running. -->
+	<key>RunAtLoad</key>
+	<true/>
+
+	<key>StandardOutPath</key>
+	<string>/Users/jose/Library/Logs/dotfiles-sync-skills.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/jose/Library/Logs/dotfiles-sync-skills.log</string>
+</dict>
+</plist>

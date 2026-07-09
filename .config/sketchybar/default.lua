@@ -2,25 +2,25 @@ local colors = require("theme")
 
 -- Default properties for all items
 sbar.default({
-  padding_left = 4,
-  padding_right = 4,
+  padding_left = 1,
+  padding_right = 1,
   icon = {
-    font = "IosevkaTerm Nerd Font:Bold:17.0",
+    font = "IosevkaTerm Nerd Font:Bold:16.0",
     color = colors.subtle,
-    padding_left = 4,
-    padding_right = 4,
+    padding_left = 2,
+    padding_right = 2,
   },
   label = {
-    font = "IosevkaTerm Font:Bold:14.0",
+    font = "IosevkaTerm Font:Bold:13.0",
     color = colors.text,
-    padding_left = 4,
-    padding_right = 4,
+    padding_left = 2,
+    padding_right = 2,
   },
   background = {
-    height = 28,
-    corner_radius = 12,
+    height = 24,
+    corner_radius = 9,
     color = colors.surface,
     border_color = colors.highlight_med,
-    border_width = 1,
+    border_width = 0,
   },
 })
