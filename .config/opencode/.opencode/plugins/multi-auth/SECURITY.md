@@ -176,13 +176,20 @@ The suite asserts that secrets never appear in captured logs/notify output:
 
 **Request:** Warp security re-review is requested before enabling multi-auth by default.
 
-**Verdict (terminal review phase — placeholder):**
+**Verdict (terminal review phase):**
 
 ```
-Warp re-review verdict: _______________  (approve / approve-with-conditions / reject)
-Reviewer: _______________
-Date: _______________
-Conditions / notes: _______________
+Warp re-review verdict: approve (with 4 non-blocking conditions)
+Reviewer: Warp (security & spec compliance auditor)
+Date: 2026-07-09
+Conditions / notes: (1) strip/gate authorizeDeps + storeBaseDir from production
+option intake (test-only surfaces should not be reachable from JSON config);
+(2) enforce failover.maxReplayBodyBytes during stream read, not after full
+buffering; (3) add redact() to createPluginLogger for defense-in-depth;
+(4) execute the user-gated live-account smoke test before default-on rollout.
+All six findings F1–6 verified closed against code and real test assertions;
+141-test suite green on execution. Residual risks (§6) accepted as disclosed
+within the stated threat model.
 ```
 
 ---
