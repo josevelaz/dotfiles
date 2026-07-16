@@ -1,21 +1,103 @@
 export OP_DEFAULT_ENVIRONMENT="43rm5gh7jf5dndejrsm5s5tcmm"
 export TERM="xterm-ghostty"
 
-openv() {
-  eval "$(
-    op environment read "$1" \
-      | sed 's/^/export /'
-  )"
+_openv_cache_file() {
+  local environment="${1:-$OP_DEFAULT_ENVIRONMENT}"
+
+  case "$environment" in
+    (""|*[![:alnum:]_-]*)
+      print -u2 -r -- "openv: invalid environment ID: $environment"
+      return 1
+      ;;
+  esac
+
+  print -r -- "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/op-environments/${environment}.zsh"
 }
 
+_openv_load_cache() {
+  local cache_file
+  cache_file=$(_openv_cache_file "$1") || return 1
+
+  [[ -r "$cache_file" ]] || return 1
+  source "$cache_file"
+}
+
+_openv_use_stale_cache() {
+  local environment="$1"
+  local reason="$2"
+
+  if _openv_load_cache "$environment"; then
+    print -u2 -r -- "openv: warning: $reason; using cached values for $environment"
+    return 0
+  fi
+
+  print -u2 -r -- "openv: error: $reason and no usable cache exists for $environment"
+  return 1
+}
+
+openv-refresh() {
+  local environment="${1:-$OP_DEFAULT_ENVIRONMENT}"
+  local cache_file cache_dir temporary_file op_status sed_status
+
+  cache_file=$(_openv_cache_file "$environment") || return 1
+  cache_dir="${cache_file:h}"
+
+  if ! mkdir -p -m 700 "$cache_dir" || ! chmod 700 "$cache_dir"; then
+    _openv_use_stale_cache "$environment" "could not prepare the cache directory"
+    return $?
+  fi
+
+  temporary_file=$(umask 077; mktemp "$cache_dir/.${environment}.XXXXXX") || {
+    _openv_use_stale_cache "$environment" "could not create a cache file"
+    return $?
+  }
+
+  op environment read "$environment" | sed 's/^/export /' > "$temporary_file"
+  op_status=${pipestatus[1]}
+  sed_status=${pipestatus[2]}
+  if (( op_status != 0 || sed_status != 0 )); then
+    rm -f "$temporary_file"
+    _openv_use_stale_cache "$environment" "could not refresh from 1Password"
+    return $?
+  fi
+
+  if ! chmod 600 "$temporary_file" || ! mv -f "$temporary_file" "$cache_file"; then
+    rm -f "$temporary_file"
+    _openv_use_stale_cache "$environment" "could not update the cache"
+    return $?
+  fi
+
+  _openv_load_cache "$environment" || {
+    print -u2 -r -- "openv: error: refreshed cache for $environment could not be loaded"
+    return 1
+  }
+}
+
+openv-clear() {
+  local environment="${1:-$OP_DEFAULT_ENVIRONMENT}"
+  local cache_file
+
+  cache_file=$(_openv_cache_file "$environment") || return 1
+  rm -f "$cache_file" || return 1
+  print -r -- "openv: cleared cache for $environment"
+}
+
+openv() {
+  local environment="${1:-$OP_DEFAULT_ENVIRONMENT}"
+
+  _openv_load_cache "$environment" || openv-refresh "$environment"
+}
 
 
 # =========== SECRETS / LOCAL OVERRIDES ================
 # Source optional machine-local secrets and overrides (not committed to repo)
 [[ -f ~/.zsh_secrets.sh ]] && source ~/.zsh_secrets.sh
+
 [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/local.zsh" ]] && \
   source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/local.zsh"
 # =========== END SECRETS / LOCAL OVERRIDES ================
+
+openv "$OP_DEFAULT_ENVIRONMENT"
 
 bindkey -v
 
