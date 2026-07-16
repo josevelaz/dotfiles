@@ -73,6 +73,43 @@ openv-refresh() {
   }
 }
 
+openv-cache-current() {
+  local environment="$OP_DEFAULT_ENVIRONMENT"
+  local cache_file cache_dir temporary_file variable
+
+  if (( $# == 0 )); then
+    print -u2 -r -- "Usage: openv-cache-current VARIABLE..."
+    return 1
+  fi
+
+  cache_file=$(_openv_cache_file "$environment") || return 1
+  cache_dir="${cache_file:h}"
+  if ! mkdir -p -m 700 "$cache_dir" || ! chmod 700 "$cache_dir"; then
+    print -u2 -r -- "openv: error: could not prepare the cache directory"
+    return 1
+  fi
+
+  temporary_file=$(umask 077; mktemp "$cache_dir/.${environment}.XXXXXX") || return 1
+  for variable in "$@"; do
+    if [[ ! "$variable" =~ '^[A-Za-z_][A-Za-z0-9_]*$' ]] || (( ! ${+parameters[$variable]} )); then
+      rm -f "$temporary_file"
+      print -u2 -r -- "openv: error: variable is not set: $variable"
+      return 1
+    fi
+
+    export "$variable"
+    typeset -p "$variable" >> "$temporary_file"
+  done
+
+  if ! chmod 600 "$temporary_file" || ! mv -f "$temporary_file" "$cache_file"; then
+    rm -f "$temporary_file"
+    print -u2 -r -- "openv: error: could not update the cache"
+    return 1
+  fi
+
+  print -r -- "openv: cached current values for $environment"
+}
+
 openv-clear() {
   local environment="${1:-$OP_DEFAULT_ENVIRONMENT}"
   local cache_file
