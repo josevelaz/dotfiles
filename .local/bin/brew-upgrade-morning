@@ -7,6 +7,8 @@ set -uo pipefail
 
 export PATH="/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
+LOG="/Users/jose/Library/Logs/dotfiles-brew-upgrade.log"
+
 echo "=== brew-upgrade-morning: $(date) ==="
 
 echo "--- brew update"
@@ -40,12 +42,18 @@ else
 	echo "(none confirmed upgraded; check output above)"
 fi
 
-# macOS notification with the result.
+# macOS notification with the result. terminal-notifier lets a click on the
+# notification open the full log; osascript (no click action) is the fallback.
 if [[ -n "$upgraded" ]]; then
 	msg="Upgraded: $(echo "$upgraded" | paste -sd ', ' -)"
 else
 	msg="brew upgrade ran; nothing confirmed upgraded."
 fi
-osascript -e 'on run argv' \
-	-e 'display notification (item 1 of argv) with title "Homebrew morning upgrade"' \
-	-e 'end run' -- "$msg" || true
+if command -v terminal-notifier >/dev/null 2>&1; then
+	terminal-notifier -title "Homebrew morning upgrade" -message "$msg" \
+		-execute "open \"$LOG\"" || true
+else
+	osascript -e 'on run argv' \
+		-e 'display notification (item 1 of argv) with title "Homebrew morning upgrade"' \
+		-e 'end run' -- "$msg" || true
+fi
