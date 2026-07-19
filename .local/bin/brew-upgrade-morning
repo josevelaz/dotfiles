@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Morning Homebrew upgrade: upgrades formulae and casks, then reports which
+# packages were actually updated. Intended to run from launchd, so PATH and
+# output must not rely on an interactive shell.
+
+set -uo pipefail
+
+export PATH="/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+echo "=== brew-upgrade-morning: $(date) ==="
+
+echo "--- brew update"
+brew update 2>&1
+
+# Snapshot what is outdated *before* upgrading (formulae and casks).
+outdated_before="$( { brew outdated; brew outdated --cask; } | sort )"
+
+if [[ -z "$outdated_before" ]]; then
+	echo "Nothing to upgrade."
+	exit 0
+fi
+
+echo "--- outdated before upgrade"
+echo "$outdated_before"
+
+echo "--- brew upgrade"
+brew upgrade 2>&1
+
+echo "--- brew upgrade --cask"
+brew upgrade --cask 2>&1
+
+# Upgraded = outdated before but no longer outdated after.
+outdated_after="$( { brew outdated; brew outdated --cask; } | sort )"
+upgraded="$(comm -23 <(echo "$outdated_before") <(echo "$outdated_after") || true)"
+
+echo "--- upgraded packages"
+if [[ -n "$upgraded" ]]; then
+	echo "$upgraded"
+else
+	echo "(none confirmed upgraded; check output above)"
+fi
+
+# macOS notification with the result.
+if [[ -n "$upgraded" ]]; then
+	msg="Upgraded: $(echo "$upgraded" | paste -sd ', ' -)"
+else
+	msg="brew upgrade ran; nothing confirmed upgraded."
+fi
+osascript -e 'on run argv' \
+	-e 'display notification (item 1 of argv) with title "Homebrew morning upgrade"' \
+	-e 'end run' -- "$msg" || true
