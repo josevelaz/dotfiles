@@ -10,11 +10,12 @@
 		<string>/Users/jose/dotfiles/.local/bin/sync-skills</string>
 	</array>
 
-	<!-- Fires whenever the contents of skills/ change (file/dir created,
-	     removed, or renamed) — no polling, no external dependency. -->
+	<!-- Watch both skill roots and the skills.sh lock file. -->
 	<key>WatchPaths</key>
 	<array>
 		<string>/Users/jose/dotfiles/skills</string>
+		<string>/Users/jose/dotfiles/.agents/skills</string>
+		<string>/Users/jose/dotfiles/.agents/.skill-lock.json</string>
 	</array>
 
 	<!-- Also run once when the agent loads, to catch anything created

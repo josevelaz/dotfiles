@@ -1,86 +1,153 @@
-#!/usr/bin/env bash
-# Canonicalizes repo-local agent skills.
-#
-# Direction:
-#   skills/<name>          real skill directory (source of truth)
-#   .agents/skills/<name>  symlink -> ../../skills/<name>
-#
-# The script is idempotent. It migrates real directories accidentally created in
-# .agents/skills/ into skills/ and then makes/fixes the .agents/skills symlink.
+#!/usr/bin/env python3
+"""Keep installed and custom agent skills in their canonical directories.
 
-set -euo pipefail
+Skills installed through skills.sh live in .agents/skills and appear in
+.agents/.skill-lock.json. Custom skills live in skills and are exposed through
+relative symlinks in .agents/skills.
+"""
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-skills_dir="$repo_root/skills"
-agents_skills_dir="$repo_root/.agents/skills"
+from __future__ import annotations
 
-mkdir -p "$skills_dir" "$agents_skills_dir"
+import json
+import os
+from pathlib import Path
 
-changed=0
 
-link_agent_skill() {
-  local name="$1"
-  local link_path="$agents_skills_dir/$name"
-  local expected_target="../../skills/$name"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SKILLS_DIR = REPO_ROOT / "skills"
+AGENTS_SKILLS_DIR = REPO_ROOT / ".agents" / "skills"
+LOCK_PATH = REPO_ROOT / ".agents" / ".skill-lock.json"
 
-  if [ -L "$link_path" ]; then
-    local current_target
-    current_target="$(readlink "$link_path")"
-    if [ "$current_target" = "$expected_target" ]; then
-      return 0
-    fi
-    rm "$link_path"
-  elif [ -e "$link_path" ]; then
-    echo "sync-skills: refusing to replace non-symlink .agents/skills/$name" >&2
-    return 1
-  fi
 
-  ln -s "$expected_target" "$link_path"
-  echo "sync-skills: linked .agents/skills/$name -> skills/$name"
-  changed=$((changed + 1))
-}
+def path_exists(path: Path) -> bool:
+    return path.exists() or path.is_symlink()
 
-# First migrate any real skill directories that landed in .agents/skills/.
-for path in "$agents_skills_dir"/*; do
-  [ -e "$path" ] || [ -L "$path" ] || continue
-  name="$(basename "$path")"
 
-  if [ -L "$path" ]; then
-    continue
-  fi
+def expected_custom_target(name: str) -> Path:
+    return Path("../../skills") / name
 
-  dest="$skills_dir/$name"
-  if [ -L "$dest" ]; then
-    rm "$dest"
-  elif [ -e "$dest" ]; then
-    echo "sync-skills: refusing to overwrite existing skills/$name" >&2
-    exit 1
-  fi
 
-  mv "$path" "$dest"
-  echo "sync-skills: moved .agents/skills/$name -> skills/$name"
-  changed=$((changed + 1))
-  link_agent_skill "$name"
-done
+def link_custom_skill(name: str) -> bool:
+    link_path = AGENTS_SKILLS_DIR / name
+    expected_target = expected_custom_target(name)
 
-# Then make/fix .agents/skills symlinks for every canonical skill directory.
-for path in "$skills_dir"/*; do
-  [ -e "$path" ] || [ -L "$path" ] || continue
-  name="$(basename "$path")"
+    if link_path.is_symlink():
+        if Path(os.readlink(link_path)) == expected_target:
+            return False
+        link_path.unlink()
+    elif link_path.exists():
+        raise RuntimeError(
+            f"refusing to replace physical .agents/skills/{name} with a symlink"
+        )
 
-  if [ -L "$path" ]; then
-    echo "sync-skills: skipping symlink skills/$name" >&2
-    continue
-  fi
+    link_path.symlink_to(expected_target)
+    print(f"sync-skills: linked .agents/skills/{name} -> skills/{name}")
+    return True
 
-  if [ ! -d "$path" ]; then
-    echo "sync-skills: skipping non-directory skills/$name" >&2
-    continue
-  fi
 
-  link_agent_skill "$name"
-done
+def load_installed_skills() -> set[str]:
+    if not LOCK_PATH.exists():
+        return set()
 
-if [ "$changed" -eq 0 ]; then
-  echo "sync-skills: nothing to do"
-fi
+    data = json.loads(LOCK_PATH.read_text())
+    skills = data.get("skills")
+    if not isinstance(skills, dict):
+        raise RuntimeError(f"invalid skill lock file: {LOCK_PATH}")
+    return set(skills)
+
+
+def move_installed_skill(name: str) -> bool:
+    agent_path = AGENTS_SKILLS_DIR / name
+    custom_path = SKILLS_DIR / name
+
+    if agent_path.is_symlink():
+        if not custom_path.is_dir() or custom_path.is_symlink():
+            raise RuntimeError(
+                f"installed skill {name} has no physical skills/{name} source"
+            )
+        if agent_path.resolve() != custom_path.resolve():
+            raise RuntimeError(
+                f"installed skill {name} points outside the canonical skill roots"
+            )
+        agent_path.unlink()
+        custom_path.rename(agent_path)
+        print(f"sync-skills: moved skills/{name} -> .agents/skills/{name}")
+        return True
+
+    if agent_path.is_dir():
+        if path_exists(custom_path):
+            raise RuntimeError(
+                f"installed skill {name} exists physically in both skill roots"
+            )
+        return False
+
+    if path_exists(agent_path):
+        raise RuntimeError(f"installed skill {name} is not a directory")
+
+    if custom_path.is_dir() and not custom_path.is_symlink():
+        custom_path.rename(agent_path)
+        print(f"sync-skills: moved skills/{name} -> .agents/skills/{name}")
+        return True
+
+    # A stale lock entry may have no corresponding directory.
+    return False
+
+
+def move_custom_skill(name: str) -> bool:
+    agent_path = AGENTS_SKILLS_DIR / name
+    custom_path = SKILLS_DIR / name
+
+    if agent_path.is_symlink():
+        return link_custom_skill(name)
+
+    if not agent_path.is_dir():
+        raise RuntimeError(f"custom skill {name} is not a directory")
+    if path_exists(custom_path):
+        raise RuntimeError(
+            f"custom skill {name} exists physically in both skill roots"
+        )
+
+    agent_path.rename(custom_path)
+    print(f"sync-skills: moved .agents/skills/{name} -> skills/{name}")
+    link_custom_skill(name)
+    return True
+
+
+def main() -> None:
+    SKILLS_DIR.mkdir(parents=True, exist_ok=True)
+    AGENTS_SKILLS_DIR.mkdir(parents=True, exist_ok=True)
+
+    installed = load_installed_skills()
+    changed = False
+
+    for name in sorted(installed):
+        changed = move_installed_skill(name) or changed
+
+    for path in sorted(AGENTS_SKILLS_DIR.iterdir()):
+        if path.name in installed:
+            continue
+        if path.is_symlink():
+            custom_path = SKILLS_DIR / path.name
+            if not custom_path.is_dir() or custom_path.is_symlink():
+                path.unlink()
+                print(f"sync-skills: removed stale custom link {path.name}")
+                changed = True
+            continue
+        changed = move_custom_skill(path.name) or changed
+
+    for path in sorted(SKILLS_DIR.iterdir()):
+        if path.name in installed:
+            raise RuntimeError(
+                f"installed skill {path.name} remains in the custom skill root"
+            )
+        if path.is_symlink() or not path.is_dir():
+            print(f"sync-skills: skipping non-directory skills/{path.name}")
+            continue
+        changed = link_custom_skill(path.name) or changed
+
+    if not changed:
+        print("sync-skills: nothing to do")
+
+
+if __name__ == "__main__":
+    main()
