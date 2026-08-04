@@ -1,54 +1,105 @@
 /**
- * Reviewed skill_manage tool for Pi.
+ * skill_manage — core action executors for Pi Agent Skills.
  *
- * Canonical skill writes go to ~/dotfiles/skills (or ./skills for trusted
- * project scope) and are exposed to agents through .agents/skills symlinks.
- * New skills are written immediately. Updates are staged in a review queue and
- * applied from an interactive diff modal via /skills-review.
+ * Canonical skill writes go to ~/dotfiles/skills (global) or ./skills (trusted
+ * project scope) and are exposed to agents through relative .agents/skills
+ * symlinks.
+ *
+ * This module implements the six mutating actions (create, edit, patch, delete,
+ * write_file, remove_file) as explicit-root executors so they can be driven
+ * directly by the tool, replayed later from a staged approval queue, and
+ * exercised by tests in temporary directories.
+ *
+ * Security posture: every executor validates its own inputs from scratch and
+ * never trusts a caller-supplied absolute path. `scanSkillContent` is a review
+ * trigger that surfaces risky shell patterns to the user — it is NOT a sandbox
+ * and must never be described as one.
  */
 
-import { withFileMutationQueue, type ExtensionAPI, type ExtensionCommandContext, type Theme } from "@earendil-works/pi-coding-agent";
-import { matchesKey, truncateToWidth, visibleWidth, type Component } from "@earendil-works/pi-tui";
+import { withFileMutationQueue, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { constants } from "node:fs";
-import { access, lstat, mkdir, mkdtemp, readFile, readlink, rm, symlink, writeFile } from "node:fs/promises";
+import {
+	access,
+	lstat,
+	mkdir,
+	mkdtemp,
+	readFile,
+	readlink,
+	realpath,
+	rename,
+	rm,
+	symlink,
+	writeFile,
+} from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
-import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 import { Type } from "typebox";
 
 const execFileAsync = promisify(execFile);
 
-const VALID_SKILL_NAME = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
-const VALID_CATEGORY_SEGMENT = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
-const QUEUE_PATH = join(homedir(), ".local", "state", "pi", "skill-manage-queue.json");
+// ---------------------------------------------------------------------------
+// Bounds and vocabulary
+// ---------------------------------------------------------------------------
+
+export const VALID_SKILL_NAME = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
+export const VALID_CATEGORY_SEGMENT = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+
+export const MAX_SKILL_NAME_LENGTH = 64;
+export const MAX_CATEGORY_DEPTH = 3;
+export const MAX_CONTENT_BYTES = 512 * 1024;
+export const MAX_RELATIVE_PATH_LENGTH = 200;
+export const MAX_RELATIVE_PATH_DEPTH = 4;
+
+/** Supporting directories an agent may write into beside SKILL.md. */
+export const ALLOWED_SUPPORT_DIRS = ["references", "templates", "scripts", "assets"] as const;
+
+export const SKILL_FILE_NAME = "SKILL.md";
+
+export type SkillScope = "global" | "project";
+export type SkillAction = "create" | "edit" | "patch" | "delete" | "write_file" | "remove_file";
+
+export const SKILL_ACTIONS: readonly SkillAction[] = [
+	"create",
+	"edit",
+	"patch",
+	"delete",
+	"write_file",
+	"remove_file",
+] as const;
+
+// ---------------------------------------------------------------------------
+// Tool parameter schema
+// ---------------------------------------------------------------------------
 
 function stringEnum<T extends readonly string[]>(values: T, description: string) {
 	return Type.Unsafe<T[number]>({ type: "string", enum: values, description });
 }
 
-const SkillManageParams = Type.Object({
-	action: stringEnum(
-		["create", "patch", "edit", "delete", "write_file", "remove_file"] as const,
-		"Skill write action. Creates are applied immediately; updates are queued for review.",
-	),
-	name: Type.String({ description: "Skill name: lowercase letters, numbers, and hyphens only." }),
+export const SkillManageParams = Type.Object({
+	action: stringEnum(SKILL_ACTIONS as readonly string[] as ["create"], "Skill write action."),
+	name: Type.String({ description: "Skill name: lowercase letters, numbers, and hyphens only (max 64 chars)." }),
 	scope: Type.Optional(stringEnum(["global", "project"] as const, "Where to save the skill. Defaults to global.")),
-	category: Type.Optional(Type.String({ description: "Optional lowercase/hyphen path under the skills root, e.g. devops/aws." })),
+	category: Type.Optional(
+		Type.String({ description: "Optional lowercase/hyphen path under the skills root, max 3 segments, e.g. devops/aws." }),
+	),
 	skill_content: Type.Optional(Type.String({ description: "Complete SKILL.md content for create/edit." })),
 	content: Type.Optional(Type.String({ description: "Alias for skill_content when action is create/edit." })),
-	file_path: Type.Optional(Type.String({ description: "Relative path inside the skill directory for write_file/patch/remove_file." })),
+	file_path: Type.Optional(
+		Type.String({ description: "Relative path inside the skill directory for write_file/patch/remove_file." }),
+	),
 	file_content: Type.Optional(Type.String({ description: "File content for action=write_file." })),
 	old_string: Type.Optional(Type.String({ description: "Exact text to replace for action=patch." })),
 	new_string: Type.Optional(Type.String({ description: "Replacement text for action=patch." })),
-	overwrite: Type.Optional(Type.Boolean({ description: "For create, queue replacement if the skill exists. Defaults to false." })),
+	overwrite: Type.Optional(Type.Boolean({ description: "For create, allow replacing an existing skill. Defaults to false." })),
 });
 
-type SkillManageInput = {
-	action: "create" | "patch" | "edit" | "delete" | "write_file" | "remove_file";
+export type SkillManageInput = {
+	action: SkillAction;
 	name: string;
-	scope?: "global" | "project";
+	scope?: SkillScope;
 	category?: string;
 	skill_content?: string;
 	content?: string;
@@ -59,31 +110,51 @@ type SkillManageInput = {
 	overwrite?: boolean;
 };
 
-type PendingSkillChange = {
-	id: string;
-	createdAt: string;
-	action: SkillManageInput["action"];
+/** Fully validated action payload; every field is already bounds-checked. */
+export type ValidatedSkillAction = {
+	action: SkillAction;
 	name: string;
-	scope: "global" | "project";
+	scope: SkillScope;
 	category?: string;
-	root: string;
+	categorySegments: string[];
+	relativeSegments: string[];
+	skillDir: string;
+	targetPath: string;
+	relativeTarget: string;
+	content?: string;
+	oldString?: string;
+	newString?: string;
+	overwrite: boolean;
+};
+
+export type SkillRoots = {
+	scope: SkillScope;
+	/** Directory holding skill directories, e.g. ~/dotfiles/skills. */
+	skillsRoot: string;
+	/** Directory holding agent-visible symlinks, e.g. ~/dotfiles/.agents/skills. */
 	agentsRoot: string;
+	/** Path of the installed-skill lock file, e.g. ~/dotfiles/.agents/.skill-lock.json. */
+	lockPath: string;
+};
+
+export type SkillActionResult = {
+	action: SkillAction;
+	name: string;
+	scope: SkillScope;
 	skillDir: string;
 	targetPath: string;
 	relativeTarget: string;
 	previousContent: string | null;
 	nextContent: string | null;
-	diff: string;
+	securityFlags: string[];
+	message: string;
 };
 
-type QueueFile = { version: 1; pending: PendingSkillChange[] };
-type TextContent = { type: "text"; text: string };
+// ---------------------------------------------------------------------------
+// Small utilities
+// ---------------------------------------------------------------------------
 
-function text(value: string): TextContent[] {
-	return [{ type: "text", text: value }];
-}
-
-async function exists(path: string): Promise<boolean> {
+export async function pathExists(path: string): Promise<boolean> {
 	try {
 		await access(path, constants.F_OK);
 		return true;
@@ -92,93 +163,282 @@ async function exists(path: string): Promise<boolean> {
 	}
 }
 
-function normalizeContent(content: string): string {
+export function stripMarkdownFence(value: string): string {
+	const trimmed = value.trim();
+	const match = trimmed.match(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```$/i);
+	return match ? match[1]!.trimEnd() : trimmed;
+}
+
+export function normalizeContent(content: string): string {
 	const trimmed = stripMarkdownFence(content);
 	return trimmed.endsWith("\n") ? trimmed : `${trimmed}\n`;
 }
 
-function stripMarkdownFence(value: string): string {
-	const trimmed = value.trim();
-	const match = trimmed.match(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```$/i);
-	return match ? match[1].trimEnd() : trimmed;
+export function displayPath(path: string, home: string = homedir()): string {
+	return path.startsWith(`${home}/`) ? `~/${path.slice(home.length + 1)}` : path;
 }
 
-function ensureSafeSkillName(name: string): void {
-	if (!VALID_SKILL_NAME.test(name)) {
-		throw new Error("Skill name must be 1-64 chars of lowercase letters, numbers, and hyphens.");
+// ---------------------------------------------------------------------------
+// Validation
+// ---------------------------------------------------------------------------
+
+export function ensureSafeSkillName(name: string): string {
+	const value = typeof name === "string" ? name.trim() : "";
+	if (value.length === 0) throw new Error("Skill name is required.");
+	if (value.length > MAX_SKILL_NAME_LENGTH) {
+		throw new Error(`Skill name must be at most ${MAX_SKILL_NAME_LENGTH} characters; got ${value.length}.`);
 	}
+	if (!VALID_SKILL_NAME.test(value)) {
+		throw new Error("Skill name must be 1-64 chars of lowercase letters, numbers, and hyphens (no leading/trailing hyphen).");
+	}
+	return value;
 }
 
-function categorySegments(category: string | undefined): string[] {
-	if (!category) return [];
+export function categorySegments(category: string | undefined): string[] {
+	if (!category || category.trim() === "") return [];
 	const parts = category.split(/[\\/]+/).filter(Boolean);
+	if (parts.length > MAX_CATEGORY_DEPTH) {
+		throw new Error(`Category may have at most ${MAX_CATEGORY_DEPTH} segments; got ${parts.length}.`);
+	}
 	for (const part of parts) {
+		if (part === "." || part === "..") throw new Error("Category segments must not be '.' or '..'.");
 		if (!VALID_CATEGORY_SEGMENT.test(part)) {
 			throw new Error("Category segments must use lowercase letters, numbers, and hyphens only.");
+		}
+		if (part.length > MAX_SKILL_NAME_LENGTH) {
+			throw new Error(`Category segment '${part}' exceeds ${MAX_SKILL_NAME_LENGTH} characters.`);
 		}
 	}
 	return parts;
 }
 
-function assertSafeRelativePath(filePath: string): string[] {
-	if (isAbsolute(filePath)) throw new Error("file_path must be relative.");
-	const parts = filePath.split(/[\\/]+/).filter(Boolean);
-	if (parts.length === 0 || parts.some((part) => part === "." || part === "..")) {
-		throw new Error("file_path must not contain empty, '.', or '..' segments.");
+export function assertSafeRelativePath(filePath: string): string[] {
+	if (typeof filePath !== "string" || filePath.trim() === "") throw new Error("file_path is required for this action.");
+	const value = filePath.trim();
+	if (isAbsolute(value) || value.startsWith("/") || value.startsWith("\\")) throw new Error("file_path must be relative.");
+	if (/^[a-zA-Z]:[\\/]/.test(value)) throw new Error("file_path must be relative.");
+	if (value.length > MAX_RELATIVE_PATH_LENGTH) {
+		throw new Error(`file_path must be at most ${MAX_RELATIVE_PATH_LENGTH} characters; got ${value.length}.`);
+	}
+	if (value.includes("\0")) throw new Error("file_path must not contain NUL bytes.");
+
+	const parts = value.split(/[\\/]+/).filter((part) => part !== "");
+	if (parts.length === 0) throw new Error("file_path must not be empty.");
+	if (parts.length > MAX_RELATIVE_PATH_DEPTH) {
+		throw new Error(`file_path may be at most ${MAX_RELATIVE_PATH_DEPTH} segments deep; got ${parts.length}.`);
+	}
+	for (const part of parts) {
+		if (part === "." || part === "..") {
+			throw new Error("file_path must not contain empty, '.', or '..' segments.");
+		}
 	}
 	return parts;
 }
 
-function assertInside(root: string, target: string): void {
+/**
+ * Supporting files must live directly beside SKILL.md or under one of the
+ * allowed supporting directories.
+ */
+export function assertAllowedSupportPath(parts: string[]): void {
+	if (parts.length === 1) return;
+	const top = parts[0]!;
+	if (!(ALLOWED_SUPPORT_DIRS as readonly string[]).includes(top)) {
+		throw new Error(
+			`Supporting files must be at the skill root or under one of: ${ALLOWED_SUPPORT_DIRS.join(", ")}. Got '${top}/'.`,
+		);
+	}
+}
+
+/**
+ * Deliberate divergence from upstream Hermes, which only checks the top-level
+ * path: write_file/remove_file must never touch SKILL.md at ANY nesting level,
+ * and the comparison is case-insensitive because the macOS default filesystem
+ * is case-insensitive (`skill.md` and `SKILL.md` are the same file there).
+ */
+export function assertNotSkillFile(parts: string[]): void {
+	for (const part of parts) {
+		if (part.toLowerCase() === SKILL_FILE_NAME.toLowerCase()) {
+			throw new Error("Refusing to touch SKILL.md through write_file/remove_file; use action=create, edit, or patch.");
+		}
+	}
+}
+
+export function assertContentWithinBounds(content: string, label: string): string {
+	const bytes = Buffer.byteLength(content, "utf8");
+	if (bytes > MAX_CONTENT_BYTES) {
+		throw new Error(`${label} exceeds the ${Math.floor(MAX_CONTENT_BYTES / 1024)} KiB limit (${bytes} bytes).`);
+	}
+	return content;
+}
+
+export function assertInside(root: string, target: string): void {
 	const rel = relative(resolve(root), resolve(target));
-	if (rel === "" || rel.startsWith("..") || isAbsolute(rel)) {
-		throw new Error(`Refusing to write outside ${root}`);
+	if (rel === "" || rel === ".." || rel.startsWith(`..${sep}`) || rel.startsWith("../") || isAbsolute(rel)) {
+		throw new Error(`Refusing to operate outside ${root} (resolved target: ${target}).`);
 	}
 }
 
-function rootForScope(scope: "global" | "project", cwd: string): string {
+// ---------------------------------------------------------------------------
+// Roots and path computation
+// ---------------------------------------------------------------------------
+
+export function rootForScope(scope: SkillScope, cwd: string, home: string = homedir()): string {
 	if (scope === "project") return resolve(cwd, "skills");
-	return resolve(homedir(), "dotfiles", "skills");
+	return resolve(home, "dotfiles", "skills");
 }
 
-function agentsRootForSkillsRoot(root: string): string {
-	return join(dirname(root), ".agents", "skills");
+export function agentsRootForSkillsRoot(skillsRoot: string): string {
+	return join(dirname(skillsRoot), ".agents", "skills");
 }
 
-function skillDirectory(root: string, category: string | undefined, name: string): string {
-	return join(root, ...categorySegments(category), name);
+export function lockPathForSkillsRoot(skillsRoot: string): string {
+	return join(dirname(skillsRoot), ".agents", ".skill-lock.json");
 }
 
-function skillPathForAction(dir: string, params: SkillManageInput): string {
+export function resolveSkillRoots(scope: SkillScope, cwd: string, home: string = homedir()): SkillRoots {
+	const skillsRoot = rootForScope(scope, cwd, home);
+	return {
+		scope,
+		skillsRoot,
+		agentsRoot: agentsRootForSkillsRoot(skillsRoot),
+		lockPath: lockPathForSkillsRoot(skillsRoot),
+	};
+}
+
+/** Build explicit roots for an arbitrary base directory (used by tests). */
+export function skillRootsForBase(base: string, scope: SkillScope = "global"): SkillRoots {
+	const skillsRoot = resolve(base, "skills");
+	return {
+		scope,
+		skillsRoot,
+		agentsRoot: agentsRootForSkillsRoot(skillsRoot),
+		lockPath: lockPathForSkillsRoot(skillsRoot),
+	};
+}
+
+export function skillDirectory(skillsRoot: string, segments: string[], name: string): string {
+	return join(skillsRoot, ...segments, name);
+}
+
+/**
+ * Validate a raw tool payload into a fully resolved, bounds-checked action.
+ * Called both for direct execution and (later) for untrusted replay.
+ */
+export function validateSkillAction(params: SkillManageInput, roots: SkillRoots): ValidatedSkillAction {
+	if (!SKILL_ACTIONS.includes(params.action)) {
+		throw new Error(`Unknown action '${String(params.action)}'. Expected one of: ${SKILL_ACTIONS.join(", ")}.`);
+	}
+
+	const name = ensureSafeSkillName(params.name);
+	const segments = categorySegments(params.category);
+	const skillDir = skillDirectory(roots.skillsRoot, segments, name);
+	assertInside(roots.skillsRoot, skillDir);
+
+	let relativeSegments: string[];
 	if (params.action === "write_file" || params.action === "remove_file") {
-		if (!params.file_path?.trim()) throw new Error("file_path is required for this action.");
-		return join(dir, ...assertSafeRelativePath(params.file_path));
+		relativeSegments = assertSafeRelativePath(params.file_path ?? "");
+		assertNotSkillFile(relativeSegments);
+		assertAllowedSupportPath(relativeSegments);
+	} else if (params.action === "patch" && params.file_path?.trim()) {
+		relativeSegments = assertSafeRelativePath(params.file_path);
+		if (relativeSegments.length > 1 || relativeSegments[0]!.toLowerCase() !== SKILL_FILE_NAME.toLowerCase()) {
+			assertAllowedSupportPath(relativeSegments);
+		}
+	} else if (params.action === "delete") {
+		relativeSegments = [];
+	} else {
+		relativeSegments = [SKILL_FILE_NAME];
 	}
 
-	if (params.action === "patch" && params.file_path?.trim()) {
-		return join(dir, ...assertSafeRelativePath(params.file_path));
+	const targetPath = relativeSegments.length === 0 ? skillDir : join(skillDir, ...relativeSegments);
+	assertInside(roots.skillsRoot, targetPath);
+	if (relativeSegments.length > 0) assertInside(skillDir, targetPath);
+
+	const validated: ValidatedSkillAction = {
+		action: params.action,
+		name,
+		scope: roots.scope,
+		category: segments.length > 0 ? segments.join("/") : undefined,
+		categorySegments: segments,
+		relativeSegments,
+		skillDir,
+		targetPath,
+		relativeTarget: relative(roots.skillsRoot, targetPath),
+		overwrite: params.overwrite === true,
+	};
+
+	if (params.action === "create" || params.action === "edit") {
+		const raw = params.skill_content ?? params.content;
+		if (!raw?.trim()) throw new Error(`skill_content is required for action=${params.action}.`);
+		validated.content = assertContentWithinBounds(normalizeContent(raw), "SKILL.md content");
+	} else if (params.action === "write_file") {
+		if (params.file_content === undefined) throw new Error("file_content is required for action=write_file.");
+		validated.content = assertContentWithinBounds(normalizeContent(params.file_content), "file_content");
+	} else if (params.action === "patch") {
+		if (params.old_string === undefined || params.new_string === undefined) {
+			throw new Error("old_string and new_string are required for action=patch.");
+		}
+		if (params.old_string === "") throw new Error("old_string must not be empty for action=patch.");
+		if (params.old_string === params.new_string) throw new Error("old_string and new_string are identical; nothing to patch.");
+		assertContentWithinBounds(params.new_string, "new_string");
+		validated.oldString = params.old_string;
+		validated.newString = params.new_string;
 	}
 
-	return join(dir, "SKILL.md");
+	return validated;
 }
 
-async function ensureSkillSymlink(agentsRoot: string, skillDir: string, name: string): Promise<void> {
-	await mkdir(agentsRoot, { recursive: true });
-	const linkPath = join(agentsRoot, name);
-	const target = relative(agentsRoot, skillDir);
+// ---------------------------------------------------------------------------
+// Symlink-escape protection
+// ---------------------------------------------------------------------------
 
-	const currentLink = await readlinkIfSymlink(linkPath);
-	if (currentLink === target) return;
-	if (currentLink !== null) {
-		await rm(linkPath);
-	} else if (await exists(linkPath)) {
-		throw new Error(`Cannot create skill symlink because ${linkPath} already exists and is not a symlink.`);
+/**
+ * Resolve `path` through realpath as far as it exists, then re-append the
+ * not-yet-created tail. This defeats a symlinked intermediate component that
+ * would otherwise redirect a write outside the skills root.
+ */
+export async function resolveExistingPrefix(path: string): Promise<string> {
+	const absolute = resolve(path);
+	const tail: string[] = [];
+	let current = absolute;
+
+	for (;;) {
+		try {
+			const real = await realpath(current);
+			return tail.length === 0 ? real : join(real, ...tail);
+		} catch (error) {
+			const code = (error as NodeJS.ErrnoException).code;
+			if (code !== "ENOENT" && code !== "ENOTDIR") throw error;
+			const parent = dirname(current);
+			if (parent === current) return absolute;
+			tail.unshift(basename(current));
+			current = parent;
+		}
 	}
-
-	await writeSymlink(target, linkPath);
 }
 
-async function readlinkIfSymlink(path: string): Promise<string | null> {
+/** Re-run containment on realpath-resolved paths before any mutation. */
+export async function assertResolvedInside(root: string, target: string): Promise<void> {
+	const resolvedRoot = await resolveExistingPrefix(root);
+	const resolvedTarget = await resolveExistingPrefix(target);
+	assertInside(resolvedRoot, resolvedTarget);
+}
+
+async function assertSafeMutationTarget(roots: SkillRoots, action: ValidatedSkillAction): Promise<void> {
+	await assertResolvedInside(roots.skillsRoot, action.skillDir);
+	if (action.targetPath !== action.skillDir) {
+		await assertResolvedInside(roots.skillsRoot, action.targetPath);
+		await assertResolvedInside(action.skillDir, action.targetPath);
+	}
+
+	// A symlinked target file itself must never be followed on write/remove.
+	const link = await readlinkIfSymlink(action.targetPath);
+	if (link !== null && action.action !== "delete") {
+		throw new Error(`Refusing to operate on symlink ${action.targetPath}.`);
+	}
+}
+
+export async function readlinkIfSymlink(path: string): Promise<string | null> {
 	try {
 		const stat = await lstat(path);
 		if (!stat.isSymbolicLink()) return null;
@@ -189,47 +449,198 @@ async function readlinkIfSymlink(path: string): Promise<string | null> {
 	}
 }
 
-async function writeSymlink(target: string, path: string): Promise<void> {
-	await symlink(target, path);
+/**
+ * Agent-visible symlinks are ALWAYS relative (e.g. ../../skills/<name>);
+ * absolute targets break sync-skills' expected_custom_target comparison.
+ */
+export function symlinkTargetFor(agentsRoot: string, skillDir: string): string {
+	return relative(agentsRoot, skillDir);
 }
 
-async function loadQueue(): Promise<QueueFile> {
+export async function ensureSkillSymlink(agentsRoot: string, skillDir: string, name: string): Promise<string> {
+	await mkdir(agentsRoot, { recursive: true });
+	const linkPath = join(agentsRoot, name);
+	const target = symlinkTargetFor(agentsRoot, skillDir);
+	if (isAbsolute(target)) throw new Error("Refusing to create an absolute skill symlink target.");
+
+	const currentLink = await readlinkIfSymlink(linkPath);
+	if (currentLink === target) return linkPath;
+	if (currentLink !== null) {
+		await rm(linkPath, { force: true });
+	} else if (await pathExists(linkPath)) {
+		throw new Error(`Cannot create skill symlink because ${linkPath} already exists and is not a symlink.`);
+	}
+
+	await symlink(target, linkPath);
+	return linkPath;
+}
+
+export async function removeSkillSymlink(agentsRoot: string, name: string): Promise<void> {
+	const linkPath = join(agentsRoot, name);
+	if ((await readlinkIfSymlink(linkPath)) !== null) await rm(linkPath, { force: true });
+}
+
+// ---------------------------------------------------------------------------
+// Lock file (installed / third-party skills)
+// ---------------------------------------------------------------------------
+
+/** Names present in .agents/.skill-lock.json. A missing or invalid file yields an empty set. */
+export async function readLockedSkillNames(lockPath: string): Promise<Set<string>> {
 	try {
-		const raw = await readFile(QUEUE_PATH, "utf8");
-		const parsed = JSON.parse(raw) as QueueFile;
-		return { version: 1, pending: Array.isArray(parsed.pending) ? parsed.pending : [] };
+		const raw = await readFile(lockPath, "utf8");
+		const parsed = JSON.parse(raw) as { skills?: Record<string, unknown> };
+		const skills = parsed?.skills;
+		if (!skills || typeof skills !== "object" || Array.isArray(skills)) return new Set();
+		return new Set(Object.keys(skills));
+	} catch {
+		return new Set();
+	}
+}
+
+const LOCK_GUARDED_ACTIONS: readonly SkillAction[] = ["create", "edit", "delete"];
+
+export async function assertNotLockedSkill(roots: SkillRoots, action: ValidatedSkillAction): Promise<void> {
+	if (!LOCK_GUARDED_ACTIONS.includes(action.action)) return;
+	const locked = await readLockedSkillNames(roots.lockPath);
+	if (locked.has(action.name)) {
+		throw new Error(
+			`Skill '${action.name}' is installed from an external source and is locked in ${roots.lockPath}. ` +
+				`Refusing action=${action.action}. Fork it under a different name instead.`,
+		);
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Security scan
+// ---------------------------------------------------------------------------
+
+type ScanRule = { flag: string; test: (line: string) => boolean };
+
+const SHELL = String.raw`(?:ba|z|k|a|d|fi)?sh`;
+const REMOTE_FETCH = String.raw`(?:curl|wget|fetch|iwr|Invoke-WebRequest)`;
+
+const SECRET_PATH =
+	/(?:~|\$HOME|\$\{HOME\}|\/(?:home|Users)\/[^\s/]+)\/\.(?:ssh|aws|gnupg|kube|docker|netrc|config\/gh)\b|\bid_(?:rsa|dsa|ecdsa|ed25519)\b|\/\.aws\/credentials\b|(?:^|[\s"'`=(/])\.env(?![\w.-])/;
+const SECRET_CONSUMER =
+	/\b(?:cat|bat|less|more|head|tail|source|cp|mv|scp|rsync|sftp|tar|zip|gzip|base64|xxd|od|strings|openssl|grep|awk|sed|curl|wget|python3?|node|ruby|perl)\b|^\s*\.\s|\bexport\b/;
+
+const SCAN_RULES: ScanRule[] = [
+	{
+		flag: "Pipes remote content directly into a shell (curl/wget | sh)",
+		test: (line) => new RegExp(String.raw`${REMOTE_FETCH}\b[^\n|]*\|\s*(?:sudo\s+)?(?:${SHELL}|python3?|perl|ruby|node)\b`, "i").test(line),
+	},
+	{
+		flag: "Executes a downloaded file (fetch then run)",
+		test: (line) =>
+			new RegExp(String.raw`${REMOTE_FETCH}\b[^\n]*-[oO]\s*\S+[^\n]*(?:&&|;)\s*(?:sudo\s+)?(?:\./|${SHELL}\s)`, "i").test(line) ||
+			/\bbash\s+<\(\s*(?:curl|wget)\b/i.test(line),
+	},
+	{
+		flag: "Requests privilege escalation with sudo",
+		test: (line) => /(?:^|[\s;&|(`])sudo(?:\s|$)/.test(line) || /(?:^|[\s;&|(`])doas\s/.test(line),
+	},
+	{
+		flag: "Recursive force delete targeting a sensitive root (/, ~, or $HOME)",
+		test: (line) => {
+			if (!/\brm\b/.test(line)) return false;
+			if (!/\brm\s+(?:-\w+\s+)*-\w*r\w*/i.test(line) && !/\brm\s+(?:-\w+\s+)*-\w*f\w*/i.test(line)) return false;
+			return /\brm\s+(?:-\S+\s+)*(?:\/|~|\$HOME|\$\{HOME\}|\$\w+)\s*(?:$|[;&|])/.test(line) ||
+				/\brm\s+(?:-\S+\s+)*(?:~|\$HOME|\$\{HOME\})\//.test(line) ||
+				/\brm\s+(?:-\S+\s+)*\/(?:\*|\s|$)/.test(line) ||
+				/\brm\s+(?:-\S+\s+)*\/(?:etc|usr|var|bin|sbin|lib|System|Library|Applications)\b/.test(line);
+		},
+	},
+	{
+		flag: "Decodes an encoded payload and executes it",
+		test: (line) =>
+			new RegExp(String.raw`\b(?:base64|openssl\s+enc|xxd|uudecode)\b[^\n|]*\|\s*(?:sudo\s+)?(?:${SHELL}|python3?|perl|ruby|node)\b`, "i").test(line) ||
+			/\b(?:atob|fromCharCode)\s*\([^\n]*\)\s*\)?\s*(?:\||;)?\s*(?:eval|exec)/i.test(line) ||
+			/\b(?:python3?|node|ruby|perl)\b[^\n]*-[ce]\s*['"][^\n]*(?:b64decode|atob|decode\(['"]base64)/i.test(line),
+	},
+	{
+		flag: "Evaluates dynamically constructed code (eval/exec)",
+		test: (line) =>
+			/\beval\s+["'`]?\$\(/.test(line) ||
+			/\beval\s+["'`]?`/.test(line) ||
+			/\beval\s*\(\s*(?:atob|Buffer\.from|require)/.test(line) ||
+			/\bexec\s*\(\s*(?:base64|__import__)/.test(line) ||
+			/\|\s*(?:sudo\s+)?(?:source|\.)\s+\/dev\/stdin/.test(line),
+	},
+	{
+		flag: "Reads credentials or secret files (~/.ssh, ~/.aws, .env)",
+		test: (line) => SECRET_PATH.test(line) && SECRET_CONSUMER.test(line),
+	},
+	{
+		flag: "Uploads or exfiltrates local data to a remote endpoint",
+		test: (line) =>
+			/\bcurl\b[^\n]*(?:--data(?:-binary|-raw|-urlencode)?|-d)\s*["']?@/i.test(line) ||
+			/\bcurl\b[^\n]*(?:-F|--form)\s*["']?[^\n"']*=@/i.test(line) ||
+			/\bcurl\b[^\n]*(?:-T\s|--upload-file)/i.test(line) ||
+			/\bwget\b[^\n]*--post-file/i.test(line) ||
+			/\b(?:nc|ncat|netcat)\b[^\n]*\s(?:-\w+\s+)*\S+\s+\d{2,5}\b/i.test(line) ||
+			/\b(?:scp|rsync)\b[^\n]*\s\S+@\S+:/i.test(line),
+	},
+];
+
+/**
+ * Scan new or resulting skill content for risky shell patterns.
+ *
+ * Returns human-readable flags. This is a review trigger for the user, NOT a
+ * sandbox or a guarantee of safety. Previous content is never scanned.
+ */
+export function scanSkillContent(content: string, filePath: string): string[] {
+	if (typeof content !== "string" || content.length === 0) return [];
+	const flags = new Map<string, number>();
+	const lines = content.split(/\r?\n/);
+
+	for (let index = 0; index < lines.length; index++) {
+		const line = lines[index]!;
+		if (line.trim() === "") continue;
+		for (const rule of SCAN_RULES) {
+			if (flags.has(rule.flag)) continue;
+			try {
+				if (rule.test(line)) flags.set(rule.flag, index + 1);
+			} catch {
+				// A malformed line must never break the scan.
+			}
+		}
+	}
+
+	const label = filePath && filePath.trim() !== "" ? filePath : "content";
+	return [...flags.entries()]
+		.sort((a, b) => a[1] - b[1])
+		.map(([flag, line]) => `${label}:${line}: ${flag}`);
+}
+
+// ---------------------------------------------------------------------------
+// Atomic filesystem writes
+// ---------------------------------------------------------------------------
+
+export async function atomicWriteFile(target: string, content: string): Promise<void> {
+	const dir = dirname(target);
+	await mkdir(dir, { recursive: true });
+	const temp = join(dir, `.skill-manage-${randomUUID()}.tmp`);
+	try {
+		await writeFile(temp, content, { encoding: "utf8", mode: 0o644 });
+		await rename(temp, target);
 	} catch (error) {
-		if ((error as NodeJS.ErrnoException).code === "ENOENT") return { version: 1, pending: [] };
+		await rm(temp, { force: true }).catch(() => {});
 		throw error;
 	}
 }
 
-async function saveQueue(queue: QueueFile): Promise<void> {
-	await mkdir(dirname(QUEUE_PATH), { recursive: true });
-	await writeFile(QUEUE_PATH, `${JSON.stringify(queue, null, 2)}\n`, "utf8");
-}
+// ---------------------------------------------------------------------------
+// Diff
+// ---------------------------------------------------------------------------
 
-async function enqueueChange(change: PendingSkillChange): Promise<number> {
-	const queue = await loadQueue();
-	queue.pending.push(change);
-	await saveQueue(queue);
-	return queue.pending.length;
-}
-
-async function removeFromQueue(id: string): Promise<void> {
-	const queue = await loadQueue();
-	queue.pending = queue.pending.filter((item) => item.id !== id);
-	await saveQueue(queue);
-}
-
-async function unifiedDiff(label: string, previousContent: string | null, nextContent: string | null): Promise<string> {
+/** `diff -u` exits 1 when differences exist; that is success, not failure. */
+export async function unifiedDiff(label: string, previousContent: string | null, nextContent: string | null): Promise<string> {
 	const dir = await mkdtemp(join(tmpdir(), "pi-skill-diff-"));
 	const before = join(dir, "before");
 	const after = join(dir, "after");
-	await writeFile(before, previousContent ?? "", "utf8");
-	await writeFile(after, nextContent ?? "", "utf8");
-
 	try {
+		await writeFile(before, previousContent ?? "", "utf8");
+		await writeFile(after, nextContent ?? "", "utf8");
 		const result = await execFileAsync("diff", ["-u", "--label", `a/${label}`, "--label", `b/${label}`, before, after], {
 			maxBuffer: 1024 * 1024 * 2,
 		});
@@ -243,284 +654,251 @@ async function unifiedDiff(label: string, previousContent: string | null, nextCo
 	}
 }
 
-async function buildPendingChange(params: SkillManageInput, cwd: string): Promise<PendingSkillChange> {
-	const scope = params.scope ?? "global";
-	ensureSafeSkillName(params.name);
-	const root = rootForScope(scope, cwd);
-	const agentsRoot = agentsRootForSkillsRoot(root);
-	const dir = skillDirectory(root, params.category, params.name);
-	const target = skillPathForAction(dir, params);
-	assertInside(root, dir);
-	assertInside(dir, target);
+// ---------------------------------------------------------------------------
+// Action executors (explicit roots — directly callable and replayable)
+// ---------------------------------------------------------------------------
 
-	let previousContent: string | null = null;
-	let nextContent: string | null = null;
-
-	if (await exists(target)) {
-		previousContent = await readFile(target, "utf8");
+async function readIfExists(path: string): Promise<string | null> {
+	try {
+		return await readFile(path, "utf8");
+	} catch (error) {
+		const code = (error as NodeJS.ErrnoException).code;
+		if (code === "ENOENT" || code === "EISDIR") return null;
+		throw error;
 	}
+}
 
-	if (params.action === "delete" || params.action === "remove_file") {
-		if (previousContent === null && params.action === "remove_file") throw new Error(`No file exists at ${target}.`);
-		nextContent = null;
-	} else if (params.action === "patch") {
-		if (previousContent === null) throw new Error(`No file exists at ${target}.`);
-		if (params.old_string === undefined || params.new_string === undefined) {
-			throw new Error("old_string and new_string are required for action=patch.");
-		}
-		const count = previousContent.split(params.old_string).length - 1;
-		if (count !== 1) throw new Error(`old_string must match exactly once in ${target}; found ${count}.`);
-		nextContent = previousContent.replace(params.old_string, params.new_string);
-	} else if (params.action === "edit") {
-		if (previousContent === null) throw new Error(`No SKILL.md exists for ${params.name}; use action=create.`);
-		const content = params.skill_content ?? params.content;
-		if (!content?.trim()) throw new Error("skill_content is required for action=edit.");
-		nextContent = normalizeContent(content);
-	} else if (params.action === "write_file") {
-		if (!(await exists(join(dir, "SKILL.md")))) throw new Error(`Skill ${params.name} does not exist.`);
-		if (params.file_content === undefined) throw new Error("file_content is required for action=write_file.");
-		nextContent = normalizeContent(params.file_content);
-	} else if (params.action === "create") {
-		const content = params.skill_content ?? params.content;
-		if (!content?.trim()) throw new Error("skill_content is required for action=create.");
-		nextContent = normalizeContent(content);
-	}
+async function prepare(roots: SkillRoots, params: SkillManageInput): Promise<ValidatedSkillAction> {
+	const action = validateSkillAction(params, roots);
+	await assertNotLockedSkill(roots, action);
+	await assertSafeMutationTarget(roots, action);
+	return action;
+}
 
-	const relativeTarget = relative(root, target);
+function baseResult(action: ValidatedSkillAction, extra: Partial<SkillActionResult>): SkillActionResult {
 	return {
-		id: randomUUID(),
-		createdAt: new Date().toISOString(),
-		action: params.action,
-		name: params.name,
-		scope,
-		category: params.category,
-		root,
-		agentsRoot,
-		skillDir: dir,
-		targetPath: target,
-		relativeTarget,
-		previousContent,
-		nextContent,
-		diff: await unifiedDiff(relativeTarget, previousContent, nextContent),
+		action: action.action,
+		name: action.name,
+		scope: action.scope,
+		skillDir: action.skillDir,
+		targetPath: action.targetPath,
+		relativeTarget: action.relativeTarget,
+		previousContent: null,
+		nextContent: null,
+		securityFlags: [],
+		message: "",
+		...extra,
 	};
 }
 
-async function applyChange(change: PendingSkillChange): Promise<void> {
-	await withFileMutationQueue(change.targetPath, async () => {
-		if (change.action === "delete") {
-			await rm(change.skillDir, { recursive: true, force: true });
-			const linkPath = join(change.agentsRoot, change.name);
-			if ((await readlinkIfSymlink(linkPath)) !== null) await rm(linkPath, { force: true });
-			return;
-		}
+export async function executeCreate(roots: SkillRoots, params: SkillManageInput): Promise<SkillActionResult> {
+	const action = await prepare(roots, { ...params, action: "create" });
+	const content = action.content!;
+	const previous = await readIfExists(action.targetPath);
 
-		if (change.nextContent === null) {
-			await rm(change.targetPath, { force: true });
-			return;
-		}
-
-		await mkdir(dirname(change.targetPath), { recursive: true });
-		await writeFile(change.targetPath, change.nextContent, "utf8");
-		await ensureSkillSymlink(change.agentsRoot, change.skillDir, change.name);
-	});
-}
-
-function displayPath(path: string): string {
-	const home = homedir();
-	return path.startsWith(`${home}/`) ? `~/${path.slice(home.length + 1)}` : path;
-}
-
-async function createSkill(params: SkillManageInput, ctx: { cwd: string; isProjectTrusted(): boolean; ui?: { notify(message: string, level: "info" | "warning" | "error"): void } }) {
-	const scope = params.scope ?? "global";
-	if (scope === "project" && !ctx.isProjectTrusted()) throw new Error("Project scope requires a trusted project.");
-
-	const change = await buildPendingChange(params, ctx.cwd);
-	if (await exists(change.targetPath)) {
-		if (!params.overwrite) {
-			throw new Error(`Skill already exists at ${change.targetPath}. Use action=edit, or create with overwrite=true to queue replacement.`);
-		}
-		const depth = await enqueueChange({ ...change, action: "edit" });
-		ctx.ui?.notify(`Queued skill update: ${params.name}`, "warning");
-		return {
-			content: text(`Queued replacement for existing skill ${params.name}. Review ${depth} pending change(s) with /skills-review.`),
-			details: { queued: true, id: change.id, name: params.name, queueDepth: depth, diff: change.diff },
-		};
-	}
-
-	await applyChange(change);
-	ctx.ui?.notify(`Created skill: ${params.name}`, "info");
-	return {
-		content: text(`Created skill ${params.name} at ${displayPath(change.targetPath)}. Run /reload to load it in this session.`),
-		details: { queued: false, action: "create", name: params.name, path: change.targetPath, reloadRequired: true },
-	};
-}
-
-async function queueUpdate(params: SkillManageInput, ctx: { cwd: string; isProjectTrusted(): boolean; ui?: { notify(message: string, level: "info" | "warning" | "error"): void } }) {
-	const scope = params.scope ?? "global";
-	if (scope === "project" && !ctx.isProjectTrusted()) throw new Error("Project scope requires a trusted project.");
-	const change = await buildPendingChange(params, ctx.cwd);
-	const depth = await enqueueChange(change);
-	ctx.ui?.notify(`Queued skill update: ${params.name}`, "warning");
-	return {
-		content: text(`Queued ${params.action} for skill ${params.name}. Review ${depth} pending change(s) with /skills-review.`),
-		details: { queued: true, id: change.id, action: params.action, name: params.name, queueDepth: depth, diff: change.diff },
-	};
-}
-
-async function listQueue(ctx: ExtensionCommandContext): Promise<void> {
-	const queue = await loadQueue();
-	if (queue.pending.length === 0) {
-		ctx.ui.notify("No pending skill updates.", "info");
-		return;
-	}
-
-	const lines = queue.pending.map((item, index) => {
-		return `${index + 1}. ${item.name} — ${item.action} ${item.relativeTarget} (${item.id.slice(0, 8)})`;
-	});
-	ctx.ui.notify(`${queue.pending.length} pending skill update(s).`, "info");
-	ctx.ui.setWidget("skill-review-queue", ["Pending skill updates:", ...lines, "Run /skills-review to open the diff modal."], {
-		placement: "belowEditor",
-	});
-}
-
-async function reviewQueue(ctx: ExtensionCommandContext): Promise<void> {
-	while (true) {
-		const queue = await loadQueue();
-		if (queue.pending.length === 0) {
-			ctx.ui.notify("No pending skill updates.", "info");
-			ctx.ui.setWidget("skill-review-queue", undefined);
-			return;
-		}
-
-		const change = queue.pending[0]!;
-		const result = await ctx.ui.custom<"approve" | "reject" | "skip" | "quit" | undefined>(
-			(_tui, theme, _keybindings, done) => new SkillDiffModal(theme, change, queue.pending.length, done),
-			{ overlay: true, overlayOptions: { width: "90%", maxHeight: "85%", anchor: "center", margin: 1 } },
+	if (previous !== null && !action.overwrite) {
+		throw new Error(
+			`Skill '${action.name}' already exists at ${action.targetPath}. Use action=edit, or create with overwrite=true.`,
 		);
-
-		if (result === "approve") {
-			await applyChange(change);
-			await removeFromQueue(change.id);
-			ctx.ui.notify(`Applied skill update: ${change.name}`, "info");
-			continue;
-		}
-
-		if (result === "reject") {
-			await removeFromQueue(change.id);
-			ctx.ui.notify(`Rejected skill update: ${change.name}`, "info");
-			continue;
-		}
-
-		if (result === "skip") {
-			if (queue.pending.length <= 1) return;
-			queue.pending = [...queue.pending.slice(1), change];
-			await saveQueue(queue);
-			continue;
-		}
-
-		return;
 	}
+
+	const securityFlags = scanSkillContent(content, action.relativeTarget);
+
+	await withFileMutationQueue(action.targetPath, async () => {
+		await mkdir(action.skillDir, { recursive: true });
+		await atomicWriteFile(action.targetPath, content);
+		await ensureSkillSymlink(roots.agentsRoot, action.skillDir, action.name);
+	});
+
+	return baseResult(action, {
+		previousContent: previous,
+		nextContent: content,
+		securityFlags,
+		message: `${previous === null ? "Created" : "Replaced"} skill ${action.name} at ${displayPath(action.targetPath)}.`,
+	});
 }
 
-class SkillDiffModal implements Component {
-	private scroll = 0;
-	private readonly diffLines: string[];
+export async function executeEdit(roots: SkillRoots, params: SkillManageInput): Promise<SkillActionResult> {
+	const action = await prepare(roots, { ...params, action: "edit" });
+	const content = action.content!;
+	const previous = await readIfExists(action.targetPath);
+	if (previous === null) throw new Error(`No SKILL.md exists for '${action.name}'; use action=create.`);
 
-	constructor(
-		private readonly theme: Theme,
-		private readonly change: PendingSkillChange,
-		private readonly total: number,
-		private readonly done: (result: "approve" | "reject" | "skip" | "quit" | undefined) => void,
-	) {
-		this.diffLines = change.diff.split("\n");
-	}
+	const securityFlags = scanSkillContent(content, action.relativeTarget);
 
-	handleInput(data: string): void {
-		if (matchesKey(data, "escape") || data === "q") return this.done("quit");
-		if (data === "a") return this.done("approve");
-		if (data === "r") return this.done("reject");
-		if (data === "s") return this.done("skip");
-		if (matchesKey(data, "up") || data === "k") this.scroll = Math.max(0, this.scroll - 1);
-		if (matchesKey(data, "down") || data === "j") this.scroll = Math.min(this.maxScroll(), this.scroll + 1);
-		if (matchesKey(data, "pageup")) this.scroll = Math.max(0, this.scroll - 10);
-		if (matchesKey(data, "pagedown")) this.scroll = Math.min(this.maxScroll(), this.scroll + 10);
-	}
+	await withFileMutationQueue(action.targetPath, async () => {
+		await atomicWriteFile(action.targetPath, content);
+		await ensureSkillSymlink(roots.agentsRoot, action.skillDir, action.name);
+	});
 
-	render(width: number): string[] {
-		const w = Math.max(60, Math.min(width - 2, 140));
-		const inner = w - 2;
-		const th = this.theme;
-		const row = (content = "") => th.fg("border", "│") + padAnsi(content, inner) + th.fg("border", "│");
-		const visibleRows = 28;
-		const shown = this.diffLines.slice(this.scroll, this.scroll + visibleRows);
-		const lines: string[] = [];
-
-		lines.push(th.fg("border", `╭${"─".repeat(inner)}╮`));
-		lines.push(row(` ${th.fg("accent", th.bold(`Skill update: ${this.change.name}`))} ${th.fg("dim", `(${this.total} pending)`)}`));
-		lines.push(row(` ${th.fg("muted", "Action:")} ${this.change.action}   ${th.fg("muted", "Target:")} ${displayPath(this.change.targetPath)}`));
-		lines.push(row(` ${th.fg("dim", "a approve • r reject • s skip • q/esc quit • ↑↓/j/k scroll")}`));
-		lines.push(row(th.fg("borderMuted", "─".repeat(Math.max(0, inner - 1)))));
-
-		for (const line of shown) lines.push(row(` ${this.styleDiffLine(line)}`));
-		for (let i = shown.length; i < visibleRows; i++) lines.push(row());
-
-		const position = this.diffLines.length === 0
-			? "0/0"
-			: `${Math.min(this.scroll + visibleRows, this.diffLines.length)}/${this.diffLines.length}`;
-		lines.push(row(th.fg("dim", ` Diff lines ${position}`)));
-		lines.push(th.fg("border", `╰${"─".repeat(inner)}╯`));
-		return lines.map((line) => truncateToWidth(line, width, ""));
-	}
-
-	invalidate(): void {}
-
-	private maxScroll(): number {
-		return Math.max(0, this.diffLines.length - 1);
-	}
-
-	private styleDiffLine(line: string): string {
-		if (line.startsWith("+")) return this.theme.fg("toolDiffAdded", line);
-		if (line.startsWith("-")) return this.theme.fg("toolDiffRemoved", line);
-		if (line.startsWith("@@")) return this.theme.fg("accent", line);
-		if (line.startsWith("diff") || line.startsWith("---") || line.startsWith("+++")) return this.theme.fg("muted", line);
-		return this.theme.fg("toolDiffContext", line);
-	}
+	return baseResult(action, {
+		previousContent: previous,
+		nextContent: content,
+		securityFlags,
+		message: `Updated SKILL.md for ${action.name} at ${displayPath(action.targetPath)}.`,
+	});
 }
 
-function padAnsi(value: string, width: number): string {
-	const truncated = truncateToWidth(value, width, "");
-	return truncated + " ".repeat(Math.max(0, width - visibleWidth(truncated)));
+export async function executePatch(roots: SkillRoots, params: SkillManageInput): Promise<SkillActionResult> {
+	const action = await prepare(roots, { ...params, action: "patch" });
+	const previous = await readIfExists(action.targetPath);
+	if (previous === null) throw new Error(`No file exists at ${action.targetPath}.`);
+
+	const occurrences = previous.split(action.oldString!).length - 1;
+	if (occurrences !== 1) {
+		throw new Error(`old_string must match exactly once in ${action.relativeTarget}; found ${occurrences}.`);
+	}
+
+	const next = assertContentWithinBounds(previous.replace(action.oldString!, action.newString!), "patched content");
+	const securityFlags = scanSkillContent(next, action.relativeTarget);
+
+	await withFileMutationQueue(action.targetPath, async () => {
+		await atomicWriteFile(action.targetPath, next);
+	});
+
+	return baseResult(action, {
+		previousContent: previous,
+		nextContent: next,
+		securityFlags,
+		message: `Patched ${action.relativeTarget} for ${action.name}.`,
+	});
+}
+
+export async function executeDelete(roots: SkillRoots, params: SkillManageInput): Promise<SkillActionResult> {
+	const action = await prepare(roots, { ...params, action: "delete" });
+	if (!(await pathExists(action.skillDir))) throw new Error(`Skill '${action.name}' does not exist at ${action.skillDir}.`);
+	const previous = await readIfExists(join(action.skillDir, SKILL_FILE_NAME));
+
+	await withFileMutationQueue(action.skillDir, async () => {
+		await rm(action.skillDir, { recursive: true, force: true });
+		await removeSkillSymlink(roots.agentsRoot, action.name);
+	});
+
+	return baseResult(action, {
+		previousContent: previous,
+		nextContent: null,
+		message: `Deleted skill ${action.name} from ${displayPath(action.skillDir)}.`,
+	});
+}
+
+export async function executeWriteFile(roots: SkillRoots, params: SkillManageInput): Promise<SkillActionResult> {
+	const action = await prepare(roots, { ...params, action: "write_file" });
+	if (!(await pathExists(join(action.skillDir, SKILL_FILE_NAME)))) {
+		throw new Error(`Skill '${action.name}' does not exist; create it before adding supporting files.`);
+	}
+
+	const content = action.content!;
+	const previous = await readIfExists(action.targetPath);
+	const securityFlags = scanSkillContent(content, action.relativeTarget);
+
+	await withFileMutationQueue(action.targetPath, async () => {
+		await atomicWriteFile(action.targetPath, content);
+	});
+
+	return baseResult(action, {
+		previousContent: previous,
+		nextContent: content,
+		securityFlags,
+		message: `Wrote ${action.relativeTarget} for ${action.name}.`,
+	});
+}
+
+export async function executeRemoveFile(roots: SkillRoots, params: SkillManageInput): Promise<SkillActionResult> {
+	const action = await prepare(roots, { ...params, action: "remove_file" });
+	const previous = await readIfExists(action.targetPath);
+	if (previous === null && !(await pathExists(action.targetPath))) {
+		throw new Error(`No file exists at ${action.targetPath}.`);
+	}
+
+	await withFileMutationQueue(action.targetPath, async () => {
+		await rm(action.targetPath, { force: true });
+	});
+
+	return baseResult(action, {
+		previousContent: previous,
+		nextContent: null,
+		message: `Removed ${action.relativeTarget} from ${action.name}.`,
+	});
+}
+
+export const SKILL_ACTION_EXECUTORS: Record<
+	SkillAction,
+	(roots: SkillRoots, params: SkillManageInput) => Promise<SkillActionResult>
+> = {
+	create: executeCreate,
+	edit: executeEdit,
+	patch: executePatch,
+	delete: executeDelete,
+	write_file: executeWriteFile,
+	remove_file: executeRemoveFile,
+};
+
+export async function executeSkillAction(roots: SkillRoots, params: SkillManageInput): Promise<SkillActionResult> {
+	const executor = SKILL_ACTION_EXECUTORS[params.action];
+	if (!executor) throw new Error(`Unknown action '${String(params.action)}'.`);
+	return executor(roots, params);
+}
+
+// ---------------------------------------------------------------------------
+// Tool registration
+// ---------------------------------------------------------------------------
+
+type ToolContext = {
+	cwd: string;
+	isProjectTrusted(): boolean;
+	ui?: { notify(message: string, level: "info" | "warning" | "error"): void };
+};
+
+export function rootsForToolContext(params: SkillManageInput, ctx: ToolContext): SkillRoots {
+	const scope: SkillScope = params.scope ?? "global";
+	if (scope !== "global" && scope !== "project") throw new Error(`Unknown scope '${String(scope)}'.`);
+	if (scope === "project" && !ctx.isProjectTrusted()) {
+		throw new Error("Project scope requires a trusted project.");
+	}
+	return resolveSkillRoots(scope, ctx.cwd);
 }
 
 export default function skillManage(pi: ExtensionAPI) {
 	pi.registerTool({
 		name: "skill_manage",
 		label: "Skill Manage",
-		description: "Create, edit, patch, delete, and add files to Pi Agent Skills with reviewed update flow.",
-		promptSnippet: "Create skills in ~/dotfiles/skills and queue skill updates for user review.",
+		description: "Create, edit, patch, delete, and add supporting files to Pi Agent Skills.",
+		promptSnippet: "Create and maintain reusable Pi Agent Skills under ~/dotfiles/skills.",
 		promptGuidelines: [
 			"Use skill_manage when the user asks to create, learn, edit, patch, or update a reusable Pi Agent Skill.",
-			"skill_manage creates new skills immediately, but queues edits, patches, deletes, and supplemental file changes for user review.",
+			"Use write_file only for supporting files under references/, templates/, scripts/, or assets/; SKILL.md is edited with create, edit, or patch.",
 			"Do not use skill_manage for ordinary project files; use write or edit instead.",
 		],
 		parameters: SkillManageParams,
-		async execute(_toolCallId, params: SkillManageInput, _signal, _onUpdate, ctx) {
-			if (params.action === "create") return createSkill(params, ctx);
-			return queueUpdate(params, ctx);
-		},
-	});
+		async execute(_toolCallId, params: SkillManageInput, _signal, _onUpdate, ctx: ToolContext) {
+			const roots = rootsForToolContext(params, ctx);
+			const result = await executeSkillAction(roots, params);
 
-	pi.registerCommand("skills-review", {
-		description: "Review queued skill updates in a diff modal",
-		handler: async (args, ctx) => {
-			const trimmed = args.trim();
-			if (trimmed === "list") return listQueue(ctx);
-			await reviewQueue(ctx);
-		},
-	});
+			if (result.securityFlags.length > 0) {
+				ctx.ui?.notify(`skill_manage: ${result.securityFlags.length} security flag(s) on ${result.name}`, "warning");
+			} else {
+				ctx.ui?.notify(result.message, "info");
+			}
 
-	pi.registerCommand("skills-queue", {
-		description: "List queued skill updates",
-		handler: async (_args, ctx) => listQueue(ctx),
+			const lines = [result.message];
+			if (result.securityFlags.length > 0) {
+				lines.push("", "Security flags (review required — this scan is a heuristic, not a sandbox):");
+				for (const flag of result.securityFlags) lines.push(`  - ${flag}`);
+			}
+			if (result.action === "create") lines.push("Run /reload to load it in this session.");
+
+			return {
+				content: [{ type: "text" as const, text: lines.join("\n") }],
+				details: {
+					action: result.action,
+					name: result.name,
+					scope: result.scope,
+					path: result.targetPath,
+					relativeTarget: result.relativeTarget,
+					securityFlags: result.securityFlags,
+					reloadRequired: result.action === "create",
+				},
+			};
+		},
 	});
 }
