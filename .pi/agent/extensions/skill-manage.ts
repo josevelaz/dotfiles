@@ -1359,6 +1359,70 @@ export async function emitSkillQueueChanged(path: string = skillQueuePath()): Pr
 	}
 }
 
+// --- footer status (skills review: N) --------------------------------------
+
+/** Distinct footer key; coexists with polished-footer and other extension statuses. */
+export const SKILL_MANAGE_STATUS_KEY = "skill-manage";
+
+/**
+ * Footer text for the pending-review count.
+ * Hidden at zero — the count is a call to action, not a permanent gauge.
+ * Clear mechanism (Pi 0.83): `ctx.ui.setStatus(key, undefined)`.
+ */
+export function skillsReviewStatusText(count: number): string | undefined {
+	return count > 0 ? `skills review: ${count}` : undefined;
+}
+
+export function applySkillsReviewStatus(
+	setStatus: (key: string, text: string | undefined) => void,
+	count: number,
+): void {
+	setStatus(SKILL_MANAGE_STATUS_KEY, skillsReviewStatusText(count));
+}
+
+export type SkillsReviewFooterBinding = {
+	/** Load persisted queue and paint; subscribe to local queueChanged updates. */
+	start: () => Promise<void>;
+	/** Clear the status key and unsubscribe. Idempotent. */
+	stop: () => void;
+};
+
+/**
+ * Bind the pending-review footer count to `setStatus`.
+ *
+ * Cross-session staleness (accepted): another Pi process can mutate the shared
+ * queue file without notifying this session. The footer refreshes on the next
+ * local stage/approve/reject/toggle via `queueChanged` — no polling.
+ */
+export function bindSkillsReviewFooterStatus(
+	setStatus: (key: string, text: string | undefined) => void,
+	options: {
+		loadPendingCount?: () => Promise<number>;
+		subscribe?: (listener: SkillQueueChangedListener) => () => void;
+	} = {},
+): SkillsReviewFooterBinding {
+	const loadPendingCount =
+		options.loadPendingCount ?? (async () => (await loadSkillQueue()).pending.length);
+	const subscribe = options.subscribe ?? onSkillQueueChanged;
+	let unsubscribe: (() => void) | undefined;
+
+	return {
+		async start() {
+			unsubscribe?.();
+			unsubscribe = undefined;
+			applySkillsReviewStatus(setStatus, await loadPendingCount());
+			unsubscribe = subscribe((snapshot) => {
+				applySkillsReviewStatus(setStatus, snapshot.pending.length);
+			});
+		},
+		stop() {
+			unsubscribe?.();
+			unsubscribe = undefined;
+			setStatus(SKILL_MANAGE_STATUS_KEY, undefined);
+		},
+	};
+}
+
 // --- staging ---------------------------------------------------------------
 
 let lastStagedMillis = 0;
@@ -2000,6 +2064,8 @@ export function rootsForToolContext(params: SkillManageInput, ctx: ToolContext):
 }
 
 export default function skillManage(pi: ExtensionAPI) {
+	let footer: SkillsReviewFooterBinding | undefined;
+
 	pi.registerTool({
 		name: "skill_manage",
 		label: "Skill Manage",
@@ -2095,5 +2161,21 @@ export default function skillManage(pi: ExtensionAPI) {
 	pi.registerCommand("skills-approval", {
 		description: "Show or set skill write approval: /skills-approval [on|off|status]",
 		handler: async (args, ctx) => approvalCommand(args, ctx),
+	});
+
+	// Footer count: startup read + queueChanged; clear on session_shutdown.
+	// Cross-session staleness is accepted (documented on bindSkillsReviewFooterStatus).
+	pi.on("session_start", async (_event, ctx) => {
+		footer?.stop();
+		footer = undefined;
+		if (!ctx.hasUI) return;
+		footer = bindSkillsReviewFooterStatus((key, text) => ctx.ui.setStatus(key, text));
+		await footer.start();
+	});
+
+	pi.on("session_shutdown", async (_event, ctx) => {
+		footer?.stop();
+		footer = undefined;
+		if (ctx.hasUI) ctx.ui.setStatus(SKILL_MANAGE_STATUS_KEY, undefined);
 	});
 }
