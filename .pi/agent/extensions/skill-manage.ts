@@ -17,12 +17,23 @@
  */
 
 import {
+	DynamicBorder,
 	withFileMutationQueue,
 	type ExtensionAPI,
 	type ExtensionCommandContext,
+	type ExtensionContext,
 	type Theme,
 } from "@earendil-works/pi-coding-agent";
-import { matchesKey, truncateToWidth, visibleWidth, type Component } from "@earendil-works/pi-tui";
+import {
+	Container,
+	matchesKey,
+	SelectList,
+	Text,
+	truncateToWidth,
+	visibleWidth,
+	type Component,
+	type SelectItem,
+} from "@earendil-works/pi-tui";
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { constants } from "node:fs";
@@ -2022,6 +2033,235 @@ async function reviewQueue(ctx: ExtensionCommandContext): Promise<void> {
 	}
 }
 
+// ---------------------------------------------------------------------------
+// Pending proposals overlay (Alt+S)
+//
+// Browse-and-inspect surface over the same durable queue the /skills-review
+// modal drives. It never mutates the queue: it only reads records and hands a
+// chosen one to the selection seam below.
+// ---------------------------------------------------------------------------
+
+/** Visible row budget; the SelectList scrolls beyond this. */
+export const PENDING_OVERLAY_MAX_ROWS = 12;
+
+export type PendingOverlayResult =
+	/** Escape (or cancel): stop browsing. */
+	| { kind: "close" }
+	/** Queue changed under us: reload and reopen. */
+	| { kind: "refresh" }
+	/** Enter on a row. */
+	| { kind: "select"; id: string };
+
+/** Compact one-line label: skill name, action, relative age, and flag markers. */
+export function formatOverlayLabel(record: PendingSkillChange, now: number = Date.now()): string {
+	const flags = record.securityFlags.length > 0 ? ` ⚠${record.securityFlags.length}` : "";
+	const failed = record.lastError ? " ✗" : "";
+	return `${record.name} · ${record.action} · ${formatAge(record.createdAt, now)} ago${flags}${failed}`;
+}
+
+/**
+ * One row per pending record, oldest first. Order is recomputed here with the
+ * same canonical comparator the queue loader uses, so a hand-reordered queue
+ * file cannot change what the overlay shows.
+ */
+export function buildPendingOverlayItems(
+	pending: PendingSkillChange[],
+	now: number = Date.now(),
+	width = 100,
+): SelectItem[] {
+	const gistWidth = Math.max(24, Math.min(width, 160) - 12);
+	return sortPendingChanges(pending).map((record) => ({
+		value: record.id,
+		label: formatOverlayLabel(record, now),
+		description: truncateToWidth(record.gist.replace(/\s+/g, " ").trim(), gistWidth, "…"),
+	}));
+}
+
+export type PendingOverlayControls = {
+	/** Close the overlay so the caller can reload and reopen it. */
+	requestRefresh: () => void;
+};
+
+export type PendingOverlayDeps = {
+	tui: { requestRender(): void };
+	theme: Theme;
+	pending: PendingSkillChange[];
+	skipped: number;
+	now?: number;
+	width?: number;
+	/** True once a queueChanged landed while this overlay was open. */
+	isStale: () => boolean;
+	done: (result: PendingOverlayResult) => void;
+	onControls?: (controls: PendingOverlayControls) => void;
+};
+
+/**
+ * Build the overlay component.
+ *
+ * Keyboard-only limitation: Pi 0.83's `SelectList` exposes no mouse or click
+ * handling (`handleInput` receives key data only, and there is no click hook),
+ * so rows cannot be selected with the mouse. Navigation is ↑↓/pageUp/pageDown,
+ * selection is Enter, and Escape cancels.
+ */
+export function createPendingProposalsOverlay(deps: PendingOverlayDeps): Component {
+	const theme = deps.theme;
+	const items = buildPendingOverlayItems(deps.pending, deps.now ?? Date.now(), deps.width ?? 100);
+
+	let settled = false;
+	const finish = (result: PendingOverlayResult) => {
+		if (settled) return;
+		settled = true;
+		deps.done(result);
+	};
+
+	const container = new Container();
+	container.addChild(new DynamicBorder((s: string) => theme.fg("accent", s)));
+	container.addChild(
+		new Text(theme.fg("accent", theme.bold(`Pending skill proposals (${items.length})`)), 1, 0),
+	);
+	if (deps.skipped > 0) {
+		container.addChild(new Text(theme.fg("warning", `⚠ skipped ${deps.skipped} malformed record(s)`), 1, 0));
+	}
+
+	const selectList = new SelectList(items, Math.min(Math.max(items.length, 1), PENDING_OVERLAY_MAX_ROWS), {
+		selectedPrefix: (t: string) => theme.fg("accent", t),
+		selectedText: (t: string) => theme.fg("accent", t),
+		description: (t: string) => theme.fg("muted", t),
+		scrollInfo: (t: string) => theme.fg("dim", t),
+		noMatch: (t: string) => theme.fg("warning", t),
+	});
+	selectList.onSelect = (item: SelectItem) => finish({ kind: "select", id: item.value });
+	selectList.onCancel = () => finish({ kind: "close" });
+	container.addChild(selectList);
+
+	container.addChild(
+		new Text(theme.fg("dim", "↑↓ navigate • enter inspect • esc close • keyboard only"), 1, 0),
+	);
+	container.addChild(new DynamicBorder((s: string) => theme.fg("accent", s)));
+
+	deps.onControls?.({ requestRefresh: () => finish({ kind: "refresh" }) });
+
+	return {
+		render: (w: number) => container.render(w),
+		invalidate: () => container.invalidate(),
+		handleInput: (data: string) => {
+			// Second refresh path: if the queueChanged notification arrived while
+			// this overlay held input, the next keypress reloads instead of acting
+			// on a stale row.
+			if (deps.isStale()) {
+				finish({ kind: "refresh" });
+				return;
+			}
+			selectList.handleInput(data);
+			deps.tui.requestRender();
+		},
+	};
+}
+
+// --- selection handoff seam (Task 6 implements the read-only editor) --------
+
+export type SkillProposalSelection = {
+	record: PendingSkillChange;
+	ctx: ExtensionContext;
+};
+
+export type SkillProposalSelectionHandler = (selection: SkillProposalSelection) => void | Promise<void>;
+
+let proposalSelectionHandler: SkillProposalSelectionHandler | null = null;
+
+/** Install the inspection handoff. `null` restores the default notice. */
+export function setSkillProposalSelectionHandler(handler: SkillProposalSelectionHandler | null): void {
+	proposalSelectionHandler = handler;
+}
+
+export function getSkillProposalSelectionHandler(): SkillProposalSelectionHandler | null {
+	return proposalSelectionHandler;
+}
+
+/**
+ * Called with a still-queued record after the overlay closes. The default is a
+ * notice only — no editor process and no artifacts are created here.
+ */
+export async function handleSkillProposalSelection(selection: SkillProposalSelection): Promise<void> {
+	if (proposalSelectionHandler) {
+		await proposalSelectionHandler(selection);
+		return;
+	}
+	const { record, ctx } = selection;
+	ctx.ui.notify(
+		`${record.action} ${record.name} — ${record.gist}. Inspection opens in a later step; use /skills-review to approve or reject.`,
+		"info",
+	);
+}
+
+// --- overlay loop ----------------------------------------------------------
+
+/**
+ * Reload the queue, open the overlay, hand off a selection, and reopen so
+ * browsing continues. Reads the queue on every iteration, so records settled by
+ * another session drop out on the next pass.
+ */
+export async function openPendingSkillsOverlay(ctx: ExtensionContext): Promise<void> {
+	if (!ctx.hasUI) return;
+
+	for (;;) {
+		const queue = await loadSkillQueue();
+
+		if (queue.pending.length === 0) {
+			ctx.ui.notify(
+				queue.skipped > 0
+					? `No pending skill updates (skipped ${queue.skipped} malformed record(s) in ${displayPath(skillQueuePath())}).`
+					: "No pending skill updates.",
+				queue.skipped > 0 ? "warning" : "info",
+			);
+			return;
+		}
+
+		let stale = false;
+		let controls: PendingOverlayControls | null = null;
+		const unsubscribe = onSkillQueueChanged(() => {
+			stale = true;
+			controls?.requestRefresh();
+		});
+
+		let result: PendingOverlayResult | undefined;
+		try {
+			result = await ctx.ui.custom<PendingOverlayResult>(
+				(tui, theme, _keybindings, done) =>
+					createPendingProposalsOverlay({
+						tui,
+						theme,
+						pending: queue.pending,
+						skipped: queue.skipped,
+						isStale: () => stale,
+						done,
+						onControls: (value) => {
+							controls = value;
+						},
+					}),
+				{ overlay: true, overlayOptions: { width: "80%", maxHeight: "70%", anchor: "center", margin: 1 } },
+			);
+		} finally {
+			unsubscribe();
+			controls = null;
+		}
+
+		if (!result || result.kind === "close") return;
+		if (result.kind === "refresh") continue;
+
+		// Re-read: another session may have approved or rejected this record
+		// between render and selection.
+		const fresh = await loadSkillQueue();
+		const record = fresh.pending.find((item) => item.id === result.id);
+		if (!record) {
+			ctx.ui.notify(`Change ${result.id.slice(0, 8)} is already resolved; refreshing.`, "info");
+			continue;
+		}
+
+		await handleSkillProposalSelection({ record, ctx });
+	}
+}
+
 async function approvalCommand(args: string, ctx: ExtensionCommandContext): Promise<void> {
 	const mode = args.trim().toLowerCase();
 	if (mode === "" || mode === "status") {
@@ -2146,11 +2386,20 @@ export default function skillManage(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("skills-review", {
-		description: "Review staged skill changes in a diff modal (a/r/s, A approve-all, R reject-all)",
+		description: "Review staged skill changes in a diff modal (a/r/s, A approve-all, R reject-all); 'browse' opens the overlay",
 		handler: async (args, ctx) => {
-			if (args.trim() === "list") return listQueue(ctx);
+			const mode = args.trim().toLowerCase();
+			if (mode === "list") return listQueue(ctx);
+			if (mode === "browse") return openPendingSkillsOverlay(ctx);
+			// No-arg stays the modal approval loop: the accessible fallback when
+			// Alt+S is intercepted by the terminal or another extension.
 			await reviewQueue(ctx);
 		},
+	});
+
+	pi.registerShortcut("alt+s", {
+		description: "Browse pending skill proposals (reloads the staged queue, then opens the overlay)",
+		handler: async (ctx) => openPendingSkillsOverlay(ctx),
 	});
 
 	pi.registerCommand("skills-queue", {
