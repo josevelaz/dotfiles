@@ -16,7 +16,13 @@
  * and must never be described as one.
  */
 
-import { withFileMutationQueue, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import {
+	withFileMutationQueue,
+	type ExtensionAPI,
+	type ExtensionCommandContext,
+	type Theme,
+} from "@earendil-works/pi-coding-agent";
+import { matchesKey, truncateToWidth, visibleWidth, type Component } from "@earendil-works/pi-tui";
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { constants } from "node:fs";
@@ -839,12 +845,1147 @@ export async function executeSkillAction(roots: SkillRoots, params: SkillManageI
 	return executor(roots, params);
 }
 
+export function errorMessage(error: unknown): string {
+	if (error instanceof Error) return error.message;
+	return String(error);
+}
+
+// ---------------------------------------------------------------------------
+// Dry-run preview (shared by staging and by the review modal)
+// ---------------------------------------------------------------------------
+
+export type SkillActionPreview = {
+	action: ValidatedSkillAction;
+	previousContent: string | null;
+	nextContent: string | null;
+	securityFlags: string[];
+	gist: string;
+};
+
+function firstFrontmatterDescription(content: string): string | null {
+	const match = content.match(/^---\n([\s\S]*?)\n---/);
+	if (!match) return null;
+	const line = match[1]!.split(/\r?\n/).find((candidate) => /^description\s*:/i.test(candidate));
+	if (!line) return null;
+	const value = line.replace(/^description\s*:/i, "").trim().replace(/^["']|["']$/g, "");
+	return value === "" ? null : value;
+}
+
+function truncateGist(value: string, max = 120): string {
+	const flat = value.replace(/\s+/g, " ").trim();
+	return flat.length <= max ? flat : `${flat.slice(0, max - 1)}…`;
+}
+
+/** One-line human summary stored on the queue record, e.g. "create skill 'foo': …". */
+export function buildGist(action: ValidatedSkillAction, previousContent: string | null, nextContent: string | null): string {
+	const subject = `${action.action} skill '${action.name}'`;
+	let detail: string | null = null;
+
+	if ((action.action === "create" || action.action === "edit") && nextContent) {
+		detail = firstFrontmatterDescription(nextContent) ?? `${nextContent.split("\n").length} line SKILL.md`;
+	} else if (action.action === "patch") {
+		const before = (previousContent ?? "").split("\n").length;
+		const after = (nextContent ?? "").split("\n").length;
+		detail = `${action.relativeTarget} (${before} → ${after} lines)`;
+	} else if (action.action === "write_file") {
+		detail = `${previousContent === null ? "adds" : "replaces"} ${action.relativeTarget}`;
+	} else if (action.action === "remove_file") {
+		detail = `removes ${action.relativeTarget}`;
+	} else if (action.action === "delete") {
+		detail = `removes ${displayPath(action.skillDir)}`;
+	}
+
+	return detail ? truncateGist(`${subject}: ${detail}`) : subject;
+}
+
+/**
+ * Run every validation and guard an executor would run, compute the resulting
+ * content, and scan it — without touching the filesystem. Errors surface at
+ * stage time rather than at approval time.
+ */
+export async function previewSkillAction(
+	roots: SkillRoots,
+	params: SkillManageInput,
+	overlay: SkillQueueOverlay | null = null,
+): Promise<SkillActionPreview> {
+	const action = await prepare(roots, params);
+	let previousContent: string | null = null;
+	let nextContent: string | null = null;
+
+	switch (action.action) {
+		case "create": {
+			previousContent = await overlayReadIfExists(overlay, action.targetPath);
+			if (previousContent !== null && !action.overwrite) {
+				throw new Error(
+					`Skill '${action.name}' already exists at ${action.targetPath}. Use action=edit, or create with overwrite=true.`,
+				);
+			}
+			nextContent = action.content!;
+			break;
+		}
+		case "edit": {
+			previousContent = await overlayReadIfExists(overlay, action.targetPath);
+			if (previousContent === null) throw new Error(`No SKILL.md exists for '${action.name}'; use action=create.`);
+			nextContent = action.content!;
+			break;
+		}
+		case "patch": {
+			previousContent = await overlayReadIfExists(overlay, action.targetPath);
+			if (previousContent === null) throw new Error(`No file exists at ${action.targetPath}.`);
+			const occurrences = previousContent.split(action.oldString!).length - 1;
+			if (occurrences !== 1) {
+				throw new Error(`old_string must match exactly once in ${action.relativeTarget}; found ${occurrences}.`);
+			}
+			nextContent = assertContentWithinBounds(
+				previousContent.replace(action.oldString!, action.newString!),
+				"patched content",
+			);
+			break;
+		}
+		case "delete": {
+			if (!(await overlaySkillDirExists(overlay, action.skillDir))) {
+				throw new Error(`Skill '${action.name}' does not exist at ${action.skillDir}.`);
+			}
+			previousContent = await overlayReadIfExists(overlay, join(action.skillDir, SKILL_FILE_NAME));
+			break;
+		}
+		case "write_file": {
+			if (!(await overlayPathExists(overlay, join(action.skillDir, SKILL_FILE_NAME)))) {
+				throw new Error(`Skill '${action.name}' does not exist; create it before adding supporting files.`);
+			}
+			previousContent = await overlayReadIfExists(overlay, action.targetPath);
+			nextContent = action.content!;
+			break;
+		}
+		case "remove_file": {
+			previousContent = await overlayReadIfExists(overlay, action.targetPath);
+			if (previousContent === null && !(await overlayPathExists(overlay, action.targetPath))) {
+				throw new Error(`No file exists at ${action.targetPath}.`);
+			}
+			break;
+		}
+	}
+
+	const securityFlags = nextContent === null ? [] : scanSkillContent(nextContent, action.relativeTarget);
+	return { action, previousContent, nextContent, securityFlags, gist: buildGist(action, previousContent, nextContent) };
+}
+
+// ---------------------------------------------------------------------------
+// Virtual queue overlay (staged-but-unapplied prior state)
+// ---------------------------------------------------------------------------
+
+/**
+ * The prior state a not-yet-applied queued change would leave behind, used
+ * only at STAGE time so a dependent change (e.g. `write_file` right after a
+ * pending `create`) can be previewed before its dependency exists on disk.
+ *
+ * Deliberately permissive-only: the overlay is consulted ONLY where the real
+ * filesystem has nothing. It can make a missing prerequisite appear present;
+ * it can never hide or override a file that actually exists. That keeps direct
+ * (approval-off) execution and every disk-backed check unchanged.
+ *
+ * Replay never consults an overlay: approval applies records oldest-first, so
+ * by then the dependency is real on disk and the normal staleness check holds.
+ */
+export type SkillQueueOverlay = {
+	/** Absolute path -> content a pending change would create. */
+	files: Map<string, string>;
+};
+
+export function emptyQueueOverlay(): SkillQueueOverlay {
+	return { files: new Map() };
+}
+
+function isUnder(parent: string, candidate: string): boolean {
+	return candidate === parent || candidate.startsWith(`${parent}${sep}`);
+}
+
+/**
+ * Fold the pending records that belong to `roots` (oldest first) into the set
+ * of files they would create. Records for other skills roots are ignored, and
+ * pending removals drop the entries they would delete.
+ */
+export function buildQueueOverlay(pending: PendingSkillChange[], roots: SkillRoots): SkillQueueOverlay {
+	const overlay = emptyQueueOverlay();
+	const scopeRoot = resolve(roots.skillsRoot);
+
+	for (const record of pending) {
+		if (resolve(record.skillsRoot) !== scopeRoot) continue;
+		const skillDir = resolve(record.skillDir);
+		const target = resolve(record.targetPath);
+		if (!isUnder(scopeRoot, skillDir) || !isUnder(scopeRoot, target)) continue;
+
+		if (record.action === "delete") {
+			for (const key of [...overlay.files.keys()]) {
+				if (isUnder(skillDir, key)) overlay.files.delete(key);
+			}
+			continue;
+		}
+		if (record.action === "remove_file") {
+			overlay.files.delete(target);
+			continue;
+		}
+		if (record.nextContent !== null) overlay.files.set(target, record.nextContent);
+	}
+
+	return overlay;
+}
+
+/** Disk wins; the overlay only fills a gap. */
+async function overlayReadIfExists(overlay: SkillQueueOverlay | null, path: string): Promise<string | null> {
+	const onDisk = await readIfExists(path);
+	if (onDisk !== null) return onDisk;
+	return overlay?.files.get(resolve(path)) ?? null;
+}
+
+async function overlayPathExists(overlay: SkillQueueOverlay | null, path: string): Promise<boolean> {
+	if (await pathExists(path)) return true;
+	return overlay?.files.has(resolve(path)) === true;
+}
+
+async function overlaySkillDirExists(overlay: SkillQueueOverlay | null, skillDir: string): Promise<boolean> {
+	if (await pathExists(skillDir)) return true;
+	if (!overlay) return false;
+	const key = resolve(skillDir);
+	for (const path of overlay.files.keys()) {
+		if (isUnder(key, path)) return true;
+	}
+	return false;
+}
+
+// ---------------------------------------------------------------------------
+// Durable staged approval queue
+// ---------------------------------------------------------------------------
+
+export const SKILL_QUEUE_VERSION = 1;
+
+export type SkillChangeOrigin = {
+	sessionId?: string;
+	tool: "skill_manage";
+	cwd: string;
+};
+
+/**
+ * A staged, not-yet-applied mutation. `payload` is the full raw replay input:
+ * approval re-validates it from scratch and re-runs the Task 2 executors.
+ */
+export type PendingSkillChange = {
+	id: string;
+	action: SkillAction;
+	name: string;
+	scope: SkillScope;
+	category?: string;
+	gist: string;
+	origin: SkillChangeOrigin;
+	createdAt: string;
+	securityFlags: string[];
+	payload: SkillManageInput;
+	skillsRoot: string;
+	agentsRoot: string;
+	lockPath: string;
+	skillDir: string;
+	targetPath: string;
+	relativeTarget: string;
+	previousContent: string | null;
+	nextContent: string | null;
+	diff: string;
+	lastError?: string;
+};
+
+export type SkillQueueFile = {
+	version: number;
+	pending: PendingSkillChange[];
+	/** Absent or non-boolean reads as `true` — approval fails safe. */
+	approvalEnabled?: boolean;
+};
+
+export type LoadedSkillQueue = SkillQueueFile & {
+	/** Count of records dropped because they failed validation. */
+	skipped: number;
+};
+
+// --- queue path (injectable for tests) -------------------------------------
+
+export function defaultSkillQueuePath(home: string = homedir()): string {
+	const xdg = process.env.XDG_STATE_HOME?.trim();
+	const base = xdg && xdg !== "" ? xdg : join(home, ".local", "state");
+	return join(base, "pi", "skill-manage-queue.json");
+}
+
+let queuePathOverride: string | null = (() => {
+	const fromEnv = process.env.PI_SKILL_QUEUE_PATH?.trim();
+	return fromEnv && fromEnv !== "" ? resolve(fromEnv) : null;
+})();
+
+/** Point the queue at an explicit file (tests, alternate profiles). `null` restores the default. */
+export function setSkillQueuePath(path: string | null): void {
+	queuePathOverride = path && path.trim() !== "" ? resolve(path) : null;
+}
+
+export function skillQueuePath(): string {
+	return queuePathOverride ?? defaultSkillQueuePath();
+}
+
+// --- record validation -----------------------------------------------------
+
+function isNonEmptyString(value: unknown): value is string {
+	return typeof value === "string" && value.trim() !== "";
+}
+
+function nullableString(value: unknown): string | null {
+	return typeof value === "string" ? value : null;
+}
+
+/**
+ * Structural validation of one persisted record. The queue file is
+ * user-writable, so anything malformed is skipped rather than trusted.
+ * This is shape validation only — the payload is re-validated at replay.
+ */
+export function validatePendingRecord(value: unknown): PendingSkillChange | null {
+	if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+	const record = value as Record<string, unknown>;
+
+	if (!isNonEmptyString(record.id)) return null;
+	const action = record.action;
+	if (typeof action !== "string" || !SKILL_ACTIONS.includes(action as SkillAction)) return null;
+	if (!isNonEmptyString(record.name)) return null;
+	if (record.scope !== "global" && record.scope !== "project") return null;
+	if (!isNonEmptyString(record.createdAt) || Number.isNaN(Date.parse(record.createdAt))) return null;
+	if (!isNonEmptyString(record.skillsRoot) || !isNonEmptyString(record.skillDir)) return null;
+	if (!isNonEmptyString(record.targetPath)) return null;
+	if (!isAbsolute(record.skillsRoot) || !isAbsolute(record.skillDir) || !isAbsolute(record.targetPath)) return null;
+
+	const payloadValue = record.payload;
+	if (!payloadValue || typeof payloadValue !== "object" || Array.isArray(payloadValue)) return null;
+	const payload = payloadValue as Record<string, unknown>;
+	if (payload.action !== action || payload.name !== record.name) return null;
+
+	const originValue = record.origin;
+	const origin = originValue && typeof originValue === "object" && !Array.isArray(originValue)
+		? (originValue as Record<string, unknown>)
+		: {};
+
+	return {
+		id: record.id,
+		action: action as SkillAction,
+		name: record.name,
+		scope: record.scope,
+		category: isNonEmptyString(record.category) ? record.category : undefined,
+		gist: isNonEmptyString(record.gist) ? record.gist : `${action} skill '${record.name}'`,
+		origin: {
+			sessionId: isNonEmptyString(origin.sessionId) ? origin.sessionId : undefined,
+			tool: "skill_manage",
+			cwd: isNonEmptyString(origin.cwd) ? origin.cwd : "",
+		},
+		createdAt: new Date(record.createdAt).toISOString(),
+		securityFlags: Array.isArray(record.securityFlags)
+			? record.securityFlags.filter((flag): flag is string => typeof flag === "string")
+			: [],
+		payload: payload as unknown as SkillManageInput,
+		skillsRoot: record.skillsRoot,
+		agentsRoot: isNonEmptyString(record.agentsRoot) ? record.agentsRoot : agentsRootForSkillsRoot(record.skillsRoot),
+		lockPath: isNonEmptyString(record.lockPath) ? record.lockPath : lockPathForSkillsRoot(record.skillsRoot),
+		skillDir: record.skillDir,
+		targetPath: record.targetPath,
+		relativeTarget: isNonEmptyString(record.relativeTarget)
+			? record.relativeTarget
+			: relative(record.skillsRoot, record.targetPath),
+		previousContent: nullableString(record.previousContent),
+		nextContent: nullableString(record.nextContent),
+		diff: typeof record.diff === "string" ? record.diff : "(no diff recorded)",
+		lastError: isNonEmptyString(record.lastError) ? record.lastError : undefined,
+	};
+}
+
+export function emptySkillQueue(): LoadedSkillQueue {
+	return { version: SKILL_QUEUE_VERSION, pending: [], approvalEnabled: true, skipped: 0 };
+}
+
+/**
+ * Canonical queue order: oldest `createdAt` first, `id` as the deterministic
+ * tie-breaker. Applied on every load so a hand-reordered queue file cannot
+ * change the order in which /skills-queue, the review modal, or approve-all
+ * process records.
+ */
+export function comparePendingChanges(a: PendingSkillChange, b: PendingSkillChange): number {
+	const left = Date.parse(a.createdAt);
+	const right = Date.parse(b.createdAt);
+	if (left !== right) return left - right;
+	if (a.id === b.id) return 0;
+	return a.id < b.id ? -1 : 1;
+}
+
+export function sortPendingChanges(pending: PendingSkillChange[]): PendingSkillChange[] {
+	return [...pending].sort(comparePendingChanges);
+}
+
+// --- queue I/O -------------------------------------------------------------
+
+/**
+ * Read and validate the queue. A missing, unreadable, or unparsable file
+ * yields an empty queue with approval enabled — never a throw.
+ */
+export async function loadSkillQueue(path: string = skillQueuePath()): Promise<LoadedSkillQueue> {
+	let raw: string;
+	try {
+		raw = await readFile(path, "utf8");
+	} catch {
+		return emptySkillQueue();
+	}
+
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(raw);
+	} catch {
+		return emptySkillQueue();
+	}
+
+	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return emptySkillQueue();
+	const file = parsed as Record<string, unknown>;
+	const rawPending = Array.isArray(file.pending) ? file.pending : [];
+
+	const pending: PendingSkillChange[] = [];
+	let skipped = 0;
+	for (const candidate of rawPending) {
+		const record = validatePendingRecord(candidate);
+		if (record) pending.push(record);
+		else skipped++;
+	}
+
+	return {
+		version: typeof file.version === "number" ? file.version : SKILL_QUEUE_VERSION,
+		// Order is derived, never taken from the file's array order.
+		pending: sortPendingChanges(pending),
+		// Fail safe: anything other than an explicit `false` means approval is on.
+		approvalEnabled: file.approvalEnabled === false ? false : true,
+		skipped,
+	};
+}
+
+async function writeSkillQueue(queue: SkillQueueFile, path: string): Promise<void> {
+	const body = {
+		version: SKILL_QUEUE_VERSION,
+		approvalEnabled: queue.approvalEnabled === false ? false : true,
+		pending: queue.pending,
+	};
+	await atomicWriteFile(path, `${JSON.stringify(body, null, 2)}\n`);
+}
+
+/**
+ * Reload from disk, apply `mutator`, and atomically rewrite — all inside
+ * `withFileMutationQueue` on the queue path so concurrent tool calls in one
+ * process serialize.
+ *
+ * Residual race (documented, accepted per plan): two separate Pi processes have
+ * independent mutation queues, so a cross-process interleaving can still lose a
+ * write. Reload-before-write keeps the window to a single atomic rename, and
+ * "record already gone" is treated as a benign no-op everywhere.
+ */
+export async function mutateSkillQueue<T>(
+	mutator: (queue: LoadedSkillQueue) => T | Promise<T>,
+	path: string = skillQueuePath(),
+): Promise<T> {
+	return withFileMutationQueue(path, async () => {
+		const queue = await loadSkillQueue(path);
+		const outcome = await mutator(queue);
+		await writeSkillQueue(queue, path);
+		return outcome;
+	});
+}
+
+export async function pendingSkillChanges(path: string = skillQueuePath()): Promise<PendingSkillChange[]> {
+	return (await loadSkillQueue(path)).pending;
+}
+
+export async function pendingSkillChangeCount(path: string = skillQueuePath()): Promise<number> {
+	return (await loadSkillQueue(path)).pending.length;
+}
+
+// --- approval toggle -------------------------------------------------------
+
+export async function isSkillApprovalEnabled(path: string = skillQueuePath()): Promise<boolean> {
+	return (await loadSkillQueue(path)).approvalEnabled !== false;
+}
+
+export async function setSkillApprovalEnabled(enabled: boolean, path: string = skillQueuePath()): Promise<boolean> {
+	const value = await mutateSkillQueue((queue) => {
+		queue.approvalEnabled = enabled;
+		return enabled;
+	}, path);
+	await emitSkillQueueChanged(path);
+	return value;
+}
+
+// --- queueChanged hook -----------------------------------------------------
+
+export type SkillQueueSnapshot = {
+	pending: PendingSkillChange[];
+	approvalEnabled: boolean;
+	skipped: number;
+};
+
+export type SkillQueueChangedListener = (snapshot: SkillQueueSnapshot) => void | Promise<void>;
+
+const queueChangedListeners: SkillQueueChangedListener[] = [];
+
+/** Single callback-list subscription used by the footer count and the overlay. */
+export function onSkillQueueChanged(listener: SkillQueueChangedListener): () => void {
+	queueChangedListeners.push(listener);
+	return () => {
+		const index = queueChangedListeners.indexOf(listener);
+		if (index >= 0) queueChangedListeners.splice(index, 1);
+	};
+}
+
+export function clearSkillQueueListeners(): void {
+	queueChangedListeners.length = 0;
+}
+
+/** Fired after every stage, approve, reject, and approval toggle. */
+export async function emitSkillQueueChanged(path: string = skillQueuePath()): Promise<void> {
+	if (queueChangedListeners.length === 0) return;
+	const queue = await loadSkillQueue(path);
+	const snapshot: SkillQueueSnapshot = {
+		pending: queue.pending,
+		approvalEnabled: queue.approvalEnabled !== false,
+		skipped: queue.skipped,
+	};
+	for (const listener of [...queueChangedListeners]) {
+		try {
+			await listener(snapshot);
+		} catch {
+			// A broken subscriber must never break queue mutation.
+		}
+	}
+}
+
+// --- staging ---------------------------------------------------------------
+
+let lastStagedMillis = 0;
+
+/**
+ * Strictly increasing ISO timestamp. `Date.now()` has millisecond resolution,
+ * so two stages in the same tick would otherwise tie and fall back to the id
+ * tie-breaker, reordering an intentional dependency chain.
+ */
+function nextStagedTimestamp(): string {
+	const millis = Math.max(Date.now(), lastStagedMillis + 1);
+	lastStagedMillis = millis;
+	return new Date(millis).toISOString();
+}
+
+export async function stageSkillAction(
+	roots: SkillRoots,
+	params: SkillManageInput,
+	origin: SkillChangeOrigin,
+	path: string = skillQueuePath(),
+): Promise<{ record: PendingSkillChange; queueDepth: number }> {
+	// Preview against the projected state of the existing queue so a dependent
+	// change (write_file after a pending create) can stage. Every path, bound,
+	// lock, and containment check still runs against the real roots.
+	const existing = await loadSkillQueue(path);
+	const preview = await previewSkillAction(roots, params, buildQueueOverlay(existing.pending, roots));
+	const { action } = preview;
+	const diff = await unifiedDiff(action.relativeTarget, preview.previousContent, preview.nextContent);
+
+	const record: PendingSkillChange = {
+		id: randomUUID(),
+		action: action.action,
+		name: action.name,
+		scope: action.scope,
+		category: action.category,
+		gist: preview.gist,
+		origin: { sessionId: origin.sessionId, tool: "skill_manage", cwd: origin.cwd },
+		createdAt: nextStagedTimestamp(),
+		securityFlags: preview.securityFlags,
+		// Full raw replay payload — re-validated from scratch at approval time.
+		payload: { ...params, action: action.action, name: action.name, scope: action.scope },
+		skillsRoot: roots.skillsRoot,
+		agentsRoot: roots.agentsRoot,
+		lockPath: roots.lockPath,
+		skillDir: action.skillDir,
+		targetPath: action.targetPath,
+		relativeTarget: action.relativeTarget,
+		previousContent: preview.previousContent,
+		nextContent: preview.nextContent,
+		diff,
+	};
+
+	const queueDepth = await mutateSkillQueue((queue) => {
+		queue.pending.push(record);
+		return queue.pending.length;
+	}, path);
+
+	await emitSkillQueueChanged(path);
+	return { record, queueDepth };
+}
+
+// --- replay ----------------------------------------------------------------
+
+export type ReplayOutcome =
+	| { ok: true; message: string; applied: boolean; result?: SkillActionResult }
+	| { ok: false; error: string };
+
+/**
+ * Live authority for replaying staged changes.
+ *
+ * `trustedProjectCwd` must come from a live harness context — the current
+ * `ctx.cwd` observed while `ctx.isProjectTrusted()` is true. It must never be
+ * read back out of the user-writable queue file. `null` means "no trusted
+ * project is active right now", which makes every project-scoped record
+ * unreplayable (and therefore retained).
+ */
+export type SkillReplayAuthorization = {
+	trustedProjectCwd: string | null;
+};
+
+/** The safe default: global records replay, project records do not. */
+export const NO_REPLAY_AUTHORIZATION: SkillReplayAuthorization = { trustedProjectCwd: null };
+
+/** Build a replay authorization from a live command/tool context. */
+export function replayAuthorizationFor(ctx: { cwd: string; isProjectTrusted(): boolean }): SkillReplayAuthorization {
+	try {
+		return { trustedProjectCwd: ctx.isProjectTrusted() ? ctx.cwd : null };
+	} catch {
+		return NO_REPLAY_AUTHORIZATION;
+	}
+}
+
+/** realpath-resolved absolute form, used for every root/path comparison. */
+async function canonicalPath(path: string): Promise<string> {
+	return resolveExistingPrefix(resolve(path));
+}
+
+async function canonicalDirectory(path: unknown, label: string): Promise<string> {
+	if (typeof path !== "string" || path.trim() === "" || !isAbsolute(path)) {
+		throw new Error(`${label} is not an absolute path; refusing replay.`);
+	}
+	if (path.includes("\0") || path.split(/[\\/]+/).includes("..")) {
+		throw new Error(`${label} contains a traversing segment; refusing replay.`);
+	}
+	return canonicalPath(path);
+}
+
+/**
+ * Recompute the authoritative roots for a record from its validated scope and a
+ * LIVE authorization. Every persisted field — `origin.cwd`, `skillsRoot`,
+ * `agentsRoot`, `lockPath`, `skillDir`, `targetPath` — is an untrusted claim
+ * checked against this result, never a source of authority.
+ *
+ * Global records are self-contained: ~/dotfiles/skills plus derived paths.
+ * Project records require `authorization.trustedProjectCwd`; the roots are
+ * derived from that live cwd, and the record's staged origin must canonically
+ * resolve to the same directory.
+ */
+export async function canonicalReplayRoots(
+	record: PendingSkillChange,
+	authorization: SkillReplayAuthorization = NO_REPLAY_AUTHORIZATION,
+): Promise<SkillRoots> {
+	if (record.scope === "global") return resolveSkillRoots("global", homedir(), homedir());
+	if (record.scope !== "project") throw new Error(`Unknown scope '${String(record.scope)}' on queue record.`);
+
+	const stagedClaim = record.origin?.cwd ?? "";
+	const trusted = authorization?.trustedProjectCwd ?? null;
+	if (trusted === null) {
+		throw new Error(
+			`This project-scoped change was staged in ${stagedClaim === "" ? "another project" : displayPath(stagedClaim)}. ` +
+				"Keeping it queued: open that project with project trust enabled and run /skills-review there.",
+		);
+	}
+
+	// Authority: the live, verified trusted project directory.
+	const liveCwd = await canonicalDirectory(trusted, "Trusted project cwd");
+	// Claim: what the queue says it was staged against.
+	const stagedCwd = await canonicalDirectory(stagedClaim, "Queue record origin cwd");
+	if (liveCwd !== stagedCwd) {
+		throw new Error(
+			`This project-scoped change was staged in ${displayPath(stagedCwd)} but the current trusted project is ` +
+				`${displayPath(liveCwd)}. Keeping it queued: review it from the original trusted project.`,
+		);
+	}
+
+	return resolveSkillRoots("project", liveCwd);
+}
+
+export type ReplayRootsResolver = (record: PendingSkillChange) => SkillRoots | Promise<SkillRoots>;
+
+export type ReplayOptions = {
+	/** Live trusted-project authorization; omitted means "none". */
+	authorization?: SkillReplayAuthorization;
+	/** Explicit root resolver, for temp-directory tests. Takes precedence. */
+	resolveRoots?: ReplayRootsResolver;
+};
+
+let replayRootsResolver: ReplayRootsResolver | null = null;
+
+/**
+ * Inject the expected roots for replay. Intended only for temp-directory tests;
+ * production leaves this null and uses `canonicalReplayRoots`.
+ */
+export function setSkillReplayRootsResolver(resolver: ReplayRootsResolver | null): void {
+	replayRootsResolver = resolver;
+}
+
+export async function expectedReplayRoots(
+	record: PendingSkillChange,
+	options: ReplayOptions = {},
+): Promise<SkillRoots> {
+	const resolver = options.resolveRoots ?? replayRootsResolver;
+	if (resolver) return resolver(record);
+	return canonicalReplayRoots(record, options.authorization);
+}
+
+/** The record's own root and path claims must match the recomputed roots. */
+async function assertRecordRootsMatch(expected: SkillRoots, record: PendingSkillChange): Promise<void> {
+	const mismatches: string[] = [];
+	if ((await canonicalPath(record.skillsRoot)) !== (await canonicalPath(expected.skillsRoot))) mismatches.push("skillsRoot");
+	if ((await canonicalPath(record.agentsRoot)) !== (await canonicalPath(expected.agentsRoot))) mismatches.push("agentsRoot");
+	if ((await canonicalPath(record.lockPath)) !== (await canonicalPath(expected.lockPath))) mismatches.push("lockPath");
+	if (mismatches.length > 0) {
+		throw new Error(
+			`Queue record roots do not match the canonical roots for scope '${record.scope}' (${mismatches.join(", ")}); refusing replay.`,
+		);
+	}
+	const root = await canonicalPath(expected.skillsRoot);
+	if (!isUnder(root, await canonicalPath(record.skillDir))) {
+		throw new Error(`Queue record skillDir escapes ${expected.skillsRoot}; refusing replay.`);
+	}
+	if (!isUnder(root, await canonicalPath(record.targetPath))) {
+		throw new Error(`Queue record targetPath escapes ${expected.skillsRoot}; refusing replay.`);
+	}
+}
+
+async function currentStateFor(record: PendingSkillChange, action: ValidatedSkillAction) {
+	if (action.action === "delete") {
+		return {
+			exists: await pathExists(action.skillDir),
+			content: await readIfExists(join(action.skillDir, SKILL_FILE_NAME)),
+		};
+	}
+	return { exists: await pathExists(action.targetPath), content: await readIfExists(action.targetPath) };
+}
+
+/**
+ * Re-validate a persisted record from scratch and re-run the core executor.
+ *
+ * Never trusts the record: the roots are recomputed from scope and provenance,
+ * names, categories, paths, bounds, lock-file status, and realpath containment
+ * are all re-checked, and the recomputed target must match the one stored at
+ * stage time.
+ */
+export async function replayPendingChange(
+	record: PendingSkillChange,
+	options: ReplayOptions = {},
+): Promise<ReplayOutcome> {
+	try {
+		// Authority is the recomputed roots, not the persisted ones.
+		const roots = await expectedReplayRoots(record, options);
+		await assertRecordRootsMatch(roots, record);
+
+		const action = validateSkillAction(record.payload, roots);
+		if (action.action !== record.action || action.name !== record.name) {
+			return { ok: false, error: "Queue record disagrees with its payload; refusing replay." };
+		}
+		if (
+			(await canonicalPath(action.targetPath)) !== (await canonicalPath(record.targetPath)) ||
+			(await canonicalPath(action.skillDir)) !== (await canonicalPath(record.skillDir))
+		) {
+			return { ok: false, error: `Replay target changed (${action.targetPath} ≠ ${record.targetPath}); refusing replay.` };
+		}
+		await assertNotLockedSkill(roots, action);
+		await assertResolvedInside(roots.skillsRoot, action.skillDir);
+
+		const state = await currentStateFor(record, action);
+
+		// Planned idempotency: the intended end state may already be in place.
+		if (record.nextContent === null) {
+			if (!state.exists) {
+				return { ok: true, applied: false, message: `Nothing to do: ${action.relativeTarget || action.name} is already absent.` };
+			}
+		} else if (state.content !== null && state.content === record.nextContent) {
+			return { ok: true, applied: false, message: `Nothing to do: ${action.relativeTarget} already matches the staged content.` };
+		}
+
+		// Staleness: the target must still look the way it did when staged.
+		if (state.content !== record.previousContent) {
+			return {
+				ok: false,
+				error: `Stale — re-review: ${action.relativeTarget || action.name} changed on disk since this change was staged.`,
+			};
+		}
+
+		const result = await executeSkillAction(roots, record.payload);
+		return { ok: true, applied: true, message: result.message, result };
+	} catch (error) {
+		return { ok: false, error: errorMessage(error) };
+	}
+}
+
+// --- approve / reject ------------------------------------------------------
+
+export type ApprovalOutcome = ReplayOutcome & { removed: boolean };
+
+async function removeRecord(id: string, path: string): Promise<boolean> {
+	return mutateSkillQueue((queue) => {
+		const index = queue.pending.findIndex((item) => item.id === id);
+		if (index < 0) return false;
+		queue.pending.splice(index, 1);
+		return true;
+	}, path);
+}
+
+async function markRecordError(id: string, message: string, path: string): Promise<void> {
+	await mutateSkillQueue((queue) => {
+		const record = queue.pending.find((item) => item.id === id);
+		if (record) record.lastError = message;
+	}, path);
+}
+
+/** Replay one record; remove it only after a successful replay. */
+export async function approvePendingChange(
+	id: string,
+	path: string = skillQueuePath(),
+	options: ReplayOptions = {},
+): Promise<ApprovalOutcome> {
+	const queue = await loadSkillQueue(path);
+	const record = queue.pending.find((item) => item.id === id);
+	if (!record) {
+		// Another session already settled it — benign no-op.
+		return { ok: true, applied: false, removed: false, message: `Change ${id.slice(0, 8)} is no longer queued.` };
+	}
+
+	const outcome = await replayPendingChange(record, options);
+	if (outcome.ok) {
+		const removed = await removeRecord(id, path);
+		await emitSkillQueueChanged(path);
+		return { ...outcome, removed };
+	}
+
+	await markRecordError(id, outcome.error, path);
+	await emitSkillQueueChanged(path);
+	return { ...outcome, removed: false };
+}
+
+export type ApproveAllOutcome = {
+	approved: number;
+	remaining: number;
+	failure?: { id: string; name: string; error: string };
+};
+
+/** Oldest first; stops at the first failure and leaves the remainder intact. */
+export async function approveAllPendingChanges(
+	path: string = skillQueuePath(),
+	options: ReplayOptions = {},
+): Promise<ApproveAllOutcome> {
+	const initial = await loadSkillQueue(path);
+	let approved = 0;
+
+	for (const record of initial.pending) {
+		const outcome = await approvePendingChange(record.id, path, options);
+		if (!outcome.ok) {
+			return {
+				approved,
+				remaining: await pendingSkillChangeCount(path),
+				failure: { id: record.id, name: record.name, error: outcome.error },
+			};
+		}
+		approved++;
+	}
+
+	return { approved, remaining: await pendingSkillChangeCount(path) };
+}
+
+/** Drops a record. Never touches skill files. */
+export async function rejectPendingChange(id: string, path: string = skillQueuePath()): Promise<boolean> {
+	const removed = await removeRecord(id, path);
+	await emitSkillQueueChanged(path);
+	return removed;
+}
+
+/** Drops every record. Never touches skill files. */
+export async function rejectAllPendingChanges(path: string = skillQueuePath()): Promise<number> {
+	const count = await mutateSkillQueue((queue) => {
+		const total = queue.pending.length;
+		queue.pending = [];
+		return total;
+	}, path);
+	await emitSkillQueueChanged(path);
+	return count;
+}
+
+// --- stage-or-apply dispatch ----------------------------------------------
+
+export type DispatchOutcome =
+	| { staged: true; record: PendingSkillChange; queueDepth: number }
+	| { staged: false; result: SkillActionResult };
+
+/**
+ * With approval on (the default, and the safe default when the flag is absent
+ * or corrupt) all six actions stage. With approval off, unflagged actions apply
+ * immediately; security-flagged content always stages. This is Pi-specific
+ * hardening beyond Hermes.
+ */
+export async function dispatchSkillAction(
+	roots: SkillRoots,
+	params: SkillManageInput,
+	origin: SkillChangeOrigin,
+	path: string = skillQueuePath(),
+): Promise<DispatchOutcome> {
+	const approvalEnabled = await isSkillApprovalEnabled(path);
+	if (approvalEnabled) {
+		return { staged: true, ...(await stageSkillAction(roots, params, origin, path)) };
+	}
+
+	const preview = await previewSkillAction(roots, params);
+	if (preview.securityFlags.length > 0) {
+		return { staged: true, ...(await stageSkillAction(roots, params, origin, path)) };
+	}
+
+	return { staged: false, result: await executeSkillAction(roots, params) };
+}
+
+// ---------------------------------------------------------------------------
+// Review UI
+// ---------------------------------------------------------------------------
+
+export function formatAge(createdAt: string, now: number = Date.now()): string {
+	const then = Date.parse(createdAt);
+	if (Number.isNaN(then)) return "unknown";
+	const seconds = Math.max(0, Math.round((now - then) / 1000));
+	if (seconds < 60) return `${seconds}s`;
+	if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+	if (seconds < 86400) return `${Math.round(seconds / 3600)}h`;
+	return `${Math.round(seconds / 86400)}d`;
+}
+
+/** Oldest-first one-line listing used by /skills-queue and the widget. */
+export function formatQueueLines(pending: PendingSkillChange[], now: number = Date.now()): string[] {
+	return pending.map((item, index) => {
+		const flags = item.securityFlags.length > 0 ? ` ⚠ ${item.securityFlags.length} flag(s)` : "";
+		const failed = item.lastError ? ` ✗ ${item.lastError}` : "";
+		return `${index + 1}. [${item.id.slice(0, 8)}] ${item.action} ${item.name} — ${item.gist} (${formatAge(item.createdAt, now)} ago)${flags}${failed}`;
+	});
+}
+
+type ReviewChoice = "approve" | "reject" | "skip" | "approve-all" | "reject-all" | "quit" | undefined;
+
+class SkillDiffModal implements Component {
+	private scroll = 0;
+	private confirm: "approve-all" | "reject-all" | null = null;
+	private readonly diffLines: string[];
+
+	constructor(
+		private readonly theme: Theme,
+		private readonly change: PendingSkillChange,
+		private readonly total: number,
+		private readonly done: (result: ReviewChoice) => void,
+	) {
+		this.diffLines = change.diff.split("\n");
+	}
+
+	handleInput(data: string): void {
+		if (this.confirm !== null) {
+			const pending = this.confirm;
+			if (data === "y" || data === "Y") return this.done(pending);
+			this.confirm = null;
+			return;
+		}
+		if (matchesKey(data, "escape") || data === "q") return this.done("quit");
+		if (data === "a") return this.done("approve");
+		if (data === "r") return this.done("reject");
+		if (data === "s") return this.done("skip");
+		if (data === "A") {
+			this.confirm = "approve-all";
+			return;
+		}
+		if (data === "R") {
+			this.confirm = "reject-all";
+			return;
+		}
+		if (matchesKey(data, "up") || data === "k") this.scroll = Math.max(0, this.scroll - 1);
+		if (matchesKey(data, "down") || data === "j") this.scroll = Math.min(this.maxScroll(), this.scroll + 1);
+		if (matchesKey(data, "pageUp")) this.scroll = Math.max(0, this.scroll - 10);
+		if (matchesKey(data, "pageDown")) this.scroll = Math.min(this.maxScroll(), this.scroll + 10);
+	}
+
+	render(width: number): string[] {
+		const w = Math.max(60, Math.min(width - 2, 140));
+		const inner = w - 2;
+		const th = this.theme;
+		const row = (content = "") => th.fg("border", "│") + padAnsi(content, inner) + th.fg("border", "│");
+		const visibleRows = 24;
+		const shown = this.diffLines.slice(this.scroll, this.scroll + visibleRows);
+		const lines: string[] = [];
+
+		lines.push(th.fg("border", `╭${"─".repeat(inner)}╮`));
+		lines.push(
+			row(` ${th.fg("accent", th.bold(`Skill update: ${this.change.name}`))} ${th.fg("dim", `(${this.total} pending)`)}`),
+		);
+		lines.push(row(` ${th.fg("muted", "Gist:")} ${this.change.gist}`));
+		lines.push(
+			row(
+				` ${th.fg("muted", "Action:")} ${this.change.action}   ${th.fg("muted", "Target:")} ${displayPath(this.change.targetPath)}`,
+			),
+		);
+		lines.push(
+			row(
+				` ${th.fg("muted", "Staged:")} ${formatAge(this.change.createdAt)} ago   ${th.fg("muted", "Id:")} ${this.change.id.slice(0, 8)}`,
+			),
+		);
+		for (const flag of this.change.securityFlags) lines.push(row(` ${th.fg("warning", `⚠ ${flag}`)}`));
+		if (this.change.lastError) lines.push(row(` ${th.fg("error", `✗ ${this.change.lastError}`)}`));
+		lines.push(row(` ${th.fg("dim", "a approve • r reject • s skip • A approve-all • R reject-all • q/esc quit • ↑↓/j/k scroll")}`));
+		if (this.confirm !== null) {
+			lines.push(row(` ${th.fg("warning", `Confirm ${this.confirm.replace("-", " ")}? press y to confirm, any other key to cancel`)}`));
+		}
+		lines.push(row(th.fg("borderMuted", "─".repeat(Math.max(0, inner - 1)))));
+
+		for (const line of shown) lines.push(row(` ${this.styleDiffLine(line)}`));
+		for (let i = shown.length; i < visibleRows; i++) lines.push(row());
+
+		const position =
+			this.diffLines.length === 0
+				? "0/0"
+				: `${Math.min(this.scroll + visibleRows, this.diffLines.length)}/${this.diffLines.length}`;
+		lines.push(row(th.fg("dim", ` Diff lines ${position}`)));
+		lines.push(th.fg("border", `╰${"─".repeat(inner)}╯`));
+		return lines.map((line) => truncateToWidth(line, width, ""));
+	}
+
+	invalidate(): void {}
+
+	private maxScroll(): number {
+		return Math.max(0, this.diffLines.length - 1);
+	}
+
+	private styleDiffLine(line: string): string {
+		if (line.startsWith("+")) return this.theme.fg("toolDiffAdded", line);
+		if (line.startsWith("-")) return this.theme.fg("toolDiffRemoved", line);
+		if (line.startsWith("@@")) return this.theme.fg("accent", line);
+		if (line.startsWith("diff") || line.startsWith("---") || line.startsWith("+++")) return this.theme.fg("muted", line);
+		return this.theme.fg("toolDiffContext", line);
+	}
+}
+
+function padAnsi(value: string, width: number): string {
+	const truncated = truncateToWidth(value, width, "");
+	return truncated + " ".repeat(Math.max(0, width - visibleWidth(truncated)));
+}
+
+async function listQueue(ctx: ExtensionCommandContext): Promise<void> {
+	const queue = await loadSkillQueue();
+	if (queue.skipped > 0) {
+		ctx.ui.notify(`Skipped ${queue.skipped} malformed record(s) in ${displayPath(skillQueuePath())}.`, "warning");
+	}
+	if (queue.pending.length === 0) {
+		ctx.ui.notify("No pending skill updates.", "info");
+		ctx.ui.setWidget("skill-review-queue", undefined);
+		return;
+	}
+
+	const lines = formatQueueLines(queue.pending);
+	ctx.ui.notify(`${queue.pending.length} pending skill update(s).`, "info");
+	ctx.ui.setWidget(
+		"skill-review-queue",
+		["Pending skill updates (oldest first):", ...lines, "Run /skills-review to open the diff modal (or press Alt+S)."],
+		{ placement: "belowEditor" },
+	);
+}
+
+async function reviewQueue(ctx: ExtensionCommandContext): Promise<void> {
+	const skipped = new Set<string>();
+	// Live authority, re-read from the harness on every approval below.
+	const replayOptions = (): ReplayOptions => ({ authorization: replayAuthorizationFor(ctx) });
+
+	for (;;) {
+		// Reload every iteration: another session may have settled records.
+		const queue = await loadSkillQueue();
+		const change = queue.pending.find((item) => !skipped.has(item.id));
+		if (!change) {
+			ctx.ui.notify(queue.pending.length === 0 ? "No pending skill updates." : "No more changes to review.", "info");
+			if (queue.pending.length === 0) ctx.ui.setWidget("skill-review-queue", undefined);
+			return;
+		}
+
+		const result = await ctx.ui.custom<ReviewChoice>(
+			(_tui, theme, _keybindings, done) => new SkillDiffModal(theme, change, queue.pending.length, done),
+			{ overlay: true, overlayOptions: { width: "90%", maxHeight: "85%", anchor: "center", margin: 1 } },
+		);
+
+		if (result === "approve") {
+			const outcome = await approvePendingChange(change.id, skillQueuePath(), replayOptions());
+			if (outcome.ok) ctx.ui.notify(outcome.message, "info");
+			else {
+				ctx.ui.notify(`Approve failed for ${change.name}: ${outcome.error}`, "error");
+				skipped.add(change.id);
+			}
+			continue;
+		}
+
+		if (result === "reject") {
+			await rejectPendingChange(change.id);
+			ctx.ui.notify(`Rejected skill update: ${change.name}`, "info");
+			continue;
+		}
+
+		if (result === "approve-all") {
+			const outcome = await approveAllPendingChanges(skillQueuePath(), replayOptions());
+			if (outcome.failure) {
+				ctx.ui.notify(
+					`Approved ${outcome.approved}; stopped at ${outcome.failure.name}: ${outcome.failure.error}. ${outcome.remaining} left.`,
+					"error",
+				);
+				return;
+			}
+			ctx.ui.notify(`Approved ${outcome.approved} skill update(s).`, "info");
+			ctx.ui.setWidget("skill-review-queue", undefined);
+			return;
+		}
+
+		if (result === "reject-all") {
+			const count = await rejectAllPendingChanges();
+			ctx.ui.notify(`Rejected ${count} skill update(s); no files were changed.`, "info");
+			ctx.ui.setWidget("skill-review-queue", undefined);
+			return;
+		}
+
+		if (result === "skip") {
+			skipped.add(change.id);
+			continue;
+		}
+
+		return;
+	}
+}
+
+async function approvalCommand(args: string, ctx: ExtensionCommandContext): Promise<void> {
+	const mode = args.trim().toLowerCase();
+	if (mode === "" || mode === "status") {
+		const enabled = await isSkillApprovalEnabled();
+		const depth = await pendingSkillChangeCount();
+		ctx.ui.notify(`Skill write approval is ${enabled ? "on" : "off"}; ${depth} change(s) pending.`, "info");
+		return;
+	}
+	if (mode === "on" || mode === "off") {
+		await setSkillApprovalEnabled(mode === "on");
+		ctx.ui.notify(
+			mode === "on"
+				? "Skill write approval on: every skill_manage action stages for review."
+				: "Skill write approval off: unflagged actions apply immediately; security-flagged content still stages.",
+			mode === "on" ? "info" : "warning",
+		);
+		return;
+	}
+	ctx.ui.notify("Usage: /skills-approval [on|off|status]", "error");
+}
+
 // ---------------------------------------------------------------------------
 // Tool registration
 // ---------------------------------------------------------------------------
 
 type ToolContext = {
 	cwd: string;
+	sessionId?: string;
 	isProjectTrusted(): boolean;
 	ui?: { notify(message: string, level: "info" | "warning" | "error"): void };
 };
@@ -863,33 +2004,69 @@ export default function skillManage(pi: ExtensionAPI) {
 		name: "skill_manage",
 		label: "Skill Manage",
 		description: "Create, edit, patch, delete, and add supporting files to Pi Agent Skills.",
-		promptSnippet: "Create and maintain reusable Pi Agent Skills under ~/dotfiles/skills.",
+		promptSnippet: "Create and maintain reusable Pi Agent Skills under ~/dotfiles/skills; writes stage for user review.",
 		promptGuidelines: [
 			"Use skill_manage when the user asks to create, learn, edit, patch, or update a reusable Pi Agent Skill.",
 			"Use write_file only for supporting files under references/, templates/, scripts/, or assets/; SKILL.md is edited with create, edit, or patch.",
+			"With write approval on (default) every action stages for review; tell the user to run /skills-review (or press Alt+S) to approve.",
 			"Do not use skill_manage for ordinary project files; use write or edit instead.",
 		],
 		parameters: SkillManageParams,
 		async execute(_toolCallId, params: SkillManageInput, _signal, _onUpdate, ctx: ToolContext) {
 			const roots = rootsForToolContext(params, ctx);
-			const result = await executeSkillAction(roots, params);
+			const outcome = await dispatchSkillAction(roots, params, {
+				sessionId: typeof ctx.sessionId === "string" ? ctx.sessionId : undefined,
+				tool: "skill_manage",
+				cwd: ctx.cwd,
+			});
 
-			if (result.securityFlags.length > 0) {
-				ctx.ui?.notify(`skill_manage: ${result.securityFlags.length} security flag(s) on ${result.name}`, "warning");
-			} else {
-				ctx.ui?.notify(result.message, "info");
+			if (outcome.staged) {
+				const { record, queueDepth } = outcome;
+				ctx.ui?.notify(
+					record.securityFlags.length > 0
+						? `Queued ${record.action} for ${record.name} with ${record.securityFlags.length} security flag(s).`
+						: `Queued ${record.action} for ${record.name}.`,
+					"warning",
+				);
+
+				const lines = [
+					`Staged for review: ${record.gist}`,
+					`Nothing was written. ${queueDepth} change(s) pending — press Alt+S or run /skills-review to approve (fallback: /skills-queue to list).`,
+				];
+				if (record.securityFlags.length > 0) {
+					lines.push("", "Security flags (review required — this scan is a heuristic, not a sandbox):");
+					for (const flag of record.securityFlags) lines.push(`  - ${flag}`);
+				}
+
+				return {
+					content: [{ type: "text" as const, text: lines.join("\n") }],
+					details: {
+						queued: true,
+						id: record.id,
+						action: record.action,
+						name: record.name,
+						scope: record.scope,
+						gist: record.gist,
+						path: record.targetPath,
+						relativeTarget: record.relativeTarget,
+						securityFlags: record.securityFlags,
+						queueDepth,
+						diff: record.diff,
+						reloadRequired: false,
+					},
+				};
 			}
+
+			const result = outcome.result;
+			ctx.ui?.notify(result.message, "info");
 
 			const lines = [result.message];
-			if (result.securityFlags.length > 0) {
-				lines.push("", "Security flags (review required — this scan is a heuristic, not a sandbox):");
-				for (const flag of result.securityFlags) lines.push(`  - ${flag}`);
-			}
 			if (result.action === "create") lines.push("Run /reload to load it in this session.");
 
 			return {
 				content: [{ type: "text" as const, text: lines.join("\n") }],
 				details: {
+					queued: false,
 					action: result.action,
 					name: result.name,
 					scope: result.scope,
@@ -900,5 +2077,23 @@ export default function skillManage(pi: ExtensionAPI) {
 				},
 			};
 		},
+	});
+
+	pi.registerCommand("skills-review", {
+		description: "Review staged skill changes in a diff modal (a/r/s, A approve-all, R reject-all)",
+		handler: async (args, ctx) => {
+			if (args.trim() === "list") return listQueue(ctx);
+			await reviewQueue(ctx);
+		},
+	});
+
+	pi.registerCommand("skills-queue", {
+		description: "List staged skill changes, oldest first",
+		handler: async (_args, ctx) => listQueue(ctx),
+	});
+
+	pi.registerCommand("skills-approval", {
+		description: "Show or set skill write approval: /skills-approval [on|off|status]",
+		handler: async (args, ctx) => approvalCommand(args, ctx),
 	});
 }
