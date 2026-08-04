@@ -117,6 +117,7 @@ const {
 	clearSkillQueueListeners,
 	loadSkillQueue,
 	pendingSkillChanges,
+	preparePendingReviews,
 	setSkillApprovalEnabled,
 	setSkillProposalSelectionHandler,
 	setSkillQueuePath,
@@ -315,8 +316,13 @@ describe("registered /learn and skill_manage integration", () => {
 		expect(await pendingSkillChanges(queuePath)).toHaveLength(2);
 		expect(harness.statuses.at(-1)?.text).toBe("skills review: 2");
 
+		// Approve-all exactly as the review UI does: prepare the ordered snapshot
+		// set first, then approve bound to that frozen digest map.
+		const approvalOptions = { authorization: { trustedProjectCwd: project } };
+		const reviewed = await preparePendingReviews(await pendingSkillChanges(queuePath), approvalOptions);
 		const approval = await approveAllPendingChanges(queuePath, {
-			authorization: { trustedProjectCwd: project },
+			...approvalOptions,
+			reviewedDigests: Object.freeze(Object.fromEntries(reviewed.map((item) => [item.record.id, item.digest]))),
 		});
 		expect(approval).toMatchObject({ approved: 2, remaining: 0 });
 		expect(await pendingSkillChanges(queuePath)).toHaveLength(0);

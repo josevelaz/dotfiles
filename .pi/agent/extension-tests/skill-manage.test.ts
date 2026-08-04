@@ -5,7 +5,7 @@
  * Editor/overlay tests inject deps and never spawn a real editor.
  */
 import { afterEach, describe, expect, mock, test } from "bun:test";
-import { mkdir, mkdtemp, readFile, readlink, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, readlink, rm, symlink, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { basename, dirname, join, relative, resolve } from "node:path";
 
@@ -122,6 +122,7 @@ const skillManage = skillManageModule.default;
 const {
 	ALLOWED_SUPPORT_DIRS,
 	MAX_CONTENT_BYTES,
+	MISSING_REVIEWED_DIGEST_ERROR,
 	MAX_RELATIVE_PATH_DEPTH,
 	MAX_RELATIVE_PATH_LENGTH,
 	MAX_SKILL_NAME_LENGTH,
@@ -167,12 +168,15 @@ const {
 	pathExists,
 	pendingSkillChangeCount,
 	pendingSkillChanges,
+	preparePendingReview,
+	preparePendingReviews,
 	rejectAllPendingChanges,
 	rejectPendingChange,
 	renderProposalArtifact,
 	replayPendingChange,
 	resolveReviewEditor,
 	resolveSkillRoots,
+	reviewViewFor,
 	rootForScope,
 	rootsForToolContext,
 	scanSkillContent,
@@ -242,6 +246,66 @@ function testOrigin(cwd: string) {
 
 function tempReplay(roots: ReturnType<typeof skillRootsForBase>) {
 	return { resolveRoots: async () => roots };
+}
+
+/**
+ * Approve exactly the way the review UI does: prepare the authoritative review
+ * snapshot set for the queue as it stands, then approve the target record bound
+ * to the digest of ITS snapshot. Nothing here mints a digest; the digest only
+ * ever comes out of `preparePendingReviews`.
+ */
+async function reviewThenApprove(
+	id: string,
+	queuePath: string,
+	options: Record<string, unknown> = {},
+) {
+	const snapshots = await preparePendingReviews(await pendingSkillChanges(queuePath), options);
+	const reviewed = snapshots.find((item) => item.record.id === id);
+	return approvePendingChange(id, queuePath, { ...options, reviewedDigest: reviewed?.digest });
+}
+
+/**
+ * Approve-all exactly the way the review UI does: one frozen digest map built
+ * from the ordered snapshot set prepared before approval starts.
+ */
+async function reviewThenApproveAll(queuePath: string, options: Record<string, unknown> = {}) {
+	const snapshots = await preparePendingReviews(await pendingSkillChanges(queuePath), options);
+	const reviewedDigests = Object.freeze(
+		Object.fromEntries(snapshots.map((item) => [item.record.id, item.digest])),
+	);
+	return approveAllPendingChanges(queuePath, { ...options, reviewedDigests });
+}
+
+/** The verified review snapshot for one queued record. */
+async function reviewSnapshotFor(id: string, queuePath: string, options: Record<string, unknown> = {}) {
+	const pending = await pendingSkillChanges(queuePath);
+	const record = pending.find((item) => item.id === id)!;
+	return preparePendingReview(record, pending, options);
+}
+
+/**
+ * A snapshot-shaped value built directly from a fixture record, for the pure
+ * render tests that assert on exact artifact text.
+ */
+function fixtureSnapshot(
+	record: ReturnType<typeof fixtureRecord>,
+	overrides: Record<string, unknown> = {},
+): never {
+	return {
+		record,
+		roots: null,
+		action: null,
+		relativeTarget: record.relativeTarget,
+		previousContent: record.previousContent,
+		nextContent: record.nextContent,
+		securityFlags: record.securityFlags,
+		gist: record.gist,
+		diff: record.diff,
+		error: null,
+		mismatches: [],
+		digest: "fixture-digest",
+		...overrides,
+	} as never;
 }
 
 /** RFC 4122 v4 UUID in the shape produced by crypto.randomUUID(). */
@@ -994,7 +1058,7 @@ describe("skill_manage dependent staging and concurrency", () => {
 		expect(pending[1]!.id).toBe(written.record.id);
 		expect(Date.parse(pending[0]!.createdAt)).toBeLessThan(Date.parse(pending[1]!.createdAt));
 
-		const all = await approveAllPendingChanges(queue, tempReplay(roots));
+		const all = await reviewThenApproveAll(queue, tempReplay(roots));
 		expect(all.approved).toBe(2);
 		expect(all.remaining).toBe(0);
 		expect(all.failure).toBeUndefined();
@@ -1036,7 +1100,7 @@ describe("skill_manage replay and approve/reject", () => {
 		const queue = join(base, "skill-manage-queue.json");
 		const { record } = await stageSkillAction(roots, createParams("apply-me"), testOrigin(base), queue);
 
-		const outcome = await approvePendingChange(record.id, queue, tempReplay(roots));
+		const outcome = await reviewThenApprove(record.id, queue, tempReplay(roots));
 		expect(outcome.ok).toBe(true);
 		if (!outcome.ok) throw new Error(outcome.error);
 		expect(outcome.applied).toBe(true);
@@ -1054,7 +1118,7 @@ describe("skill_manage replay and approve/reject", () => {
 		await mkdir(join(base, ".agents"), { recursive: true });
 		await writeFile(roots.lockPath, JSON.stringify({ skills: { "lock-me": { source: "external" } } }), "utf8");
 
-		const outcome = await approvePendingChange(record.id, queue, tempReplay(roots));
+		const outcome = await reviewThenApprove(record.id, queue, tempReplay(roots));
 		expect(outcome.ok).toBe(false);
 		expect(outcome.removed).toBe(false);
 		expect(await pathExists(join(roots.skillsRoot, "lock-me"))).toBe(false);
@@ -1074,7 +1138,7 @@ describe("skill_manage replay and approve/reject", () => {
 		raw.pending[0]!.skillsRoot = "/tmp/skill-manage-hostile-root";
 		await writeRawQueue(queue, raw);
 
-		const rootOutcome = await approvePendingChange(rootRecord.id, queue, tempReplay(roots));
+		const rootOutcome = await reviewThenApprove(rootRecord.id, queue, tempReplay(roots));
 		expect(rootOutcome.ok).toBe(false);
 		expect(rootOutcome.removed).toBe(false);
 		expect((await pendingSkillChanges(queue))[0]!.lastError).toMatch(/roots do not match|refusing replay/i);
@@ -1088,7 +1152,7 @@ describe("skill_manage replay and approve/reject", () => {
 		rawPayload.pending[0]!.payload.skill_content = "x".repeat(MAX_CONTENT_BYTES + 1);
 		await writeRawQueue(queue, rawPayload);
 
-		const payloadOutcome = await approvePendingChange(payloadRecord.id, queue, tempReplay(roots));
+		const payloadOutcome = await reviewThenApprove(payloadRecord.id, queue, tempReplay(roots));
 		expect(payloadOutcome.ok).toBe(false);
 		expect(payloadOutcome.removed).toBe(false);
 		expect((await pendingSkillChanges(queue))[0]!.lastError).toMatch(/KiB limit|refusing|required/i);
@@ -1130,12 +1194,12 @@ describe("skill_manage replay and approve/reject", () => {
 
 		await writeRawQueue(queue, { version: SKILL_QUEUE_VERSION, pending: [traversal, oversize] });
 
-		const t = await approvePendingChange(traversal.id, queue, tempReplay(roots));
+		const t = await reviewThenApprove(traversal.id, queue, tempReplay(roots));
 		expect(t.ok).toBe(false);
 		expect(t.removed).toBe(false);
 		expect(await pathExists(join(roots.skillsRoot, "escape.sh"))).toBe(false);
 
-		const o = await approvePendingChange(oversize.id, queue, tempReplay(roots));
+		const o = await reviewThenApprove(oversize.id, queue, tempReplay(roots));
 		expect(o.ok).toBe(false);
 		expect(o.removed).toBe(false);
 		expect(await pathExists(join(roots.skillsRoot, "oversize-me"))).toBe(false);
@@ -1155,7 +1219,7 @@ describe("skill_manage replay and approve/reject", () => {
 		);
 
 		await writeFile(join(roots.skillsRoot, "stale-target", "SKILL.md"), "# Diverged on disk\n", "utf8");
-		const outcome = await approvePendingChange(record.id, queue, tempReplay(roots));
+		const outcome = await reviewThenApprove(record.id, queue, tempReplay(roots));
 		expect(outcome.ok).toBe(false);
 		expect(outcome.removed).toBe(false);
 		expect(await readFile(join(roots.skillsRoot, "stale-target", "SKILL.md"), "utf8")).toBe("# Diverged on disk\n");
@@ -1189,7 +1253,7 @@ describe("skill_manage replay and approve/reject", () => {
 			testOrigin(base),
 			queue,
 		);
-		const explicit = await approvePendingChange(explicitRecord.id, queue, tempReplay(explicitRoots));
+		const explicit = await reviewThenApprove(explicitRecord.id, queue, tempReplay(explicitRoots));
 		expect(explicit.ok).toBe(true);
 		expect(await pathExists(join(explicitRoots.skillsRoot, "explicit-root", "SKILL.md"))).toBe(true);
 
@@ -1203,21 +1267,21 @@ describe("skill_manage replay and approve/reject", () => {
 		);
 		expect(projectRecord.scope).toBe("project");
 
-		const untrusted = await approvePendingChange(projectRecord.id, projectQueue, {
+		const untrusted = await reviewThenApprove(projectRecord.id, projectQueue, {
 			authorization: NO_REPLAY_AUTHORIZATION,
 		});
 		expect(untrusted.ok).toBe(false);
 		expect(untrusted.removed).toBe(false);
 		expect((await pendingSkillChanges(projectQueue))[0]!.lastError).toMatch(/trusted project|Keeping it queued/i);
 
-		const mismatched = await approvePendingChange(projectRecord.id, projectQueue, {
+		const mismatched = await reviewThenApprove(projectRecord.id, projectQueue, {
 			authorization: { trustedProjectCwd: other },
 		});
 		expect(mismatched.ok).toBe(false);
 		expect(mismatched.removed).toBe(false);
 		expect((await pendingSkillChanges(projectQueue))[0]!.lastError).toMatch(/original trusted project|staged in/i);
 
-		const matched = await approvePendingChange(projectRecord.id, projectQueue, {
+		const matched = await reviewThenApprove(projectRecord.id, projectQueue, {
 			authorization: { trustedProjectCwd: base },
 		});
 		expect(matched.ok).toBe(true);
@@ -1235,7 +1299,7 @@ describe("skill_manage replay and approve/reject", () => {
 
 		const { record: createRecord } = await stageSkillAction(roots, createParams("already-there"), origin, queue);
 		await executeCreate(roots, createParams("already-there"));
-		const createOutcome = await approvePendingChange(createRecord.id, queue, tempReplay(roots));
+		const createOutcome = await reviewThenApprove(createRecord.id, queue, tempReplay(roots));
 		expect(createOutcome.ok).toBe(true);
 		if (!createOutcome.ok) throw new Error(createOutcome.error);
 		expect(createOutcome.applied).toBe(false);
@@ -1261,7 +1325,7 @@ describe("skill_manage replay and approve/reject", () => {
 			name: "already-there",
 			file_path: "scripts/gone.sh",
 		});
-		const removeOutcome = await approvePendingChange(removeRecord.id, queue, tempReplay(roots));
+		const removeOutcome = await reviewThenApprove(removeRecord.id, queue, tempReplay(roots));
 		expect(removeOutcome.ok).toBe(true);
 		if (!removeOutcome.ok) throw new Error(removeOutcome.error);
 		expect(removeOutcome.applied).toBe(false);
@@ -1283,7 +1347,7 @@ describe("skill_manage replay and approve/reject", () => {
 		await mkdir(join(base, ".agents"), { recursive: true });
 		await writeFile(roots.lockPath, JSON.stringify({ skills: { "approve-b": { source: "external" } } }), "utf8");
 
-		const all = await approveAllPendingChanges(queue, tempReplay(roots));
+		const all = await reviewThenApproveAll(queue, tempReplay(roots));
 		expect(all.approved).toBe(1);
 		expect(all.remaining).toBe(2);
 		expect(all.failure?.name).toBe("approve-b");
@@ -1864,7 +1928,7 @@ describe("proposal artifact render", () => {
 			createdAt: "2026-08-04T11:00:00.000Z",
 			nextContent: "# Meta\n",
 		});
-		const body = renderProposalArtifact(record, now);
+		const body = renderProposalArtifact(fixtureSnapshot(record), now);
 		expect(body).toContain(`**${REVIEW_ARTIFACT_WARNING}**`);
 		expect(body).toContain("- Id: aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
 		expect(body).toContain("- Action: create");
@@ -1884,7 +1948,7 @@ describe("proposal artifact render", () => {
 			nextContent: "# New\n\nBody with ```fence``` inside\n",
 			diff: "",
 		});
-		const createBody = renderProposalArtifact(create, now);
+		const createBody = renderProposalArtifact(fixtureSnapshot(create), now);
 		expect(createBody).toContain("## Proposed resulting SKILL.md");
 		expect(createBody).toContain("Body with ```fence``` inside");
 		expect(createBody).toMatch(/````markdown/);
@@ -1896,7 +1960,7 @@ describe("proposal artifact render", () => {
 			nextContent: "# New\n",
 			diff: "--- a/SKILL.md\n+++ b/SKILL.md\n@@ -1 +1 @@\n-# Old\n+# New\n",
 		});
-		const editBody = renderProposalArtifact(edit, now);
+		const editBody = renderProposalArtifact(fixtureSnapshot(edit), now);
 		expect(editBody).toContain("## Diff");
 		expect(editBody).toContain("```diff");
 		expect(editBody).toContain("# New");
@@ -1907,7 +1971,7 @@ describe("proposal artifact render", () => {
 			nextContent: "b\n",
 			diff: "--- a/SKILL.md\n+++ b/SKILL.md\n",
 		});
-		expect(renderProposalArtifact(patch, now)).toContain("## Proposed resulting SKILL.md");
+		expect(renderProposalArtifact(fixtureSnapshot(patch), now)).toContain("## Proposed resulting SKILL.md");
 	});
 
 	test("write_file shows target/content/diff; remove_file/delete list removals", () => {
@@ -1921,7 +1985,7 @@ describe("proposal artifact render", () => {
 			diff: "--- a/scripts/run.sh\n+++ b/scripts/run.sh\n",
 			payload: { action: "write_file", name: "fixture", file_path: "scripts/run.sh", file_content: "echo new\n" },
 		});
-		const writeBody = renderProposalArtifact(write, now);
+		const writeBody = renderProposalArtifact(fixtureSnapshot(write), now);
 		expect(writeBody).toContain("## Proposed supporting file: scripts/run.sh");
 		expect(writeBody).toContain("echo new");
 		expect(writeBody).toContain("## Diff");
@@ -1934,7 +1998,7 @@ describe("proposal artifact render", () => {
 			nextContent: null,
 			payload: { action: "remove_file", name: "fixture", file_path: "references/a.md" },
 		});
-		const removeBody = renderProposalArtifact(remove, now);
+		const removeBody = renderProposalArtifact(fixtureSnapshot(remove), now);
 		expect(removeBody).toContain("## Removals");
 		expect(removeBody).toContain("`references/a.md`");
 		expect(removeBody).toContain("## Current content that would be lost");
@@ -1946,7 +2010,7 @@ describe("proposal artifact render", () => {
 			nextContent: null,
 			payload: { action: "delete", name: "fixture" },
 		});
-		const delBody = renderProposalArtifact(del, now);
+		const delBody = renderProposalArtifact(fixtureSnapshot(del), now);
 		expect(delBody).toContain("entire skill directory");
 		expect(delBody).toContain("`.agents/skills` symlink");
 		expect(delBody).toContain("# doomed");
@@ -1990,6 +2054,7 @@ describe("review editor lifecycle", () => {
 		await openProposalInReviewEditor(
 			{
 				record,
+				snapshot: await reviewSnapshotFor(record.id, queuePath, tempReplay(roots)),
 				ctx: {
 					ui: {
 						notify(message: string) {
@@ -2046,6 +2111,7 @@ describe("review editor lifecycle", () => {
 			await openProposalInReviewEditor(
 				{
 					record,
+					snapshot: fixtureSnapshot(record),
 					ctx: {
 						ui: {
 							notify(message: string, level: string) {
@@ -2116,6 +2182,7 @@ describe("review editor lifecycle", () => {
 		setSkillProposalSelectionHandler(null);
 		await handleSkillProposalSelection({
 			record,
+			snapshot: fixtureSnapshot(record),
 			ctx: {
 				ui: {
 					notify(message: string) {
@@ -2135,5 +2202,421 @@ describe("review editor lifecycle", () => {
 		expect(calls).toEqual(["stop", "start", "render:true"]);
 		expect(suspendTuiForForeground(undefined)).toBeTypeOf("function");
 		suspendTuiForForeground(undefined)();
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Digest binding: approval is bound to the exact reviewed snapshot
+// ---------------------------------------------------------------------------
+
+describe("skill_manage reviewed-digest binding", () => {
+	test("hostile payload under the benign reviewed digest never approves and the snapshot shows the hostile flags", async () => {
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+		const queue = join(base, "skill-manage-queue.json");
+		const { record } = await stageSkillAction(roots, createParams("benign-face"), testOrigin(base), queue);
+
+		// The digest of the benign proposal the user actually saw.
+		const benign = (await preparePendingReviews(await pendingSkillChanges(queue), tempReplay(roots)))[0]!;
+		expect(benign.securityFlags).toEqual([]);
+		expect(benign.error).toBeNull();
+
+		// Swap only the replay payload; every persisted review field stays benign.
+		const raw = JSON.parse(await readFile(queue, "utf8")) as {
+			pending: Array<{ payload: Record<string, unknown> }>;
+		};
+		raw.pending[0]!.payload.skill_content = HOSTILE_BODY;
+		await writeRawQueue(queue, raw);
+
+		// The authoritative snapshot exposes the hostile content and its flags.
+		const hostile = (await preparePendingReviews(await pendingSkillChanges(queue), tempReplay(roots)))[0]!;
+		expect(hostile.nextContent).toBe(normalizeContent(HOSTILE_BODY));
+		expect(hostile.securityFlags.length).toBeGreaterThan(0);
+		expect(hostile.securityFlags.join("\n")).toMatch(/Pipes remote content directly into a shell/i);
+		expect(hostile.mismatches).toContain("nextContent");
+		expect(hostile.mismatches).toContain("securityFlags");
+		expect(hostile.digest).not.toBe(benign.digest);
+
+		// Approving under the benign digest applies nothing and retains the record.
+		const underBenign = await approvePendingChange(record.id, queue, {
+			...tempReplay(roots),
+			reviewedDigest: benign.digest,
+		});
+		expect(underBenign.ok).toBe(false);
+		expect(underBenign.removed).toBe(false);
+		expect(await pathExists(join(roots.skillsRoot, "benign-face"))).toBe(false);
+
+		// Approving under the hostile snapshot's own digest still fails as tampered.
+		const underHostile = await approvePendingChange(record.id, queue, {
+			...tempReplay(roots),
+			reviewedDigest: hostile.digest,
+		});
+		expect(underHostile.ok).toBe(false);
+		if (underHostile.ok) throw new Error("hostile record must not apply");
+		expect(underHostile.error).toMatch(/Tampered/i);
+		expect(await pathExists(join(roots.skillsRoot, "benign-face"))).toBe(false);
+		expect(await pendingSkillChangeCount(queue)).toBe(1);
+	});
+
+	test("payload changed after snapshot review retains the record", async () => {
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+		const queue = join(base, "skill-manage-queue.json");
+		const { record } = await stageSkillAction(roots, createParams("payload-drift"), testOrigin(base), queue);
+
+		const reviewed = (await preparePendingReviews(await pendingSkillChanges(queue), tempReplay(roots)))[0]!;
+
+		const raw = JSON.parse(await readFile(queue, "utf8")) as {
+			pending: Array<{ payload: Record<string, unknown> }>;
+		};
+		raw.pending[0]!.payload.skill_content = "# Swapped after review\n";
+		await writeRawQueue(queue, raw);
+
+		const outcome = await approvePendingChange(record.id, queue, {
+			...tempReplay(roots),
+			reviewedDigest: reviewed.digest,
+		});
+		expect(outcome.ok).toBe(false);
+		if (outcome.ok) throw new Error("drifted payload must not apply");
+		expect(outcome.error).toMatch(/changed since it was reviewed/i);
+		expect(outcome.removed).toBe(false);
+		expect(await pathExists(join(roots.skillsRoot, "payload-drift"))).toBe(false);
+		expect(await pendingSkillChangeCount(queue)).toBe(1);
+	});
+
+	test("persisted claims changed after snapshot review retains the record", async () => {
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+		const queue = join(base, "skill-manage-queue.json");
+		const { record } = await stageSkillAction(roots, createParams("claim-drift"), testOrigin(base), queue);
+
+		const reviewed = (await preparePendingReviews(await pendingSkillChanges(queue), tempReplay(roots)))[0]!;
+
+		const raw = JSON.parse(await readFile(queue, "utf8")) as {
+			pending: Array<Record<string, unknown>>;
+		};
+		raw.pending[0]!.gist = "create skill 'claim-drift': entirely harmless";
+		raw.pending[0]!.diff = "(no textual diff)";
+		raw.pending[0]!.previousContent = "# Pretend prior content\n";
+		await writeRawQueue(queue, raw);
+
+		const rederived = (await preparePendingReviews(await pendingSkillChanges(queue), tempReplay(roots)))[0]!;
+		expect(rederived.mismatches).toContain("gist");
+		expect(rederived.mismatches).toContain("diff");
+		expect(rederived.mismatches).toContain("previousContent");
+		expect(rederived.digest).not.toBe(reviewed.digest);
+
+		const outcome = await approvePendingChange(record.id, queue, {
+			...tempReplay(roots),
+			reviewedDigest: reviewed.digest,
+		});
+		expect(outcome.ok).toBe(false);
+		expect(outcome.removed).toBe(false);
+		expect(await pathExists(join(roots.skillsRoot, "claim-drift"))).toBe(false);
+		expect(await pendingSkillChangeCount(queue)).toBe(1);
+	});
+
+	test("untampered stage then prepared snapshot then approve applies the change", async () => {
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+		const queue = join(base, "skill-manage-queue.json");
+		const { record } = await stageSkillAction(roots, createParams("clean-apply"), testOrigin(base), queue);
+
+		const reviewed = (await preparePendingReviews(await pendingSkillChanges(queue), tempReplay(roots)))[0]!;
+		expect(reviewed.error).toBeNull();
+		expect(reviewed.mismatches).toEqual([]);
+
+		const outcome = await approvePendingChange(record.id, queue, {
+			...tempReplay(roots),
+			reviewedDigest: reviewed.digest,
+		});
+		expect(outcome.ok).toBe(true);
+		if (!outcome.ok) throw new Error(outcome.error);
+		expect(outcome.applied).toBe(true);
+		expect(outcome.removed).toBe(true);
+		expect(await readFile(join(roots.skillsRoot, "clean-apply", "SKILL.md"), "utf8")).toBe(
+			normalizeContent(SKILL_BODY),
+		);
+		expect(await readlink(join(roots.agentsRoot, "clean-apply"))).toBe(
+			relative(roots.agentsRoot, join(roots.skillsRoot, "clean-apply")),
+		);
+		expect(await pendingSkillChangeCount(queue)).toBe(0);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Predecessor chains: relation comes from canonical actions, never claims
+// ---------------------------------------------------------------------------
+
+describe("skill_manage predecessor verification", () => {
+	/** Stage create('chain-skill') then write_file into the same skill. */
+	async function stageChain(base: string, roots: ReturnType<typeof skillRootsForBase>, queue: string) {
+		const origin = testOrigin(base);
+		const created = await stageSkillAction(roots, createParams("chain-skill"), origin, queue);
+		const written = await stageSkillAction(
+			roots,
+			{
+				action: "write_file",
+				name: "chain-skill",
+				file_path: "scripts/run.sh",
+				file_content: "#!/bin/sh\necho chain\n",
+			},
+			origin,
+			queue,
+		);
+		return { created, written };
+	}
+
+	test("tampered predecessor in a staged create then write_file fails the dependent review closed", async () => {
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+		const queue = join(base, "skill-manage-queue.json");
+		const { written } = await stageChain(base, roots, queue);
+
+		// Break the create's payload so it can no longer be validated.
+		const raw = JSON.parse(await readFile(queue, "utf8")) as {
+			pending: Array<{ payload: Record<string, unknown> }>;
+		};
+		raw.pending[0]!.payload.skill_content = "z".repeat(MAX_CONTENT_BYTES + 1);
+		await writeRawQueue(queue, raw);
+
+		const pending = await pendingSkillChanges(queue);
+		const dependent = pending.find((item) => item.id === written.record.id)!;
+		const snapshot = await preparePendingReview(dependent, pending, tempReplay(roots));
+		expect(snapshot.error).toMatch(/Depends on an earlier queued change \(create chain-skill\)/i);
+
+		const outcome = await approvePendingChange(dependent.id, queue, {
+			...tempReplay(roots),
+			reviewedDigest: snapshot.digest,
+		});
+		expect(outcome.ok).toBe(false);
+		expect(outcome.removed).toBe(false);
+		expect(await pathExists(join(roots.skillsRoot, "chain-skill"))).toBe(false);
+		expect(await pendingSkillChangeCount(queue)).toBe(2);
+	});
+
+	test("tampered predecessor with a decoy skillDir claim still fails the dependent review closed", async () => {
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+		const queue = join(base, "skill-manage-queue.json");
+		const { written } = await stageChain(base, roots, queue);
+
+		// Rewrite only the predecessor's persisted path claims so a relation test
+		// based on those claims would call it unrelated. The payload still targets
+		// chain-skill, so the canonical relation must still hold.
+		const decoyDir = join(roots.skillsRoot, "unrelated-decoy");
+		const raw = JSON.parse(await readFile(queue, "utf8")) as {
+			pending: Array<Record<string, unknown>>;
+		};
+		raw.pending[0]!.skillDir = decoyDir;
+		raw.pending[0]!.targetPath = join(decoyDir, "SKILL.md");
+		raw.pending[0]!.relativeTarget = join("unrelated-decoy", "SKILL.md");
+		await writeRawQueue(queue, raw);
+
+		const pending = await pendingSkillChanges(queue);
+		const dependent = pending.find((item) => item.id === written.record.id)!;
+		const snapshot = await preparePendingReview(dependent, pending, tempReplay(roots));
+		expect(snapshot.error).toMatch(/Depends on an earlier queued change \(create chain-skill\)/i);
+
+		const outcome = await approvePendingChange(dependent.id, queue, {
+			...tempReplay(roots),
+			reviewedDigest: snapshot.digest,
+		});
+		expect(outcome.ok).toBe(false);
+		expect(outcome.removed).toBe(false);
+		expect(await pathExists(join(roots.skillsRoot, "chain-skill"))).toBe(false);
+		expect(await pathExists(decoyDir)).toBe(false);
+	});
+
+	test("an unrelated malformed predecessor stays isolated and the later record still approves", async () => {
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+		const queue = join(base, "skill-manage-queue.json");
+		const origin = testOrigin(base);
+
+		await stageSkillAction(roots, createParams("decoy-skill"), origin, queue);
+		const { record } = await stageSkillAction(roots, createParams("isolated-good"), origin, queue);
+
+		const raw = JSON.parse(await readFile(queue, "utf8")) as {
+			pending: Array<{ payload: Record<string, unknown> }>;
+		};
+		raw.pending[0]!.payload.skill_content = "z".repeat(MAX_CONTENT_BYTES + 1);
+		await writeRawQueue(queue, raw);
+
+		const pending = await pendingSkillChanges(queue);
+		const later = pending.find((item) => item.id === record.id)!;
+		const snapshot = await preparePendingReview(later, pending, tempReplay(roots));
+		expect(snapshot.error).toBeNull();
+		expect(snapshot.mismatches).toEqual([]);
+
+		const outcome = await approvePendingChange(later.id, queue, {
+			...tempReplay(roots),
+			reviewedDigest: snapshot.digest,
+		});
+		expect(outcome.ok).toBe(true);
+		if (!outcome.ok) throw new Error(outcome.error);
+		expect(await pathExists(join(roots.skillsRoot, "isolated-good", "SKILL.md"))).toBe(true);
+		expect(await pathExists(join(roots.skillsRoot, "decoy-skill"))).toBe(false);
+		expect(await pendingSkillChangeCount(queue)).toBe(1);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// approve-all requires the frozen digest map of the reviewed snapshot set
+// ---------------------------------------------------------------------------
+
+describe("skill_manage approve-all digest map", () => {
+	test("approve-all without a reviewed digest map applies nothing", async () => {
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+		const queue = join(base, "skill-manage-queue.json");
+		const origin = testOrigin(base);
+		await stageSkillAction(roots, createParams("nomap-a"), origin, queue);
+		await stageSkillAction(roots, createParams("nomap-b"), origin, queue);
+
+		const outcome = await approveAllPendingChanges(queue, tempReplay(roots));
+		expect(outcome.approved).toBe(0);
+		expect(outcome.remaining).toBe(2);
+		expect(outcome.failure?.name).toBe("nomap-a");
+		expect(outcome.failure?.error).toBe(MISSING_REVIEWED_DIGEST_ERROR);
+		expect(await pathExists(join(roots.skillsRoot, "nomap-a"))).toBe(false);
+		expect(await pathExists(join(roots.skillsRoot, "nomap-b"))).toBe(false);
+		expect(await pathExists(roots.agentsRoot)).toBe(false);
+	});
+
+	test("approve-all with a digest missing for the oldest record applies nothing", async () => {
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+		const queue = join(base, "skill-manage-queue.json");
+		const origin = testOrigin(base);
+		await stageSkillAction(roots, createParams("partial-a"), origin, queue);
+		await stageSkillAction(roots, createParams("partial-b"), origin, queue);
+
+		const snapshots = await preparePendingReviews(await pendingSkillChanges(queue), tempReplay(roots));
+		const partial = Object.freeze(
+			Object.fromEntries(snapshots.slice(1).map((item) => [item.record.id, item.digest])),
+		);
+
+		const outcome = await approveAllPendingChanges(queue, { ...tempReplay(roots), reviewedDigests: partial });
+		expect(outcome.approved).toBe(0);
+		expect(outcome.remaining).toBe(2);
+		expect(outcome.failure?.name).toBe("partial-a");
+		expect(outcome.failure?.error).toBe(MISSING_REVIEWED_DIGEST_ERROR);
+		expect(await pathExists(join(roots.skillsRoot, "partial-a"))).toBe(false);
+		expect(await pathExists(join(roots.skillsRoot, "partial-b"))).toBe(false);
+	});
+
+	test("approve-all with the full frozen digest map applies oldest-first", async () => {
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+		const queue = join(base, "skill-manage-queue.json");
+		const origin = testOrigin(base);
+		await stageSkillAction(roots, createParams("full-map"), origin, queue);
+		await stageSkillAction(
+			roots,
+			{
+				action: "write_file",
+				name: "full-map",
+				file_path: "scripts/run.sh",
+				file_content: "#!/bin/sh\necho full\n",
+			},
+			origin,
+			queue,
+		);
+
+		const snapshots = await preparePendingReviews(await pendingSkillChanges(queue), tempReplay(roots));
+		expect(snapshots.map((item) => item.record.action)).toEqual(["create", "write_file"]);
+		const reviewedDigests = Object.freeze(
+			Object.fromEntries(snapshots.map((item) => [item.record.id, item.digest])),
+		);
+
+		const outcome = await approveAllPendingChanges(queue, { ...tempReplay(roots), reviewedDigests });
+		expect(outcome.approved).toBe(2);
+		expect(outcome.remaining).toBe(0);
+		expect(outcome.failure).toBeUndefined();
+		expect(await readFile(join(roots.skillsRoot, "full-map", "SKILL.md"), "utf8")).toBe(normalizeContent(SKILL_BODY));
+		expect(await readFile(join(roots.skillsRoot, "full-map", "scripts", "run.sh"), "utf8")).toBe(
+			"#!/bin/sh\necho full\n",
+		);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Agent-tree escapes: .agents and .agents/skills may never be followed
+// ---------------------------------------------------------------------------
+
+describe("skill_manage agent tree escapes", () => {
+	/** A directory outside every skills root, used as the escape destination. */
+	async function makeCapturedDir(): Promise<string> {
+		const outside = await makeTempRoot("pi-skill-escape-outside-");
+		const captured = join(outside, "captured");
+		await mkdir(captured, { recursive: true });
+		return captured;
+	}
+
+	test("a .agents symlink escape blocks create and delete with no outside change", async () => {
+		const captured = await makeCapturedDir();
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+
+		// A legitimate skill first, while the agent tree is still honest.
+		await executeCreate(roots, createParams("escape-delete"));
+		await rm(join(base, ".agents"), { recursive: true, force: true });
+		await symlink(captured, join(base, ".agents"));
+
+		await expect(executeCreate(roots, createParams("escape-create"))).rejects.toThrow(/Refusing to touch \.agents/i);
+		expect(await pathExists(join(roots.skillsRoot, "escape-create"))).toBe(false);
+
+		await expect(executeDelete(roots, { action: "delete", name: "escape-delete" })).rejects.toThrow(
+			/Refusing to touch \.agents/i,
+		);
+		expect(await readFile(join(roots.skillsRoot, "escape-delete", "SKILL.md"), "utf8")).toBe(
+			normalizeContent(SKILL_BODY),
+		);
+		expect(await readdir(captured)).toEqual([]);
+	});
+
+	test("a .agents/skills symlink escape blocks create and delete with no outside change", async () => {
+		const captured = await makeCapturedDir();
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+
+		await executeCreate(roots, createParams("skills-escape-delete"));
+		await rm(roots.agentsRoot, { recursive: true, force: true });
+		await symlink(captured, roots.agentsRoot);
+
+		await expect(executeCreate(roots, createParams("skills-escape-create"))).rejects.toThrow(
+			/Refusing to touch \.agents\/skills/i,
+		);
+		expect(await pathExists(join(roots.skillsRoot, "skills-escape-create"))).toBe(false);
+
+		await expect(executeDelete(roots, { action: "delete", name: "skills-escape-delete" })).rejects.toThrow(
+			/Refusing to touch \.agents\/skills/i,
+		);
+		expect(await readFile(join(roots.skillsRoot, "skills-escape-delete", "SKILL.md"), "utf8")).toBe(
+			normalizeContent(SKILL_BODY),
+		);
+		expect(await readdir(captured)).toEqual([]);
+	});
+
+	test("edit never mutates an escaped agent tree and leaves SKILL.md untouched", async () => {
+		const captured = await makeCapturedDir();
+		const base = await makeTempRoot();
+		const roots = skillRootsForBase(base);
+
+		await executeCreate(roots, createParams("edit-escape"));
+		await rm(roots.agentsRoot, { recursive: true, force: true });
+		await symlink(captured, roots.agentsRoot);
+
+		await expect(
+			executeEdit(roots, { action: "edit", name: "edit-escape", skill_content: "# Rewritten\n" }),
+		).rejects.toThrow(/Refusing to touch \.agents\/skills/i);
+
+		// The intended skill-file semantics: edit touches SKILL.md and nothing else.
+		expect(await readFile(join(roots.skillsRoot, "edit-escape", "SKILL.md"), "utf8")).toBe(
+			normalizeContent(SKILL_BODY),
+		);
+		expect(await readdir(captured)).toEqual([]);
+		expect(await readdir(join(roots.skillsRoot, "edit-escape"))).toEqual(["SKILL.md"]);
 	});
 });

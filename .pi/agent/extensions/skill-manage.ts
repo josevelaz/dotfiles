@@ -35,7 +35,7 @@ import {
 	type SelectItem,
 } from "@earendil-works/pi-tui";
 import { execFile, spawn } from "node:child_process";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { constants } from "node:fs";
 import {
 	access,
@@ -475,27 +475,108 @@ export function symlinkTargetFor(agentsRoot: string, skillDir: string): string {
 	return relative(agentsRoot, skillDir);
 }
 
-export async function ensureSkillSymlink(agentsRoot: string, skillDir: string, name: string): Promise<string> {
-	await mkdir(agentsRoot, { recursive: true });
+// --- authorized agent-link base -------------------------------------------
+
+/**
+ * The single directory that both `skills/` and `.agents/` must stay inside.
+ *
+ * Derived from the canonical (realpath-resolved) parent of the skills root, so
+ * a symlinked `.agents` or `.agents/skills` cannot redirect link creation or
+ * removal outside the tree the user authorized.
+ */
+export async function authorizedAgentsBase(skillsRoot: string): Promise<string> {
+	return resolveExistingPrefix(dirname(resolve(skillsRoot)));
+}
+
+/** Containment that, unlike `assertInside`, also accepts the base itself. */
+export function isWithinBase(base: string, candidate: string): boolean {
+	if (candidate === base) return true;
+	const rel = relative(base, candidate);
+	if (rel === "" ) return true;
+	return rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
+}
+
+async function assertAgentsPathWithinBase(base: string, path: string, label: string): Promise<void> {
+	// resolveExistingPrefix realpaths the nearest existing ancestor, so a
+	// symlinked `.agents` or `.agents/skills` is resolved before the check.
+	const resolved = await resolveExistingPrefix(path);
+	if (!isWithinBase(base, resolved)) {
+		throw new Error(`Refusing to touch ${label} at ${path}: it resolves to ${resolved}, outside ${base}.`);
+	}
+}
+
+/**
+ * Validate the whole `.agents` chain for a roots bundle before any agent-link
+ * mutation. Called by `prepare` for the actions that create or remove links.
+ */
+export async function assertAgentsRootAuthorized(roots: SkillRoots): Promise<void> {
+	const base = await authorizedAgentsBase(roots.skillsRoot);
+	const agentsRoot = resolve(roots.agentsRoot);
+	await assertAgentsPathWithinBase(base, dirname(agentsRoot), ".agents");
+	await assertAgentsPathWithinBase(base, agentsRoot, ".agents/skills");
+}
+
+export async function ensureSkillSymlink(roots: SkillRoots, skillDir: string, name: string): Promise<string> {
+	const base = await authorizedAgentsBase(roots.skillsRoot);
+	const agentsRoot = resolve(roots.agentsRoot);
 	const linkPath = join(agentsRoot, name);
 	const target = symlinkTargetFor(agentsRoot, skillDir);
 	if (isAbsolute(target)) throw new Error("Refusing to create an absolute skill symlink target.");
 
-	const currentLink = await readlinkIfSymlink(linkPath);
-	if (currentLink === target) return linkPath;
-	if (currentLink !== null) {
-		await rm(linkPath, { force: true });
-	} else if (await pathExists(linkPath)) {
-		throw new Error(`Cannot create skill symlink because ${linkPath} already exists and is not a symlink.`);
-	}
+	// Every check re-runs inside the mutation queue: a check performed outside it
+	// could be invalidated before the mkdir/symlink lands.
+	return withFileMutationQueue(linkPath, async () => {
+		await assertAgentsPathWithinBase(base, dirname(agentsRoot), ".agents");
+		await assertAgentsPathWithinBase(base, agentsRoot, ".agents/skills");
+		await mkdir(agentsRoot, { recursive: true });
 
-	await symlink(target, linkPath);
-	return linkPath;
+		// After mkdir the directory really exists, so realpath is authoritative.
+		const realAgentsRoot = await realpath(agentsRoot);
+		if (!isWithinBase(base, realAgentsRoot)) {
+			throw new Error(`Refusing to write agent links: ${agentsRoot} resolves to ${realAgentsRoot}, outside ${base}.`);
+		}
+		// The link entry's parent must be that verified directory. The final link
+		// is never followed — only lstat/readlink touch it.
+		const realParent = await realpath(dirname(linkPath));
+		if (realParent !== realAgentsRoot) {
+			throw new Error(`Refusing to write agent link ${linkPath}: its parent resolves to ${realParent}.`);
+		}
+
+		const currentLink = await readlinkIfSymlink(linkPath);
+		if (currentLink === target) return linkPath;
+		if (currentLink !== null) {
+			await rm(linkPath, { force: true });
+		} else if (await pathExists(linkPath)) {
+			throw new Error(`Cannot create skill symlink because ${linkPath} already exists and is not a symlink.`);
+		}
+
+		await symlink(target, linkPath);
+		return linkPath;
+	});
 }
 
-export async function removeSkillSymlink(agentsRoot: string, name: string): Promise<void> {
+export async function removeSkillSymlink(roots: SkillRoots, name: string): Promise<void> {
+	const base = await authorizedAgentsBase(roots.skillsRoot);
+	const agentsRoot = resolve(roots.agentsRoot);
 	const linkPath = join(agentsRoot, name);
-	if ((await readlinkIfSymlink(linkPath)) !== null) await rm(linkPath, { force: true });
+
+	await withFileMutationQueue(linkPath, async () => {
+		await assertAgentsPathWithinBase(base, dirname(agentsRoot), ".agents");
+		await assertAgentsPathWithinBase(base, agentsRoot, ".agents/skills");
+
+		let realParent: string;
+		try {
+			realParent = await realpath(dirname(linkPath));
+		} catch (error) {
+			if ((error as NodeJS.ErrnoException).code === "ENOENT") return;
+			throw error;
+		}
+		if (!isWithinBase(base, realParent)) {
+			throw new Error(`Refusing to unlink ${linkPath}: its parent resolves to ${realParent}, outside ${base}.`);
+		}
+		// lstat/readlink only — the link's own target is never followed.
+		if ((await readlinkIfSymlink(linkPath)) !== null) await rm(linkPath, { force: true });
+	});
 }
 
 // ---------------------------------------------------------------------------
@@ -686,10 +767,15 @@ async function readIfExists(path: string): Promise<string | null> {
 	}
 }
 
+/** Actions that create or remove an agent-visible `.agents/skills` link. */
+const AGENT_LINK_ACTIONS: readonly SkillAction[] = ["create", "edit", "delete"];
+
 async function prepare(roots: SkillRoots, params: SkillManageInput): Promise<ValidatedSkillAction> {
 	const action = validateSkillAction(params, roots);
 	await assertNotLockedSkill(roots, action);
 	await assertSafeMutationTarget(roots, action);
+	// Fail closed before any destructive step when the agent tree escapes.
+	if (AGENT_LINK_ACTIONS.includes(action.action)) await assertAgentsRootAuthorized(roots);
 	return action;
 }
 
@@ -725,7 +811,7 @@ export async function executeCreate(roots: SkillRoots, params: SkillManageInput)
 	await withFileMutationQueue(action.targetPath, async () => {
 		await mkdir(action.skillDir, { recursive: true });
 		await atomicWriteFile(action.targetPath, content);
-		await ensureSkillSymlink(roots.agentsRoot, action.skillDir, action.name);
+		await ensureSkillSymlink(roots, action.skillDir, action.name);
 	});
 
 	return baseResult(action, {
@@ -746,7 +832,7 @@ export async function executeEdit(roots: SkillRoots, params: SkillManageInput): 
 
 	await withFileMutationQueue(action.targetPath, async () => {
 		await atomicWriteFile(action.targetPath, content);
-		await ensureSkillSymlink(roots.agentsRoot, action.skillDir, action.name);
+		await ensureSkillSymlink(roots, action.skillDir, action.name);
 	});
 
 	return baseResult(action, {
@@ -789,7 +875,7 @@ export async function executeDelete(roots: SkillRoots, params: SkillManageInput)
 
 	await withFileMutationQueue(action.skillDir, async () => {
 		await rm(action.skillDir, { recursive: true, force: true });
-		await removeSkillSymlink(roots.agentsRoot, action.name);
+		await removeSkillSymlink(roots, action.name);
 	});
 
 	return baseResult(action, {
@@ -1601,6 +1687,19 @@ export type ReplayOptions = {
 	authorization?: SkillReplayAuthorization;
 	/** Explicit root resolver, for temp-directory tests. Takes precedence. */
 	resolveRoots?: ReplayRootsResolver;
+	/**
+	 * The queue as loaded right now. Used to derive the predecessors a queued
+	 * dependency chain needs. Never a source of authority by itself: each
+	 * predecessor is re-validated and re-derived.
+	 */
+	pending?: readonly PendingSkillChange[];
+	/**
+	 * The digest of the review snapshot the user actually saw. Approval replays
+	 * only when the freshly rederived snapshot produces the same digest.
+	 */
+	reviewedDigest?: string;
+	/** Approve-all: one reviewed digest per record id. */
+	reviewedDigests?: Record<string, string | undefined>;
 };
 
 let replayRootsResolver: ReplayRootsResolver | null = null;
@@ -1652,52 +1751,382 @@ async function currentStateFor(record: PendingSkillChange, action: ValidatedSkil
 	return { exists: await pathExists(action.targetPath), content: await readIfExists(action.targetPath) };
 }
 
+// --- authoritative review preparation --------------------------------------
+
+/**
+ * The recomputed, verified proposal for one queued record.
+ *
+ * Every field is derived from the record's `payload` plus canonical roots.
+ * Nothing here is read back out of the queue file, so a hand-edited `diff`,
+ * `gist`, `securityFlags`, `previousContent`, or `nextContent` can never be
+ * rendered as trusted content nor approved.
+ */
+export type PendingReviewSnapshot = {
+	record: PendingSkillChange;
+	/** Null when the record could not be resolved to canonical roots. */
+	roots: SkillRoots | null;
+	/** Null when the payload failed validation. */
+	action: ValidatedSkillAction | null;
+	relativeTarget: string;
+	previousContent: string | null;
+	nextContent: string | null;
+	securityFlags: string[];
+	gist: string;
+	diff: string;
+	/** Non-null when the proposal could not be recomputed at all. */
+	error: string | null;
+	/** Persisted review fields that disagree with the recomputed proposal. */
+	mismatches: string[];
+	/** SHA-256 over the validated payload plus the canonical proposal shown. */
+	digest: string;
+};
+
+/** Deterministic JSON: object keys sorted, `undefined` dropped. */
+function stableStringify(value: unknown): string {
+	if (value === undefined) return "null";
+	if (value === null || typeof value !== "object") return JSON.stringify(value) ?? "null";
+	if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+	const entries = Object.entries(value as Record<string, unknown>)
+		.filter(([, item]) => item !== undefined)
+		.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+	return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`).join(",")}}`;
+}
+
+export function computeReviewDigest(input: unknown): string {
+	return createHash("sha256").update(stableStringify(input), "utf8").digest("hex");
+}
+
+/**
+ * Recompute prior/result content, flags, and gist for a validated action.
+ *
+ * Deliberately free of "already applied" preconditions (create-collision,
+ * missing skill dir on delete, and so on): the review must describe what the
+ * payload asks for. The executors still enforce those preconditions at replay,
+ * and `replayPendingChange` short-circuits records whose end state already
+ * holds.
+ */
+async function recomputeProposal(
+	action: ValidatedSkillAction,
+	overlay: SkillQueueOverlay | null,
+): Promise<{ previousContent: string | null; nextContent: string | null; securityFlags: string[]; gist: string }> {
+	let previousContent: string | null = null;
+	let nextContent: string | null = null;
+
+	switch (action.action) {
+		case "create":
+		case "write_file": {
+			previousContent = await overlayReadIfExists(overlay, action.targetPath);
+			nextContent = action.content!;
+			break;
+		}
+		case "edit": {
+			previousContent = await overlayReadIfExists(overlay, action.targetPath);
+			if (previousContent === null) throw new Error(`No SKILL.md exists for '${action.name}'; use action=create.`);
+			nextContent = action.content!;
+			break;
+		}
+		case "patch": {
+			previousContent = await overlayReadIfExists(overlay, action.targetPath);
+			if (previousContent === null) throw new Error(`No file exists at ${action.targetPath}.`);
+			const occurrences = previousContent.split(action.oldString!).length - 1;
+			if (occurrences !== 1) {
+				throw new Error(`old_string must match exactly once in ${action.relativeTarget}; found ${occurrences}.`);
+			}
+			nextContent = assertContentWithinBounds(
+				previousContent.replace(action.oldString!, action.newString!),
+				"patched content",
+			);
+			break;
+		}
+		case "delete": {
+			previousContent = await overlayReadIfExists(overlay, join(action.skillDir, SKILL_FILE_NAME));
+			break;
+		}
+		case "remove_file": {
+			previousContent = await overlayReadIfExists(overlay, action.targetPath);
+			break;
+		}
+	}
+
+	const securityFlags = nextContent === null ? [] : scanSkillContent(nextContent, action.relativeTarget);
+	return { previousContent, nextContent, securityFlags, gist: buildGist(action, previousContent, nextContent) };
+}
+
+function foldProposalIntoOverlay(overlay: SkillQueueOverlay, action: ValidatedSkillAction, nextContent: string | null): void {
+	const skillDir = resolve(action.skillDir);
+	const target = resolve(action.targetPath);
+	if (action.action === "delete") {
+		for (const key of [...overlay.files.keys()]) {
+			if (isUnder(skillDir, key)) overlay.files.delete(key);
+		}
+		return;
+	}
+	if (action.action === "remove_file") {
+		overlay.files.delete(target);
+		return;
+	}
+	if (nextContent !== null) overlay.files.set(target, nextContent);
+}
+
+/** True when either path contains the other; only such records can affect the overlay. */
+function pathsRelated(a: string, b: string): boolean {
+	const left = resolve(a);
+	const right = resolve(b);
+	return isUnder(left, right) || isUnder(right, left);
+}
+
+/**
+ * The skill a record's *payload* addresses, normalized the same way
+ * `validateSkillAction` would. Used only to decide whether an unverifiable
+ * predecessor is related to the record under review, because a record that
+ * failed validation has no canonical action to compare against — and its
+ * persisted `skillDir` is an untrusted claim that must never decide relation.
+ */
+function payloadSkillIdentity(candidate: PendingSkillChange): { name: string; category: string } {
+	const payload = (candidate.payload ?? {}) as Partial<SkillManageInput>;
+	const name = typeof payload.name === "string" ? payload.name.trim() : "";
+	const rawCategory = typeof payload.category === "string" ? payload.category : "";
+	return { name, category: rawCategory.split(/[\\/]+/).filter(Boolean).join("/") };
+}
+
+/**
+ * Rebuild the staged-but-unapplied prior state a record depends on by
+ * re-deriving every earlier queued change, oldest first. Persisted
+ * `nextContent` is never used.
+ *
+ * Relation is established from canonical, validated data only: the reviewed
+ * record's own validated action versus the candidate's validated action, or —
+ * when the candidate cannot be validated at all — the skill identity its raw
+ * payload addresses. Neither side's persisted `skillDir`/`targetPath` claim is
+ * ever consulted for this decision, so a rewritten path claim cannot make a
+ * tampered predecessor look unrelated.
+ *
+ * Fails closed: if a predecessor that targets the same skill in the same scope
+ * cannot be verified, the whole review fails rather than falling back to the
+ * record's own persisted claims. Malformed records for other skills stay
+ * isolated and are skipped.
+ */
+async function derivePredecessorOverlay(
+	action: ValidatedSkillAction,
+	record: PendingSkillChange,
+	pending: readonly PendingSkillChange[],
+	roots: SkillRoots,
+	options: ReplayOptions,
+): Promise<SkillQueueOverlay> {
+	const overlay = emptyQueueOverlay();
+	const scopeRoot = resolve(roots.skillsRoot);
+	const selfCategory = action.categorySegments.join("/");
+
+	for (const candidate of sortPendingChanges([...pending])) {
+		if (candidate.id === record.id) break;
+		if (comparePendingChanges(candidate, record) >= 0) break;
+		if (candidate.scope !== action.scope) continue;
+
+		// Canonical once validation succeeds; null while the candidate is still
+		// unverified, which is exactly when the payload identity is used instead.
+		let candidateAction: ValidatedSkillAction | null = null;
+		try {
+			const candidateRoots = await expectedReplayRoots(candidate, options);
+			if (resolve(candidateRoots.skillsRoot) !== scopeRoot) continue;
+			await assertRecordRootsMatch(candidateRoots, candidate);
+			const validated = validateSkillAction(candidate.payload, candidateRoots);
+			candidateAction = validated;
+			if (validated.action !== candidate.action || validated.name !== candidate.name) {
+				throw new Error("Queue record disagrees with its payload.");
+			}
+			if (
+				(await canonicalPath(validated.targetPath)) !== (await canonicalPath(candidate.targetPath)) ||
+				(await canonicalPath(validated.skillDir)) !== (await canonicalPath(candidate.skillDir))
+			) {
+				throw new Error(`Replay target changed (${validated.targetPath} ≠ ${candidate.targetPath}).`);
+			}
+			const proposal = await recomputeProposal(validated, overlay);
+			foldProposalIntoOverlay(overlay, validated, proposal.nextContent);
+		} catch (error) {
+			const identity = payloadSkillIdentity(candidate);
+			const related = candidateAction
+				? pathsRelated(action.skillDir, candidateAction.skillDir)
+				: identity.name === action.name && identity.category === selfCategory;
+			if (related) {
+				throw new Error(
+					`Depends on an earlier queued change (${candidate.action} ${candidate.name}) that could not be verified: ${errorMessage(error)}`,
+				);
+			}
+		}
+	}
+
+	return overlay;
+}
+
+const UNVERIFIED_GIST_PREFIX = "unverified";
+
+/**
+ * Build the authoritative review snapshot for one queued record.
+ *
+ * Never throws for a record-level problem: a record that cannot be verified
+ * still yields a snapshot whose `error` explains why and whose digest covers
+ * that failure, so the review UI can show it and approval still fails closed.
+ */
+export async function preparePendingReview(
+	record: PendingSkillChange,
+	pending: readonly PendingSkillChange[] = [],
+	options: ReplayOptions = {},
+): Promise<PendingReviewSnapshot> {
+	let roots: SkillRoots | null = null;
+	let action: ValidatedSkillAction | null = null;
+	let previousContent: string | null = null;
+	let nextContent: string | null = null;
+	let securityFlags: string[] = [];
+	let gist = `${UNVERIFIED_GIST_PREFIX} ${record.action} skill '${record.name}'`;
+	let diff = "(the staged proposal could not be recomputed)";
+	let error: string | null = null;
+	const mismatches: string[] = [];
+
+	try {
+		roots = await expectedReplayRoots(record, options);
+		await assertRecordRootsMatch(roots, record);
+
+		const validated = validateSkillAction(record.payload, roots);
+		if (validated.action !== record.action || validated.name !== record.name) {
+			throw new Error("Queue record disagrees with its payload; refusing replay.");
+		}
+		if (
+			(await canonicalPath(validated.targetPath)) !== (await canonicalPath(record.targetPath)) ||
+			(await canonicalPath(validated.skillDir)) !== (await canonicalPath(record.skillDir))
+		) {
+			throw new Error(`Replay target changed (${validated.targetPath} ≠ ${record.targetPath}); refusing replay.`);
+		}
+		await assertNotLockedSkill(roots, validated);
+		await assertSafeMutationTarget(roots, validated);
+		if (AGENT_LINK_ACTIONS.includes(validated.action)) await assertAgentsRootAuthorized(roots);
+
+		const overlay = await derivePredecessorOverlay(validated, record, pending, roots, options);
+		const proposal = await recomputeProposal(validated, overlay);
+
+		action = validated;
+		previousContent = proposal.previousContent;
+		nextContent = proposal.nextContent;
+		securityFlags = proposal.securityFlags;
+		gist = proposal.gist;
+		diff = await unifiedDiff(validated.relativeTarget, previousContent, nextContent);
+
+		if (record.relativeTarget !== validated.relativeTarget) mismatches.push("relativeTarget");
+		if ((record.category ?? undefined) !== validated.category) mismatches.push("category");
+		// Explicit tamper signal in its own right: a rewritten `previousContent`
+		// claim is what a staleness bypass would need. The separate staleness
+		// check in `replayReviewedChange` still runs on top of this.
+		if (record.previousContent !== previousContent) mismatches.push("previousContent");
+		if (record.nextContent !== nextContent) mismatches.push("nextContent");
+		if (record.gist !== gist) mismatches.push("gist");
+		if (record.diff !== diff) mismatches.push("diff");
+		if (record.securityFlags.join("\n") !== securityFlags.join("\n")) mismatches.push("securityFlags");
+	} catch (caught) {
+		error = errorMessage(caught);
+	}
+
+	const digest = computeReviewDigest({
+		v: 1,
+		id: record.id,
+		action: record.action,
+		name: record.name,
+		scope: record.scope,
+		category: action?.category ?? null,
+		payload: record.payload,
+		skillsRoot: roots?.skillsRoot ?? null,
+		skillDir: action?.skillDir ?? null,
+		targetPath: action?.targetPath ?? null,
+		relativeTarget: action?.relativeTarget ?? "",
+		previousContent,
+		nextContent,
+		securityFlags,
+		gist,
+		diff,
+		error,
+		mismatches,
+	});
+
+	return {
+		record,
+		roots,
+		action,
+		relativeTarget: action?.relativeTarget ?? "",
+		previousContent,
+		nextContent,
+		securityFlags,
+		gist,
+		diff,
+		error,
+		mismatches,
+		digest,
+	};
+}
+
+/** Prepare snapshots for a whole queue, oldest first. */
+export async function preparePendingReviews(
+	pending: readonly PendingSkillChange[],
+	options: ReplayOptions = {},
+): Promise<PendingReviewSnapshot[]> {
+	const ordered = sortPendingChanges([...pending]);
+	const snapshots: PendingReviewSnapshot[] = [];
+	for (const record of ordered) snapshots.push(await preparePendingReview(record, ordered, options));
+	return snapshots;
+}
+
 /**
  * Re-validate a persisted record from scratch and re-run the core executor.
  *
  * Never trusts the record: the roots are recomputed from scope and provenance,
  * names, categories, paths, bounds, lock-file status, and realpath containment
- * are all re-checked, and the recomputed target must match the one stored at
- * stage time.
+ * are all re-checked, the proposal is rederived, and the persisted review
+ * fields must agree with it.
  */
 export async function replayPendingChange(
 	record: PendingSkillChange,
 	options: ReplayOptions = {},
 ): Promise<ReplayOutcome> {
 	try {
-		// Authority is the recomputed roots, not the persisted ones.
-		const roots = await expectedReplayRoots(record, options);
-		await assertRecordRootsMatch(roots, record);
+		const snapshot = await preparePendingReview(record, options.pending ?? [], options);
+		return replayReviewedChange(snapshot, options);
+	} catch (error) {
+		return { ok: false, error: errorMessage(error) };
+	}
+}
 
-		const action = validateSkillAction(record.payload, roots);
-		if (action.action !== record.action || action.name !== record.name) {
-			return { ok: false, error: "Queue record disagrees with its payload; refusing replay." };
+/** Apply a change from its own verified snapshot. */
+export async function replayReviewedChange(
+	snapshot: PendingReviewSnapshot,
+	_options: ReplayOptions = {},
+): Promise<ReplayOutcome> {
+	try {
+		const { record, roots, action } = snapshot;
+		if (snapshot.error !== null || roots === null || action === null) {
+			return { ok: false, error: snapshot.error ?? "The staged proposal could not be verified; refusing replay." };
 		}
-		if (
-			(await canonicalPath(action.targetPath)) !== (await canonicalPath(record.targetPath)) ||
-			(await canonicalPath(action.skillDir)) !== (await canonicalPath(record.skillDir))
-		) {
-			return { ok: false, error: `Replay target changed (${action.targetPath} ≠ ${record.targetPath}); refusing replay.` };
-		}
-		await assertNotLockedSkill(roots, action);
-		await assertResolvedInside(roots.skillsRoot, action.skillDir);
 
 		const state = await currentStateFor(record, action);
 
-		// Planned idempotency: the intended end state may already be in place.
-		if (record.nextContent === null) {
+		// Planned idempotency, measured against the RECOMPUTED end state.
+		if (snapshot.nextContent === null) {
 			if (!state.exists) {
 				return { ok: true, applied: false, message: `Nothing to do: ${action.relativeTarget || action.name} is already absent.` };
 			}
-		} else if (state.content !== null && state.content === record.nextContent) {
+		} else if (state.content !== null && state.content === snapshot.nextContent) {
 			return { ok: true, applied: false, message: `Nothing to do: ${action.relativeTarget} already matches the staged content.` };
 		}
 
 		// Staleness: the target must still look the way it did when staged.
-		if (state.content !== record.previousContent) {
+		if (snapshot.previousContent !== record.previousContent) {
 			return {
 				ok: false,
 				error: `Stale — re-review: ${action.relativeTarget || action.name} changed on disk since this change was staged.`,
+			};
+		}
+
+		// Tamper: the persisted review fields must match what review recomputed.
+		if (snapshot.mismatches.length > 0) {
+			return {
+				ok: false,
+				error: `Tampered — re-review: queued ${snapshot.mismatches.join(", ")} disagree(s) with the recomputed proposal.`,
 			};
 		}
 
@@ -1711,6 +2140,10 @@ export async function replayPendingChange(
 // --- approve / reject ------------------------------------------------------
 
 export type ApprovalOutcome = ReplayOutcome & { removed: boolean };
+
+/** Wording is contractual: approval refuses to run without a reviewed digest. */
+export const MISSING_REVIEWED_DIGEST_ERROR =
+	"Approval requires a reviewed proposal digest; nothing was applied. Re-open /skills-review.";
 
 async function removeRecord(id: string, path: string): Promise<boolean> {
 	return mutateSkillQueue((queue) => {
@@ -1728,7 +2161,14 @@ async function markRecordError(id: string, message: string, path: string): Promi
 	}, path);
 }
 
-/** Replay one record; remove it only after a successful replay. */
+/**
+ * Replay one record; remove it only after a digest-bound replay succeeds.
+ *
+ * `options.reviewedDigest` is the in-memory digest of the snapshot the user
+ * actually reviewed. The snapshot is rederived here, immediately before
+ * replay, and the record is retained whenever the digest no longer matches.
+ * A digest persisted in the queue is never trusted or accepted.
+ */
 export async function approvePendingChange(
 	id: string,
 	path: string = skillQueuePath(),
@@ -1741,7 +2181,25 @@ export async function approvePendingChange(
 		return { ok: true, applied: false, removed: false, message: `Change ${id.slice(0, 8)} is no longer queued.` };
 	}
 
-	const outcome = await replayPendingChange(record, options);
+	const reviewedDigest = options.reviewedDigest;
+	if (typeof reviewedDigest !== "string" || reviewedDigest.trim() === "") {
+		const error = MISSING_REVIEWED_DIGEST_ERROR;
+		await markRecordError(id, error, path);
+		await emitSkillQueueChanged(path);
+		return { ok: false, error, removed: false };
+	}
+
+	// Rederive from the queue as it stands right now, not as it stood at review.
+	const snapshot = await preparePendingReview(record, options.pending ?? queue.pending, options);
+	if (snapshot.digest !== reviewedDigest) {
+		const error =
+			"The staged proposal changed since it was reviewed; keeping it queued. Re-open /skills-review to see the current proposal.";
+		await markRecordError(id, error, path);
+		await emitSkillQueueChanged(path);
+		return { ok: false, error, removed: false };
+	}
+
+	const outcome = await replayReviewedChange(snapshot, options);
 	if (outcome.ok) {
 		const removed = await removeRecord(id, path);
 		await emitSkillQueueChanged(path);
@@ -1759,16 +2217,30 @@ export type ApproveAllOutcome = {
 	failure?: { id: string; name: string; error: string };
 };
 
-/** Oldest first; stops at the first failure and leaves the remainder intact. */
+/**
+ * Oldest first; stops at the first failure and leaves the remainder intact.
+ *
+ * The caller MUST supply `options.reviewedDigests`: the frozen digest map of
+ * the exact snapshot set the user reviewed, keyed by record id. This function
+ * never derives a digest of its own — doing so would let an unreviewed queue
+ * approve itself. A missing map, or a map missing an entry for the record
+ * being applied, fails that record closed and retains it.
+ */
 export async function approveAllPendingChanges(
 	path: string = skillQueuePath(),
 	options: ReplayOptions = {},
 ): Promise<ApproveAllOutcome> {
 	const initial = await loadSkillQueue(path);
+	// An absent map reads as "nothing was reviewed": every approval below fails.
+	const digests = options.reviewedDigests ?? {};
+	const ordered = sortPendingChanges(initial.pending);
 	let approved = 0;
 
-	for (const record of initial.pending) {
-		const outcome = await approvePendingChange(record.id, path, options);
+	for (const record of ordered) {
+		const outcome = await approvePendingChange(record.id, path, {
+			...options,
+			reviewedDigest: digests[record.id],
+		});
 		if (!outcome.ok) {
 			return {
 				approved,
@@ -1846,15 +2318,50 @@ export function formatAge(createdAt: string, now: number = Date.now()): string {
 }
 
 /** Oldest-first one-line listing used by /skills-queue and the widget. */
-export function formatQueueLines(pending: PendingSkillChange[], now: number = Date.now()): string[] {
+export function formatQueueLines(pending: readonly PendingReviewView[], now: number = Date.now()): string[] {
 	return pending.map((item, index) => {
 		const flags = item.securityFlags.length > 0 ? ` ⚠ ${item.securityFlags.length} flag(s)` : "";
 		const failed = item.lastError ? ` ✗ ${item.lastError}` : "";
-		return `${index + 1}. [${item.id.slice(0, 8)}] ${item.action} ${item.name} — ${item.gist} (${formatAge(item.createdAt, now)} ago)${flags}${failed}`;
+		const unverified = item.reviewError ? ` ✗ unverifiable: ${item.reviewError}` : "";
+		const tampered = item.mismatches && item.mismatches.length > 0 ? ` ⚠ tampered: ${item.mismatches.join(", ")}` : "";
+		return `${index + 1}. [${item.id.slice(0, 8)}] ${item.action} ${item.name} — ${item.gist} (${formatAge(item.createdAt, now)} ago)${flags}${tampered}${unverified}${failed}`;
 	});
 }
 
 type ReviewChoice = "approve" | "reject" | "skip" | "approve-all" | "reject-all" | "quit" | undefined;
+
+/**
+ * The only shape a review listing may render. `gist`, `securityFlags`, and the
+ * contents all come from a recomputed `PendingReviewSnapshot`.
+ * `reviewError`/`mismatches` are optional so a plain record can still be shown
+ * where no snapshot is available.
+ */
+export type PendingReviewView = {
+	id: string;
+	action: SkillAction;
+	name: string;
+	createdAt: string;
+	gist: string;
+	securityFlags: string[];
+	lastError?: string;
+	reviewError?: string | null;
+	mismatches?: string[];
+};
+
+/** Project a verified snapshot down to what the listings render. */
+export function reviewViewFor(snapshot: PendingReviewSnapshot): PendingReviewView {
+	return {
+		id: snapshot.record.id,
+		action: snapshot.record.action,
+		name: snapshot.record.name,
+		createdAt: snapshot.record.createdAt,
+		gist: snapshot.gist,
+		securityFlags: snapshot.securityFlags,
+		lastError: snapshot.record.lastError,
+		reviewError: snapshot.error,
+		mismatches: snapshot.mismatches,
+	};
+}
 
 class SkillDiffModal implements Component {
 	private scroll = 0;
@@ -1863,11 +2370,11 @@ class SkillDiffModal implements Component {
 
 	constructor(
 		private readonly theme: Theme,
-		private readonly change: PendingSkillChange,
+		private readonly snapshot: PendingReviewSnapshot,
 		private readonly total: number,
 		private readonly done: (result: ReviewChoice) => void,
 	) {
-		this.diffLines = change.diff.split("\n");
+		this.diffLines = snapshot.diff.split("\n");
 	}
 
 	handleInput(data: string): void {
@@ -1903,24 +2410,36 @@ class SkillDiffModal implements Component {
 		const visibleRows = 24;
 		const shown = this.diffLines.slice(this.scroll, this.scroll + visibleRows);
 		const lines: string[] = [];
+		// Everything below comes from the recomputed snapshot, never from the
+		// user-writable queue record's own review fields.
+		const snapshot = this.snapshot;
+		const record = snapshot.record;
 
 		lines.push(th.fg("border", `╭${"─".repeat(inner)}╮`));
 		lines.push(
-			row(` ${th.fg("accent", th.bold(`Skill update: ${this.change.name}`))} ${th.fg("dim", `(${this.total} pending)`)}`),
+			row(` ${th.fg("accent", th.bold(`Skill update: ${record.name}`))} ${th.fg("dim", `(${this.total} pending)`)}`),
 		);
-		lines.push(row(` ${th.fg("muted", "Gist:")} ${this.change.gist}`));
+		lines.push(row(` ${th.fg("muted", "Gist:")} ${snapshot.gist}`));
 		lines.push(
 			row(
-				` ${th.fg("muted", "Action:")} ${this.change.action}   ${th.fg("muted", "Target:")} ${displayPath(this.change.targetPath)}`,
+				` ${th.fg("muted", "Action:")} ${record.action}   ${th.fg("muted", "Target:")} ${displayPath(snapshot.action?.targetPath ?? record.targetPath)}`,
 			),
 		);
 		lines.push(
 			row(
-				` ${th.fg("muted", "Staged:")} ${formatAge(this.change.createdAt)} ago   ${th.fg("muted", "Id:")} ${this.change.id.slice(0, 8)}`,
+				` ${th.fg("muted", "Staged:")} ${formatAge(record.createdAt)} ago   ${th.fg("muted", "Id:")} ${record.id.slice(0, 8)}`,
 			),
 		);
-		for (const flag of this.change.securityFlags) lines.push(row(` ${th.fg("warning", `⚠ ${flag}`)}`));
-		if (this.change.lastError) lines.push(row(` ${th.fg("error", `✗ ${this.change.lastError}`)}`));
+		for (const flag of snapshot.securityFlags) lines.push(row(` ${th.fg("warning", `⚠ ${flag}`)}`));
+		if (snapshot.mismatches.length > 0) {
+			lines.push(
+				row(
+					` ${th.fg("error", `⚠ Tampered queue record: ${snapshot.mismatches.join(", ")} disagree with the recomputed proposal shown here.`)}`,
+				),
+			);
+		}
+		if (snapshot.error) lines.push(row(` ${th.fg("error", `✗ Cannot verify: ${snapshot.error}`)}`));
+		if (record.lastError) lines.push(row(` ${th.fg("error", `✗ ${record.lastError}`)}`));
 		lines.push(row(` ${th.fg("dim", "a approve • r reject • s skip • A approve-all • R reject-all • q/esc quit • ↑↓/j/k scroll")}`));
 		if (this.confirm !== null) {
 			lines.push(row(` ${th.fg("warning", `Confirm ${this.confirm.replace("-", " ")}? press y to confirm, any other key to cancel`)}`));
@@ -1970,7 +2489,9 @@ async function listQueue(ctx: ExtensionCommandContext): Promise<void> {
 		return;
 	}
 
-	const lines = formatQueueLines(queue.pending);
+	// Render only recomputed, verified proposals.
+	const snapshots = await preparePendingReviews(queue.pending, { authorization: replayAuthorizationFor(ctx) });
+	const lines = formatQueueLines(snapshots.map(reviewViewFor));
 	ctx.ui.notify(`${queue.pending.length} pending skill update(s).`, "info");
 	ctx.ui.setWidget(
 		"skill-review-queue",
@@ -1987,20 +2508,40 @@ async function reviewQueue(ctx: ExtensionCommandContext): Promise<void> {
 	for (;;) {
 		// Reload every iteration: another session may have settled records.
 		const queue = await loadSkillQueue();
-		const change = queue.pending.find((item) => !skipped.has(item.id));
-		if (!change) {
-			ctx.ui.notify(queue.pending.length === 0 ? "No pending skill updates." : "No more changes to review.", "info");
-			if (queue.pending.length === 0) ctx.ui.setWidget("skill-review-queue", undefined);
+		if (queue.pending.length === 0) {
+			ctx.ui.notify("No pending skill updates.", "info");
+			ctx.ui.setWidget("skill-review-queue", undefined);
 			return;
 		}
 
+		// Prepare the FULL ordered snapshot set before anything is shown. The
+		// frozen digest map below describes exactly this snapshot set, so any
+		// edit to the queue after the modal is created makes the rederived digest
+		// disagree and the affected record is retained.
+		const options = replayOptions();
+		const snapshots = await preparePendingReviews(queue.pending, options);
+		const reviewedDigests: Readonly<Record<string, string>> = Object.freeze(
+			Object.fromEntries(snapshots.map((item) => [item.record.id, item.digest])),
+		);
+
+		const snapshot = snapshots.find((item) => !skipped.has(item.record.id));
+		if (!snapshot) {
+			ctx.ui.notify("No more changes to review.", "info");
+			return;
+		}
+		const change = snapshot.record;
+
 		const result = await ctx.ui.custom<ReviewChoice>(
-			(_tui, theme, _keybindings, done) => new SkillDiffModal(theme, change, queue.pending.length, done),
+			(_tui, theme, _keybindings, done) => new SkillDiffModal(theme, snapshot, queue.pending.length, done),
 			{ overlay: true, overlayOptions: { width: "90%", maxHeight: "85%", anchor: "center", margin: 1 } },
 		);
 
 		if (result === "approve") {
-			const outcome = await approvePendingChange(change.id, skillQueuePath(), replayOptions());
+			// Bound to the digest of the snapshot that was actually shown.
+			const outcome = await approvePendingChange(change.id, skillQueuePath(), {
+				...replayOptions(),
+				reviewedDigest: snapshot.digest,
+			});
 			if (outcome.ok) ctx.ui.notify(outcome.message, "info");
 			else {
 				ctx.ui.notify(`Approve failed for ${change.name}: ${outcome.error}`, "error");
@@ -2016,7 +2557,8 @@ async function reviewQueue(ctx: ExtensionCommandContext): Promise<void> {
 		}
 
 		if (result === "approve-all") {
-			const outcome = await approveAllPendingChanges(skillQueuePath(), replayOptions());
+			// The frozen digest map for exactly the snapshot set prepared above.
+			const outcome = await approveAllPendingChanges(skillQueuePath(), { ...replayOptions(), reviewedDigests });
 			if (outcome.failure) {
 				ctx.ui.notify(
 					`Approved ${outcome.approved}; stopped at ${outcome.failure.name}: ${outcome.failure.error}. ${outcome.remaining} left.`,
@@ -2065,10 +2607,12 @@ export type PendingOverlayResult =
 	| { kind: "select"; id: string };
 
 /** Compact one-line label: skill name, action, relative age, and flag markers. */
-export function formatOverlayLabel(record: PendingSkillChange, now: number = Date.now()): string {
+export function formatOverlayLabel(record: PendingReviewView, now: number = Date.now()): string {
 	const flags = record.securityFlags.length > 0 ? ` ⚠${record.securityFlags.length}` : "";
+	const tampered = record.mismatches && record.mismatches.length > 0 ? " ⚠tampered" : "";
+	const unverified = record.reviewError ? " ✗unverifiable" : "";
 	const failed = record.lastError ? " ✗" : "";
-	return `${record.name} · ${record.action} · ${formatAge(record.createdAt, now)} ago${flags}${failed}`;
+	return `${record.name} · ${record.action} · ${formatAge(record.createdAt, now)} ago${flags}${tampered}${unverified}${failed}`;
 }
 
 /**
@@ -2077,16 +2621,24 @@ export function formatOverlayLabel(record: PendingSkillChange, now: number = Dat
  * file cannot change what the overlay shows.
  */
 export function buildPendingOverlayItems(
-	pending: PendingSkillChange[],
+	pending: readonly PendingReviewView[],
 	now: number = Date.now(),
 	width = 100,
 ): SelectItem[] {
 	const gistWidth = Math.max(24, Math.min(width, 160) - 12);
-	return sortPendingChanges(pending).map((record) => ({
-		value: record.id,
-		label: formatOverlayLabel(record, now),
-		description: truncateToWidth(record.gist.replace(/\s+/g, " ").trim(), gistWidth, "…"),
-	}));
+	return [...pending]
+		.sort((a, b) => {
+			const left = Date.parse(a.createdAt);
+			const right = Date.parse(b.createdAt);
+			if (left !== right) return left - right;
+			if (a.id === b.id) return 0;
+			return a.id < b.id ? -1 : 1;
+		})
+		.map((record) => ({
+			value: record.id,
+			label: formatOverlayLabel(record, now),
+			description: truncateToWidth(record.gist.replace(/\s+/g, " ").trim(), gistWidth, "…"),
+		}));
 }
 
 export type PendingOverlayControls = {
@@ -2097,7 +2649,7 @@ export type PendingOverlayControls = {
 export type PendingOverlayDeps = {
 	tui: { requestRender(): void };
 	theme: Theme;
-	pending: PendingSkillChange[];
+	pending: readonly PendingReviewView[];
 	skipped: number;
 	now?: number;
 	width?: number;
@@ -2186,6 +2738,8 @@ export type SkillReviewTui = {
 
 export type SkillProposalSelection = {
 	record: PendingSkillChange;
+	/** The recomputed, verified review snapshot. The only thing rendered. */
+	snapshot: PendingReviewSnapshot;
 	ctx: ExtensionContext;
 	/**
 	 * The live TUI captured from the overlay factory. Absent in tests and in
@@ -2216,9 +2770,9 @@ export async function handleSkillProposalSelection(selection: SkillProposalSelec
 		await proposalSelectionHandler(selection);
 		return;
 	}
-	const { record, ctx } = selection;
+	const { record, snapshot, ctx } = selection;
 	ctx.ui.notify(
-		`${record.action} ${record.name} — ${record.gist}. Inspection opens in a later step; use /skills-review to approve or reject.`,
+		`${record.action} ${record.name} — ${snapshot.gist}. Inspection opens in a later step; use /skills-review to approve or reject.`,
 		"info",
 	);
 }
@@ -2296,11 +2850,12 @@ function fence(content: string, language = ""): string[] {
 	return [`${delimiter}${language}`, content.replace(/\n$/, ""), delimiter];
 }
 
-function artifactHeader(record: PendingSkillChange, now: number): string[] {
+function artifactHeader(snapshot: PendingReviewSnapshot, now: number): string[] {
+	const record = snapshot.record;
 	const flags =
-		record.securityFlags.length === 0
+		snapshot.securityFlags.length === 0
 			? ["- Security flags: none"]
-			: [`- Security flags (${record.securityFlags.length}, heuristic scan — not a sandbox):`, ...record.securityFlags.map((flag) => `  - ${flag}`)];
+			: [`- Security flags (${snapshot.securityFlags.length}, heuristic scan — not a sandbox):`, ...snapshot.securityFlags.map((flag) => `  - ${flag}`)];
 	return [
 		"# Staged skill proposal",
 		"",
@@ -2309,32 +2864,41 @@ function artifactHeader(record: PendingSkillChange, now: number): string[] {
 		`- Id: ${record.id}`,
 		`- Action: ${record.action}`,
 		`- Name: ${record.name}`,
-		`- Scope: ${record.scope}${record.category ? ` (category ${record.category})` : ""}`,
-		`- Gist: ${record.gist}`,
+		`- Scope: ${record.scope}${snapshot.action?.category ? ` (category ${snapshot.action.category})` : ""}`,
+		`- Gist: ${snapshot.gist}`,
 		`- Origin: tool ${record.origin.tool} · cwd ${record.origin.cwd}${record.origin.sessionId ? ` · session ${record.origin.sessionId}` : ""}`,
 		`- Staged: ${record.createdAt} (${formatAge(record.createdAt, now)} ago)`,
-		`- Target: ${displayPath(record.targetPath)}`,
-		`- Relative target: ${record.relativeTarget}`,
+		`- Target: ${displayPath(snapshot.action?.targetPath ?? record.targetPath)}`,
+		`- Relative target: ${snapshot.relativeTarget || record.relativeTarget}`,
 		...flags,
+		...(snapshot.mismatches.length > 0
+			? [`- TAMPERED queue record: ${snapshot.mismatches.join(", ")} disagree with the recomputed proposal below.`]
+			: []),
+		...(snapshot.error ? [`- Could not verify this proposal: ${snapshot.error}`] : []),
 		...(record.lastError ? [`- Last approval error: ${record.lastError}`] : []),
 	];
 }
 
 /**
- * Render the artifact body for a staged record.
+ * Render the artifact body for a verified review snapshot.
+ *
+ * Every content, diff, and flag line comes from the recomputed snapshot. The
+ * queue record supplies identity and provenance only.
  *
  * - `create` / `edit` / `patch`: the proposed resulting SKILL.md, plus the
- *   record's deterministic diff when the file already exists.
+ *   recomputed diff when the file already exists.
  * - `write_file`: the relative target and proposed content, plus the diff when
  *   prior content exists.
  * - `remove_file` / `delete`: an explicit list of what disappears, plus the
  *   current content that would be lost.
  */
-export function renderProposalArtifact(record: PendingSkillChange, now: number = Date.now()): string {
-	const lines = artifactHeader(record, now);
+export function renderProposalArtifact(snapshot: PendingReviewSnapshot, now: number = Date.now()): string {
+	const record = snapshot.record;
+	const relativeTarget = snapshot.relativeTarget || record.relativeTarget;
+	const lines = artifactHeader(snapshot, now);
 	const pushDiff = () => {
-		if (record.previousContent === null) return;
-		lines.push("", "## Diff", "", ...fence(record.diff || "(no textual diff)", "diff"));
+		if (snapshot.previousContent === null) return;
+		lines.push("", "## Diff", "", ...fence(snapshot.diff || "(no textual diff)", "diff"));
 	};
 
 	if (record.action === "create" || record.action === "edit" || record.action === "patch") {
@@ -2342,27 +2906,27 @@ export function renderProposalArtifact(record: PendingSkillChange, now: number =
 			"",
 			`## Proposed resulting ${SKILL_FILE_NAME}`,
 			"",
-			`Full content of \`${record.relativeTarget}\` after this change is approved.`,
+			`Full content of \`${relativeTarget}\` after this change is approved.`,
 			"",
-			...fence(record.nextContent ?? "(empty)", "markdown"),
+			...fence(snapshot.nextContent ?? "(empty)", "markdown"),
 		);
 		pushDiff();
 	} else if (record.action === "write_file") {
 		lines.push(
 			"",
-			`## Proposed supporting file: ${record.relativeTarget}`,
+			`## Proposed supporting file: ${relativeTarget}`,
 			"",
-			...fence(record.nextContent ?? "(empty)"),
+			...fence(snapshot.nextContent ?? "(empty)"),
 		);
 		pushDiff();
 	} else {
 		const removals =
 			record.action === "delete"
 				? [
-						`- The entire skill directory \`${displayPath(record.skillDir)}\` and everything under it.`,
+						`- The entire skill directory \`${displayPath(snapshot.action?.skillDir ?? record.skillDir)}\` and everything under it.`,
 						`- The \`.agents/skills\` symlink for \`${record.name}\`, if present.`,
 					]
-				: [`- The file \`${record.relativeTarget}\` (\`${displayPath(record.targetPath)}\`).`];
+				: [`- The file \`${relativeTarget}\` (\`${displayPath(snapshot.action?.targetPath ?? record.targetPath)}\`).`];
 		lines.push(
 			"",
 			"## Removals",
@@ -2371,9 +2935,9 @@ export function renderProposalArtifact(record: PendingSkillChange, now: number =
 			"",
 			"## Current content that would be lost",
 			"",
-			...(record.previousContent === null
+			...(snapshot.previousContent === null
 				? ["(no readable current content at the target path)"]
-				: fence(record.previousContent, record.relativeTarget.endsWith(".md") ? "markdown" : "")),
+				: fence(snapshot.previousContent, relativeTarget.endsWith(".md") ? "markdown" : "")),
 		);
 	}
 
@@ -2476,7 +3040,7 @@ export async function openProposalInReviewEditor(
 		// Fixed basename inside a fresh mkdtemp directory. Proposal identity
 		// belongs in file content only — never in the artifact path.
 		const artifactPath = join(directory, "proposal.md");
-		await deps.writeArtifact(artifactPath, renderProposalArtifact(record, deps.now()));
+		await deps.writeArtifact(artifactPath, renderProposalArtifact(selection.snapshot, deps.now()));
 		await deps.makeReadOnly(artifactPath).catch(() => {});
 
 		// Content goes in the file, never in argv and never through a shell.
@@ -2548,6 +3112,11 @@ export async function openPendingSkillsOverlay(ctx: ExtensionContext): Promise<v
 			return;
 		}
 
+		// Render only recomputed, verified proposals.
+		const authorization = replayAuthorizationFor(ctx);
+		const snapshots = await preparePendingReviews(queue.pending, { authorization });
+		const views = snapshots.map(reviewViewFor);
+
 		let stale = false;
 		let controls: PendingOverlayControls | null = null;
 		const unsubscribe = onSkillQueueChanged(() => {
@@ -2566,7 +3135,7 @@ export async function openPendingSkillsOverlay(ctx: ExtensionContext): Promise<v
 					return createPendingProposalsOverlay({
 						tui,
 						theme,
-						pending: queue.pending,
+						pending: views,
 						skipped: queue.skipped,
 						isStale: () => stale,
 						done,
@@ -2594,7 +3163,9 @@ export async function openPendingSkillsOverlay(ctx: ExtensionContext): Promise<v
 			continue;
 		}
 
-		await handleSkillProposalSelection({ record, ctx, tui: overlayTui });
+		// Rederive against the queue as it stands now, not as it was rendered.
+		const snapshot = await preparePendingReview(record, fresh.pending, { authorization });
+		await handleSkillProposalSelection({ record, snapshot, ctx, tui: overlayTui });
 	}
 }
 
