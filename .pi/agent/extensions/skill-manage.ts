@@ -34,11 +34,12 @@ import {
 	type Component,
 	type SelectItem,
 } from "@earendil-works/pi-tui";
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { constants } from "node:fs";
 import {
 	access,
+	chmod,
 	lstat,
 	mkdir,
 	mkdtemp,
@@ -1148,6 +1149,17 @@ function nullableString(value: unknown): string | null {
 }
 
 /**
+ * Persisted queue IDs must be RFC 4122 UUIDs in the shape produced by
+ * `crypto.randomUUID()` (version 4, RFC variant). Anything else is skipped.
+ */
+const RFC4122_RANDOM_UUID_RE =
+	/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isPersistedRecordId(value: unknown): value is string {
+	return typeof value === "string" && RFC4122_RANDOM_UUID_RE.test(value);
+}
+
+/**
  * Structural validation of one persisted record. The queue file is
  * user-writable, so anything malformed is skipped rather than trusted.
  * This is shape validation only — the payload is re-validated at replay.
@@ -1156,7 +1168,7 @@ export function validatePendingRecord(value: unknown): PendingSkillChange | null
 	if (!value || typeof value !== "object" || Array.isArray(value)) return null;
 	const record = value as Record<string, unknown>;
 
-	if (!isNonEmptyString(record.id)) return null;
+	if (!isPersistedRecordId(record.id)) return null;
 	const action = record.action;
 	if (typeof action !== "string" || !SKILL_ACTIONS.includes(action as SkillAction)) return null;
 	if (!isNonEmptyString(record.name)) return null;
@@ -2158,11 +2170,28 @@ export function createPendingProposalsOverlay(deps: PendingOverlayDeps): Compone
 	};
 }
 
-// --- selection handoff seam (Task 6 implements the read-only editor) --------
+// --- selection handoff seam ------------------------------------------------
+
+/**
+ * The subset of Pi 0.83's `TUI` used to hand the terminal to a foreground
+ * child. `stop()` releases raw mode and the alternate render loop, `start()`
+ * reacquires it, and `requestRender(true)` forces a full repaint — the same
+ * sequence Pi's own Ctrl+G external-editor path uses.
+ */
+export type SkillReviewTui = {
+	stop(): void;
+	start(): void;
+	requestRender(force?: boolean): void;
+};
 
 export type SkillProposalSelection = {
 	record: PendingSkillChange;
 	ctx: ExtensionContext;
+	/**
+	 * The live TUI captured from the overlay factory. Absent in tests and in
+	 * non-TUI hosts; the editor handoff then skips suspend/restore.
+	 */
+	tui?: SkillReviewTui;
 };
 
 export type SkillProposalSelectionHandler = (selection: SkillProposalSelection) => void | Promise<void>;
@@ -2192,6 +2221,308 @@ export async function handleSkillProposalSelection(selection: SkillProposalSelec
 		`${record.action} ${record.name} — ${record.gist}. Inspection opens in a later step; use /skills-review to approve or reject.`,
 		"info",
 	);
+}
+
+// ---------------------------------------------------------------------------
+// Read-only $EDITOR review handoff
+//
+// Selecting a row in the pending-proposals overlay writes a throwaway markdown
+// artifact describing exactly what the staged record would do, then opens it in
+// the user's editor. The artifact is a *report*, never an input: it is never
+// read back, and neither the queue nor the skills tree is touched here.
+// Approval stays exclusively with /skills-review.
+//
+// Blocking-editor limitation: the handoff waits for the child process to exit
+// before restoring the TUI. Editors that fork and return immediately (VS Code,
+// Sublime, Zed, and similar GUI editors) will appear to "flash" — the TUI comes
+// back while the window is still open. Configure a blocking invocation, e.g.
+// `EDITOR='code --wait'`, `EDITOR='subl -w'`, `EDITOR='zed --wait'`.
+//
+// Quoting limitation: the editor value is split on whitespace only. There is no
+// shell, so there is no quoting, globbing, variable expansion, or operator
+// support. `EDITOR='vim -c "set ft=markdown"'` becomes the literal argv
+// ["vim", "-c", '"set', 'ft=markdown"']. Use a wrapper script for anything that
+// needs quoting.
+// ---------------------------------------------------------------------------
+
+/** Shown when neither $EDITOR nor $VISUAL is usable. Exact wording is contractual. */
+export const NO_REVIEW_EDITOR_NOTICE =
+	"Set $EDITOR or $VISUAL to review proposals in an editor; falling back to the in-TUI diff (/skills-review).";
+
+/** Bold banner at the top of every artifact. Exact wording is contractual. */
+export const REVIEW_ARTIFACT_WARNING =
+	"READ-ONLY REVIEW — edits to this file are ignored. Opening this file does not approve the change. Approve/reject via /skills-review.";
+
+export type ResolvedReviewEditor = {
+	/** Which variable supplied the value. */
+	source: "EDITOR" | "VISUAL";
+	/** The raw, untrimmed-of-meaning value as configured. */
+	value: string;
+	/** argv[0] followed by argv[1..]; never passed through a shell. */
+	argv: string[];
+};
+
+/**
+ * Split an editor command into argv on whitespace.
+ *
+ * Deliberately dumb: no shell, so no quoting, escaping, globbing, or operators
+ * are honoured. `'vim; touch /tmp/pwned'` yields `["vim;", "touch",
+ * "/tmp/pwned"]`, which fails to spawn instead of running two commands.
+ */
+export function splitEditorCommand(value: string): string[] {
+	return value.trim().split(/\s+/).filter((part) => part.length > 0);
+}
+
+/**
+ * Resolve the review editor: nonempty `$EDITOR` first, then nonempty `$VISUAL`.
+ * Returns `null` when neither is set to anything but whitespace.
+ */
+export function resolveReviewEditor(env: Record<string, string | undefined>): ResolvedReviewEditor | null {
+	for (const source of ["EDITOR", "VISUAL"] as const) {
+		const value = env[source];
+		if (typeof value !== "string") continue;
+		const argv = splitEditorCommand(value);
+		if (argv.length === 0) continue;
+		return { source, value: value.trim(), argv };
+	}
+	return null;
+}
+
+function fence(content: string, language = ""): string[] {
+	// Widen the fence past any run of backticks inside the payload so a skill
+	// body containing ``` cannot break out of the block.
+	const longest = [...content.matchAll(/`+/g)].reduce((max, match) => Math.max(max, match[0].length), 0);
+	const delimiter = "`".repeat(Math.max(3, longest + 1));
+	return [`${delimiter}${language}`, content.replace(/\n$/, ""), delimiter];
+}
+
+function artifactHeader(record: PendingSkillChange, now: number): string[] {
+	const flags =
+		record.securityFlags.length === 0
+			? ["- Security flags: none"]
+			: [`- Security flags (${record.securityFlags.length}, heuristic scan — not a sandbox):`, ...record.securityFlags.map((flag) => `  - ${flag}`)];
+	return [
+		"# Staged skill proposal",
+		"",
+		`**${REVIEW_ARTIFACT_WARNING}**`,
+		"",
+		`- Id: ${record.id}`,
+		`- Action: ${record.action}`,
+		`- Name: ${record.name}`,
+		`- Scope: ${record.scope}${record.category ? ` (category ${record.category})` : ""}`,
+		`- Gist: ${record.gist}`,
+		`- Origin: tool ${record.origin.tool} · cwd ${record.origin.cwd}${record.origin.sessionId ? ` · session ${record.origin.sessionId}` : ""}`,
+		`- Staged: ${record.createdAt} (${formatAge(record.createdAt, now)} ago)`,
+		`- Target: ${displayPath(record.targetPath)}`,
+		`- Relative target: ${record.relativeTarget}`,
+		...flags,
+		...(record.lastError ? [`- Last approval error: ${record.lastError}`] : []),
+	];
+}
+
+/**
+ * Render the artifact body for a staged record.
+ *
+ * - `create` / `edit` / `patch`: the proposed resulting SKILL.md, plus the
+ *   record's deterministic diff when the file already exists.
+ * - `write_file`: the relative target and proposed content, plus the diff when
+ *   prior content exists.
+ * - `remove_file` / `delete`: an explicit list of what disappears, plus the
+ *   current content that would be lost.
+ */
+export function renderProposalArtifact(record: PendingSkillChange, now: number = Date.now()): string {
+	const lines = artifactHeader(record, now);
+	const pushDiff = () => {
+		if (record.previousContent === null) return;
+		lines.push("", "## Diff", "", ...fence(record.diff || "(no textual diff)", "diff"));
+	};
+
+	if (record.action === "create" || record.action === "edit" || record.action === "patch") {
+		lines.push(
+			"",
+			`## Proposed resulting ${SKILL_FILE_NAME}`,
+			"",
+			`Full content of \`${record.relativeTarget}\` after this change is approved.`,
+			"",
+			...fence(record.nextContent ?? "(empty)", "markdown"),
+		);
+		pushDiff();
+	} else if (record.action === "write_file") {
+		lines.push(
+			"",
+			`## Proposed supporting file: ${record.relativeTarget}`,
+			"",
+			...fence(record.nextContent ?? "(empty)"),
+		);
+		pushDiff();
+	} else {
+		const removals =
+			record.action === "delete"
+				? [
+						`- The entire skill directory \`${displayPath(record.skillDir)}\` and everything under it.`,
+						`- The \`.agents/skills\` symlink for \`${record.name}\`, if present.`,
+					]
+				: [`- The file \`${record.relativeTarget}\` (\`${displayPath(record.targetPath)}\`).`];
+		lines.push(
+			"",
+			"## Removals",
+			"",
+			...removals,
+			"",
+			"## Current content that would be lost",
+			"",
+			...(record.previousContent === null
+				? ["(no readable current content at the target path)"]
+				: fence(record.previousContent, record.relativeTarget.endsWith(".md") ? "markdown" : "")),
+		);
+	}
+
+	lines.push("", "---", "", `**${REVIEW_ARTIFACT_WARNING}**`, "");
+	return lines.join("\n");
+}
+
+/** Outcome of waiting on the editor child. */
+export type ReviewEditorSpawnResult =
+	| { kind: "exit"; code: number | null }
+	| { kind: "error"; message: string };
+
+/**
+ * Process and temp-file lifecycle, injected so tests can drive every branch
+ * without a terminal, a real editor, or a real temp directory.
+ */
+export type ReviewEditorDeps = {
+	env: Record<string, string | undefined>;
+	now: () => number;
+	/** Create and return a fresh directory. Must not reuse an existing one. */
+	makeTempDir: () => Promise<string>;
+	writeArtifact: (path: string, content: string) => Promise<void>;
+	/** Best-effort read-only bit; failures must not abort the review. */
+	makeReadOnly: (path: string) => Promise<void>;
+	removeTempDir: (path: string) => Promise<void>;
+	/** Spawn argv with the terminal inherited and no shell, and wait for exit. */
+	spawnEditor: (argv: string[]) => Promise<ReviewEditorSpawnResult>;
+};
+
+export function defaultReviewEditorDeps(): ReviewEditorDeps {
+	return {
+		env: process.env,
+		now: () => Date.now(),
+		makeTempDir: () => mkdtemp(join(tmpdir(), "pi-skill-review-")),
+		writeArtifact: async (path, content) => {
+			await writeFile(path, content, { encoding: "utf8", mode: 0o600 });
+		},
+		makeReadOnly: async (path) => {
+			// The containing directory stays writable so cleanup still works; only
+			// the artifact loses its write bit. This is advisory — an editor can
+			// still force a write, and any such write is ignored regardless.
+			await chmod(path, 0o400);
+		},
+		removeTempDir: async (path) => {
+			await rm(path, { recursive: true, force: true });
+		},
+		spawnEditor: (argv) =>
+			new Promise<ReviewEditorSpawnResult>((resolveSpawn) => {
+				const [command, ...args] = argv;
+				// shell:false unconditionally. Pi's own external editor enables a
+				// shell on Windows; this path deliberately does not, because the
+				// editor string is attacker-influencable configuration and a shell
+				// would turn `EDITOR='vim; rm -rf ~'` into two commands.
+				const child = spawn(command as string, args, { stdio: "inherit", shell: false });
+				child.once("error", (error: Error) => resolveSpawn({ kind: "error", message: error.message }));
+				child.once("close", (code: number | null) => resolveSpawn({ kind: "exit", code }));
+			}),
+	};
+}
+
+/**
+ * Release the terminal for a foreground child and return the restore callback.
+ * The callback is idempotent, so `finally` can call it after an early restore.
+ */
+export function suspendTuiForForeground(tui: SkillReviewTui | undefined): () => void {
+	if (!tui) return () => {};
+	tui.stop();
+	let restored = false;
+	return () => {
+		if (restored) return;
+		restored = true;
+		tui.start();
+		tui.requestRender(true);
+	};
+}
+
+/**
+ * Open a staged proposal in `$EDITOR`/`$VISUAL` as a read-only report.
+ *
+ * Always returns normally; every failure is reported through `ctx.ui.notify`
+ * so the overlay loop can reopen. The temp directory is removed in `finally`
+ * on every path, and the TUI is restored on success, spawn error, nonzero
+ * exit, and thrown errors alike.
+ */
+export async function openProposalInReviewEditor(
+	selection: SkillProposalSelection,
+	deps: ReviewEditorDeps = defaultReviewEditorDeps(),
+): Promise<void> {
+	const { record, ctx, tui } = selection;
+
+	const editor = resolveReviewEditor(deps.env);
+	if (!editor) {
+		ctx.ui.notify(NO_REVIEW_EDITOR_NOTICE, "warning");
+		return;
+	}
+
+	let directory: string | undefined;
+	try {
+		directory = await deps.makeTempDir();
+		// Fixed basename inside a fresh mkdtemp directory. Proposal identity
+		// belongs in file content only — never in the artifact path.
+		const artifactPath = join(directory, "proposal.md");
+		await deps.writeArtifact(artifactPath, renderProposalArtifact(record, deps.now()));
+		await deps.makeReadOnly(artifactPath).catch(() => {});
+
+		// Content goes in the file, never in argv and never through a shell.
+		const argv = [...editor.argv, artifactPath];
+		const restore = suspendTuiForForeground(tui);
+		let result: ReviewEditorSpawnResult;
+		try {
+			result = await deps.spawnEditor(argv);
+		} finally {
+			restore();
+		}
+
+		if (result.kind === "error") {
+			ctx.ui.notify(
+				`Could not launch $${editor.source} '${editor.value}': ${result.message}. Nothing was approved; use /skills-review.`,
+				"error",
+			);
+			return;
+		}
+		if (result.code !== 0) {
+			ctx.ui.notify(
+				`$${editor.source} '${editor.value}' exited with ${result.code === null ? "a signal" : `code ${result.code}`}. Nothing was approved; use /skills-review.`,
+				"warning",
+			);
+			return;
+		}
+
+		ctx.ui.notify(
+			`Reviewed ${record.action} ${record.name} (read-only). Approve or reject with /skills-review.`,
+			"info",
+		);
+	} catch (error) {
+		ctx.ui.notify(
+			`Review failed for ${record.name}: ${error instanceof Error ? error.message : String(error)}`,
+			"error",
+		);
+	} finally {
+		if (directory !== undefined) await deps.removeTempDir(directory).catch(() => {});
+	}
+}
+
+/** Build the handler installed for the lifetime of a TUI session. */
+export function createReviewEditorSelectionHandler(
+	deps?: ReviewEditorDeps,
+): SkillProposalSelectionHandler {
+	return (selection) => openProposalInReviewEditor(selection, deps ?? defaultReviewEditorDeps());
 }
 
 // --- overlay loop ----------------------------------------------------------
@@ -2225,10 +2556,14 @@ export async function openPendingSkillsOverlay(ctx: ExtensionContext): Promise<v
 		});
 
 		let result: PendingOverlayResult | undefined;
+		let overlayTui: SkillReviewTui | undefined;
 		try {
 			result = await ctx.ui.custom<PendingOverlayResult>(
-				(tui, theme, _keybindings, done) =>
-					createPendingProposalsOverlay({
+				(tui, theme, _keybindings, done) => {
+					// Capture the live TUI so the selection handoff can release raw
+					// mode for a foreground editor and reacquire it afterwards.
+					overlayTui = tui as unknown as SkillReviewTui;
+					return createPendingProposalsOverlay({
 						tui,
 						theme,
 						pending: queue.pending,
@@ -2238,7 +2573,8 @@ export async function openPendingSkillsOverlay(ctx: ExtensionContext): Promise<v
 						onControls: (value) => {
 							controls = value;
 						},
-					}),
+					});
+				},
 				{ overlay: true, overlayOptions: { width: "80%", maxHeight: "70%", anchor: "center", margin: 1 } },
 			);
 		} finally {
@@ -2258,7 +2594,7 @@ export async function openPendingSkillsOverlay(ctx: ExtensionContext): Promise<v
 			continue;
 		}
 
-		await handleSkillProposalSelection({ record, ctx });
+		await handleSkillProposalSelection({ record, ctx, tui: overlayTui });
 	}
 }
 
@@ -2417,7 +2753,14 @@ export default function skillManage(pi: ExtensionAPI) {
 	pi.on("session_start", async (_event, ctx) => {
 		footer?.stop();
 		footer = undefined;
+
+		// The module-level selection handler is process-global. Install it only
+		// for a UI-capable session and clear it on shutdown so a reload or an
+		// RPC/print session never inherits a stale editor handoff.
+		setSkillProposalSelectionHandler(null);
+
 		if (!ctx.hasUI) return;
+		setSkillProposalSelectionHandler(createReviewEditorSelectionHandler());
 		footer = bindSkillsReviewFooterStatus((key, text) => ctx.ui.setStatus(key, text));
 		await footer.start();
 	});
@@ -2425,6 +2768,7 @@ export default function skillManage(pi: ExtensionAPI) {
 	pi.on("session_shutdown", async (_event, ctx) => {
 		footer?.stop();
 		footer = undefined;
+		setSkillProposalSelectionHandler(null);
 		if (ctx.hasUI) ctx.ui.setStatus(SKILL_MANAGE_STATUS_KEY, undefined);
 	});
 }
