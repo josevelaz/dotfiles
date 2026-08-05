@@ -22,7 +22,7 @@ import {
   NOTE_SYSTEM_PROMPT,
   ObsidianWriteError,
   redactNotification,
-  redactSecrets,
+  redactNoteSecrets,
   renderNewNoteContent,
   renderNoteBlock,
   runObsidianWrite,
@@ -303,7 +303,7 @@ export default function obsidianNoteExtension(pi: ExtensionAPI): void {
     handler: async (args, ctx) => {
       // Redact at intake: no later sink — model prompt, note block, or
       // notification — ever sees the raw idea.
-      const idea = redactSecrets((args ?? "").trim()).trim();
+      const idea = redactNoteSecrets((args ?? "").trim()).trim();
       if (idea.length === 0) {
         notifyCtx(ctx, noteMessages.usage(), "error");
         return;

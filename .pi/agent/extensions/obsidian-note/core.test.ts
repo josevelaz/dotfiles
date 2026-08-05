@@ -27,6 +27,7 @@ import {
   makeInert,
   neutralizeIdeaText,
   noteMessages,
+  redactNoteSecrets,
   redactNotification,
   sanitizeMetadataValue,
   renderNewNoteContent,
@@ -429,7 +430,10 @@ test("output validation: preserves prose, bullets, and both caps under the inert
     "+ third bullet",
   ].join("\n");
   const output = validateSynthesis(prose, config());
-  assert.match(output, /^This is readable prose with punctuation: commas, semicolons; and a question\?$/m);
+  assert.match(
+    output,
+    /^This is readable prose with punctuation&#58; commas, semicolons; and a question\?$/m,
+  );
   assert.match(output, /^- first bullet$/m);
   assert.match(output, /^- second bullet$/m);
   assert.match(output, /^- third bullet$/m);
@@ -539,7 +543,10 @@ test("rendering: emits bounded redacted blocks and stable note headers", () => {
   const block = renderNoteBlock(input);
 
   assert.match(block, new RegExp(`^## ${formatLocalTimestamp(timestamp)}\\n`));
-  assert.match(block, /\*\*Idea:\*\*\s+Remember Authorization: Bearer \[REDACTED\] and keep this idea/);
+  assert.match(
+    block,
+    /\*\*Idea:\*\*\s+Remember Authorization&#58; Bearer \[REDACTED\] and keep this idea/,
+  );
   assert.doesNotMatch(block, /secret-value/);
   assert.match(block, /> \[!note\] Context/);
   assert.match(block, /> \\# Context/);
@@ -1337,4 +1344,157 @@ test("runObsidianWrite flows: a failed reservation delete fails closed", async (
     // No append retry runs after a delete that cannot be confirmed.
     assert.deepEqual(calls, ["append", "create", "delete"]);
   }
+});
+
+/**
+ * An empty username is RFC-valid, so `https://:secret@example.com` carries a
+ * credential that the shared `redactSecrets` patterns never matched.
+ */
+const EMPTY_USER_URL = "https://:secret@example.com";
+
+test("redaction order: an empty-username URL credential dies at every sink", () => {
+  const cfg = config();
+
+  const outputs: Array<[string, string]> = [
+    ["redactNoteSecrets", redactNoteSecrets(EMPTY_USER_URL)],
+    ["makeInert", makeInert(EMPTY_USER_URL)],
+    ["neutralizeIdeaText", neutralizeIdeaText(EMPTY_USER_URL)],
+    ["validateSynthesis", validateSynthesis(EMPTY_USER_URL, cfg)],
+    ["sanitizeMetadataValue", sanitizeMetadataValue(EMPTY_USER_URL)],
+    ["redactNotification", redactNotification(EMPTY_USER_URL)],
+    [
+      "buildNoteEvidence",
+      buildNoteEvidence(
+        [{ type: "message", message: { role: "user", content: EMPTY_USER_URL } }],
+        cfg,
+      ),
+    ],
+  ];
+
+  const prompt = buildNotePrompt(EMPTY_USER_URL, EMPTY_USER_URL, cfg);
+  const [, evidenceBlock] = /<<<EVIDENCE>>>\n([\s\S]*?)\n<<<END EVIDENCE>>>/.exec(prompt)!;
+  const [, ideaBlock] = /<<<IDEA>>>\n([\s\S]*?)\n<<<END IDEA>>>/.exec(prompt)!;
+  outputs.push(["buildNotePrompt evidence", evidenceBlock!], ["buildNotePrompt idea", ideaBlock!]);
+
+  const block = renderNoteBlock({
+    timestamp: new Date(2026, 7, 5, 14, 3, 9),
+    idea: EMPTY_USER_URL,
+    synthesis: validateSynthesis(EMPTY_USER_URL, cfg),
+    repo: repo({ name: EMPTY_USER_URL, branch: EMPTY_USER_URL, commit: EMPTY_USER_URL }),
+    config: cfg,
+  });
+  const [, renderedIdea] = /\*\*Idea:\*\* ([^\n]*)/.exec(block)!;
+  const [, renderedSynthesis] = /> \[!note\] Context\n> ([^\n]*)/.exec(block)!;
+  const [, renderedMetadata] = /\nrepo: ([^\n]*)/.exec(block)!;
+  outputs.push(
+    ["renderNoteBlock idea", renderedIdea!],
+    ["renderNoteBlock synthesis", renderedSynthesis!],
+    ["renderNoteBlock metadata", renderedMetadata!],
+  );
+
+  for (const [label, output] of outputs) {
+    assert.doesNotMatch(output, /secret/, `${label} leaked the empty-username credential`);
+    assert.match(output, /\[REDACTED\]/, `${label} lost the redaction marker`);
+  }
+});
+
+test("redaction order: normalization cannot reveal a folded URL credential", () => {
+  const forms = [
+    // Scheme-relative authority: same credential, no scheme.
+    "see //:secret@example.com now",
+    "//user:secret@example.com",
+    // Fullwidth compatibility forms fold to ASCII under NFKC.
+    "https\uff1a\uff0f\uff0fuser\uff1asecret\uff20example\uff0ecom",
+    "https\uff1a\uff0f\uff0f\uff1asecret\uff20example\uff0ecom",
+    // Percent-encoded and non-ASCII userinfo.
+    "https://%75ser:secret@example.com",
+    "https://\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c:secret@example.com",
+    // Ideographic and halfwidth dot variants inside the host.
+    "https://:secret@example\u3002com",
+    "https://:secret@example\uff61com",
+  ];
+  for (const form of forms) {
+    const redacted = redactNoteSecrets(form);
+    assert.doesNotMatch(redacted, /secret/, `redactNoteSecrets leaked for ${JSON.stringify(form)}`);
+    assert.match(redacted, /\[REDACTED\]/, `redactNoteSecrets lost the marker for ${form}`);
+
+    for (const [label, output] of [
+      ["makeInert", makeInert(form)],
+      ["idea", neutralizeIdeaText(form)],
+      ["synthesis", validateSynthesis(form, config())],
+      ["metadata", sanitizeMetadataValue(form)],
+    ] as Array<[string, string]>) {
+      assert.doesNotMatch(output, /secret/, `${label} leaked for ${JSON.stringify(form)}`);
+      assert.match(output, /\[REDACTED\]/, `${label} lost the marker for ${JSON.stringify(form)}`);
+      assertInert(output, `${label}: ${form}`);
+    }
+  }
+});
+
+/**
+ * Unicode hosts and addresses that no ASCII host pattern would recognize.
+ * Encoding `.`, `:`, and `@` unconditionally is what makes them inert.
+ */
+const UNICODE_HOSTS = [
+  "evil.\u0440\u0444",
+  "user@evil.\u0440\u0444",
+  "\u4f8b\u3048.\u30c6\u30b9\u30c8",
+  "user@\u4f8b\u3048.\u30c6\u30b9\u30c8",
+  // Decomposed (NFD) Latin plus a fullwidth compatibility letter.
+  "e\u0301vil.co\uff4d",
+  // Fullwidth host, folded to ASCII by NFKC.
+  "\uff45\uff58\uff41\uff4d\uff50\uff4c\uff45\uff0e\uff43\uff4f\uff4d",
+  // URL dot variants: ideographic, fullwidth, halfwidth ideographic.
+  "example\u3002com",
+  "example\uff0ecom",
+  "example\uff61com",
+];
+
+/** Persisted note text may not contain a raw `.`, `:`, or `@` to autolink on. */
+function assertNoAutolinkableToken(text: string, label: string): void {
+  assert.doesNotMatch(text, /\./, `${label} kept a raw dot: ${JSON.stringify(text)}`);
+  assert.doesNotMatch(text, /@/, `${label} kept a raw at-sign: ${JSON.stringify(text)}`);
+  assert.doesNotMatch(text, /:/, `${label} kept a raw colon: ${JSON.stringify(text)}`);
+  assert.match(text, /&#(?:46|58|64);/, `${label} lost the entity encoding`);
+}
+
+test("inert encoding: Unicode hosts and addresses stay non-autolinkable when persisted", () => {
+  for (const host of UNICODE_HOSTS) {
+    for (const [label, output] of [
+      ["makeInert", makeInert(host)],
+      ["idea", neutralizeIdeaText(host)],
+      ["synthesis", validateSynthesis(host, config())],
+      ["metadata", sanitizeMetadataValue(host)],
+    ] as Array<[string, string]>) {
+      assertNoAutolinkableToken(output, `${label}: ${JSON.stringify(host)}`);
+      assertInert(output, `${label}: ${host}`);
+    }
+
+    // Rendered note output: idea, synthesis, and every metadata field.
+    const block = renderNoteBlock({
+      timestamp: new Date(2026, 7, 5, 14, 3, 9),
+      idea: host,
+      synthesis: validateSynthesis(host, config()),
+      repo: { name: host, branch: host, commit: host, cwd: host },
+      config: config(),
+    });
+    const [, renderedIdea] = /\*\*Idea:\*\* ([^\n]*)/.exec(block)!;
+    const [, renderedSynthesis] = /> \[!note\] Context\n> ([^\n]*)/.exec(block)!;
+    const [, renderedFooter] = /\nrepo: ([^\n]*)/.exec(block)!;
+    assertNoAutolinkableToken(renderedIdea!, `block idea: ${JSON.stringify(host)}`);
+    assertNoAutolinkableToken(renderedSynthesis!, `block synthesis: ${JSON.stringify(host)}`);
+    for (const field of renderedFooter!.split(" \u00b7 ")) {
+      const value = field.slice(field.indexOf(": ") + 2);
+      assertNoAutolinkableToken(value, `block metadata: ${JSON.stringify(host)}`);
+    }
+  }
+});
+
+test("inert encoding: the truncation ellipsis survives normalization", () => {
+  // NFKC folds U+2026 to three ASCII dots; the trusted marker must not change.
+  const long = Array.from({ length: 400 }, (_, index) => `word${index}`).join(" ");
+  assert.match(validateSynthesis(long, config({ maxIdeaChars: 4_000 })), / \u2026$/);
+  assert.equal(redactNoteSecrets("done \u2026"), "done \u2026");
+  // A forged private-use parking slot cannot smuggle characters through.
+  assert.equal(redactNoteSecrets("a\ue000b"), "ab");
 });
