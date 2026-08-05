@@ -9,15 +9,17 @@ import {
   NOTE_SYSTEM_PROMPT,
   NOTE_USAGE,
   ObsidianWriteError,
-  RESERVATION_CONTENT,
   SYNTHESIS_MAX_WORDS,
+  buildFirstBlockContent,
   buildNoteEvidence,
   buildNotePrompt,
   buildObsidianArgs,
   deriveNoteTarget,
+  deriveReservationContent,
   encodeObsidianContent,
   formatLocalTimestamp,
   ideaSnippet,
+  isFirstBlockContent,
   isNumberedSibling,
   loadConfig,
   neutralizeIdeaText,
@@ -639,7 +641,61 @@ test("encoding and exact argv: escapes content without shell interpretation", ()
       (arg) => !arg.includes("SENSITIVE"),
     ),
   );
-  assert.equal(RESERVATION_CONTENT, "");
+
+  // Create reservation argv carries only the strict safe H1 — never idea/secrets.
+  const reservation = buildFirstBlockContent("my-repo");
+  const createArgs = buildObsidianArgs("create", "Research", "pi-notes/my-repo.md", reservation);
+  assert.deepEqual(createArgs, [
+    "vault=Research",
+    "create",
+    "path=pi-notes/my-repo.md",
+    `content=${encodeObsidianContent(reservation)}`,
+    "silent",
+  ]);
+  assert.equal(createArgs[3], "content=# my-repo — pi notes");
+  for (const arg of createArgs) {
+    assert.doesNotMatch(arg, /Idea|Authorization|Bearer|synthesis|ghp_/i);
+  }
+});
+
+test("first-block reservation: accepts only a strict sanitized H1", () => {
+  assert.equal(buildFirstBlockContent("my-repo"), "# my-repo — pi notes");
+  assert.equal(buildFirstBlockContent("untitled"), "# untitled — pi notes");
+  assert.equal(buildFirstBlockContent("foo..bar"), "# foo..bar — pi notes");
+  assert.ok(isFirstBlockContent("# my-repo — pi notes"));
+  assert.ok(isFirstBlockContent(buildFirstBlockContent("a")));
+
+  const rejected = [
+    "",
+    "# my-repo — pi notes\n",
+    "# my-repo — pi notes\n\n## 2026-08-05T14:03:09Z",
+    "# My-Repo — pi notes",
+    "# -bad — pi notes",
+    "# .hidden — pi notes",
+    "# evil idea\nAuthorization: Bearer secret",
+    "my-repo — pi notes",
+    "# my-repo - pi notes",
+    "# my-repo — pi notes ",
+    " # my-repo — pi notes",
+  ];
+  for (const content of rejected) {
+    assert.equal(isFirstBlockContent(content), false, JSON.stringify(content));
+  }
+  assert.throws(() => buildFirstBlockContent(""), /Invalid sanitized note name/);
+  assert.throws(() => buildFirstBlockContent("My-Repo"), /Invalid sanitized note name/);
+  assert.throws(() => buildFirstBlockContent("-bad"), /Invalid sanitized note name/);
+  assert.throws(() => buildFirstBlockContent("bad\nname"), /Invalid sanitized note name/);
+
+  // deriveReservationContent keeps only the trusted H1 from new-note content.
+  assert.equal(deriveReservationContent("# repo — pi notes"), "# repo — pi notes");
+  assert.equal(
+    deriveReservationContent("# repo — pi notes\n\n## 2026-08-05T14:03:09Z\n\n**Idea:** secret"),
+    "# repo — pi notes",
+  );
+  assert.equal(deriveReservationContent(""), null);
+  assert.equal(deriveReservationContent("**Idea:** secret"), null);
+  assert.equal(deriveReservationContent("# Repo — pi notes"), null);
+  assert.equal(deriveReservationContent("Authorization: Bearer secret"), null);
 });
 
 test("numbered-sibling validation: accepts only same-directory numbered siblings", () => {
@@ -677,18 +733,23 @@ test("runObsidianWrite flows: append success and missing-note create success", a
     return responses.shift()!;
   };
   const noteConfig = config();
+  const reservation = buildFirstBlockContent("repo");
+  const fileAfterCreate = `${reservation}\nBLOCK`;
 
-  assert.deepEqual(await runObsidianWrite(exec, noteConfig, "pi-notes/repo.md", "BLOCK", "NEW"), {
-    action: "append",
-    attempts: 1,
-  });
+  assert.deepEqual(
+    await runObsidianWrite(exec, noteConfig, "pi-notes/repo.md", "BLOCK", reservation),
+    {
+      action: "append",
+      attempts: 1,
+    },
+  );
   assert.deepEqual(calls[0], {
     cmd: "obsidian",
     args: ["vault=Research", "append", "path=pi-notes/repo.md", "content=BLOCK"],
   });
 
-  // Create reserves the path with empty content, then the first-note content is
-  // appended only after the reservation lands on the requested path.
+  // Create reserves the path with the safe H1 only, then appends only `block`
+  // so the real file starts with `# <safe-name> — pi notes` at byte 0.
   calls.length = 0;
   responses.length = 0;
   responses.push(
@@ -696,25 +757,42 @@ test("runObsidianWrite flows: append success and missing-note create success", a
     { stdout: "Created: pi-notes/repo.md", stderr: "", code: 0 },
     { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 },
   );
-  assert.deepEqual(await runObsidianWrite(exec, noteConfig, "pi-notes/repo.md", "BLOCK", "NEW"), {
-    action: "create",
-    attempts: 3,
-  });
+  assert.deepEqual(
+    await runObsidianWrite(exec, noteConfig, "pi-notes/repo.md", "BLOCK", reservation),
+    {
+      action: "create",
+      attempts: 3,
+    },
+  );
   assert.deepEqual(calls, [
     { cmd: "obsidian", args: ["vault=Research", "append", "path=pi-notes/repo.md", "content=BLOCK"] },
-    { cmd: "obsidian", args: ["vault=Research", "create", "path=pi-notes/repo.md", "content=", "silent"] },
-    { cmd: "obsidian", args: ["vault=Research", "append", "path=pi-notes/repo.md", "content=NEW"] },
+    {
+      cmd: "obsidian",
+      args: [
+        "vault=Research",
+        "create",
+        "path=pi-notes/repo.md",
+        "content=# repo — pi notes",
+        "silent",
+      ],
+    },
+    { cmd: "obsidian", args: ["vault=Research", "append", "path=pi-notes/repo.md", "content=BLOCK"] },
   ]);
+  assert.match(fileAfterCreate, /^# repo — pi notes\nBLOCK/);
+  // Create argv never carries idea, synthesis, or block text.
+  assert.equal(calls[1]!.args[3], "content=# repo — pi notes");
+  assert.ok(!calls[1]!.args.some((arg) => arg.includes("BLOCK") || arg.includes("Idea")));
 });
 
 test("runObsidianWrite flows: a reported path that is not the requested note fails closed", async () => {
+  const reservation = buildFirstBlockContent("repo");
   const wrongAppend: ObsidianExec = async () => ({
     stdout: "Appended to: pi-notes/other.md",
     stderr: "",
     code: 0,
   });
   await assert.rejects(
-    () => runObsidianWrite(wrongAppend, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+    () => runObsidianWrite(wrongAppend, config(), "pi-notes/repo.md", "BLOCK", reservation),
     (error: unknown) =>
       error instanceof ObsidianWriteError &&
       error.kind === "write-failed" &&
@@ -729,7 +807,7 @@ test("runObsidianWrite flows: a reported path that is not the requested note fai
     return { stdout: "Created: ../../etc/passwd.md", stderr: "", code: 0 };
   };
   await assert.rejects(
-    () => runObsidianWrite(strangeCreate, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+    () => runObsidianWrite(strangeCreate, config(), "pi-notes/repo.md", "BLOCK", reservation),
     (error: unknown) =>
       error instanceof ObsidianWriteError &&
       error.kind === "write-failed" &&
@@ -737,18 +815,66 @@ test("runObsidianWrite flows: a reported path that is not the requested note fai
   );
   assert.deepEqual(calls, ["append", "create"]);
 
-  // The first-note append must also land on the requested path.
+  // The post-create block append must also land on the requested path.
+  let seedCalls = 0;
   const wrongSeed: ObsidianExec = async (_cmd, args) => {
+    seedCalls += 1;
     if (args[1] === "create") return { stdout: "Created: pi-notes/repo.md", stderr: "", code: 0 };
-    if (args[3] === "content=NEW") {
-      return { stdout: "Appended to: pi-notes/repo 1.md", stderr: "", code: 0 };
-    }
-    return { stdout: "", stderr: "no such file", code: 1 };
+    if (seedCalls === 1) return { stdout: "", stderr: "no such file", code: 1 };
+    // Second append is the post-create seed; report the wrong path.
+    return { stdout: "Appended to: pi-notes/repo 1.md", stderr: "", code: 0 };
   };
   await assert.rejects(
-    () => runObsidianWrite(wrongSeed, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+    () => runObsidianWrite(wrongSeed, config(), "pi-notes/repo.md", "BLOCK", reservation),
     (error: unknown) => error instanceof ObsidianWriteError && error.kind === "write-failed",
   );
+
+  // Malformed reservation headers fail closed before any create argv is built.
+  const noCalls: string[] = [];
+  const neverExec: ObsidianExec = async (_cmd, args) => {
+    noCalls.push(args[1]!);
+    return { stdout: "", stderr: "", code: 0 };
+  };
+  for (const bad of ["", "**Idea:** secret", "# Repo — pi notes", "Bearer secret-token"]) {
+    noCalls.length = 0;
+    await assert.rejects(
+      () => runObsidianWrite(neverExec, config(), "pi-notes/repo.md", "BLOCK", bad),
+      (error: unknown) =>
+        error instanceof ObsidianWriteError &&
+        error.kind === "write-failed" &&
+        /strict safe H1/.test(error.message),
+    );
+    assert.deepEqual(noCalls, []);
+  }
+
+  // Full first-note content is accepted only to derive the H1 reservation;
+  // create argv still carries the H1 alone, then append uses only `block`.
+  const derivedCalls: Array<string[]> = [];
+  const derivedExec: ObsidianExec = async (_cmd, args) => {
+    derivedCalls.push(args);
+    if (args[1] === "append" && derivedCalls.length === 1) {
+      return { stdout: "", stderr: "no such file", code: 1 };
+    }
+    if (args[1] === "create") return { stdout: "Created: pi-notes/repo.md", stderr: "", code: 0 };
+    return { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 };
+  };
+  const fullNewNote = renderNewNoteContent(
+    {
+      timestamp: new Date(2026, 7, 5, 14, 3, 9),
+      idea: "Authorization: Bearer secret-value",
+      synthesis: "summary",
+      repo: repo(),
+      config: config(),
+    },
+    "repo",
+  );
+  assert.deepEqual(
+    await runObsidianWrite(derivedExec, config(), "pi-notes/repo.md", "BLOCK", fullNewNote),
+    { action: "create", attempts: 3 },
+  );
+  assert.equal(derivedCalls[1]![3], "content=# repo — pi notes");
+  assert.ok(!derivedCalls[1]!.some((arg) => /secret-value|Idea|Bearer|summary/i.test(arg)));
+  assert.equal(derivedCalls[2]![3], "content=BLOCK");
 });
 
 test("runObsidianWrite flows: create race falls back to one append retry", async () => {
@@ -762,12 +888,14 @@ test("runObsidianWrite flows: create race falls back to one append retry", async
     calls.push({ cmd, args });
     return responses.shift()!;
   };
+  const reservation = buildFirstBlockContent("repo");
 
-  assert.deepEqual(await runObsidianWrite(exec, config(), "repo.md", "BLOCK", "NEW"), {
+  assert.deepEqual(await runObsidianWrite(exec, config(), "repo.md", "BLOCK", reservation), {
     action: "append",
     attempts: 3,
   });
   assert.deepEqual(calls.map((call) => call.args[1]), ["append", "create", "append"]);
+  assert.equal(calls[1].args[3], "content=# repo — pi notes");
   assert.equal(calls[2].args[3], "content=BLOCK");
 });
 
@@ -789,7 +917,7 @@ test("runObsidianWrite flows: classifies direct append failures and never retrie
       return { stdout: "", stderr, code: 1 };
     };
     await assert.rejects(
-      () => runObsidianWrite(exec, config(), "repo.md", "BLOCK", "NEW"),
+      () => runObsidianWrite(exec, config(), "repo.md", "BLOCK", buildFirstBlockContent("repo")),
       (error: unknown) => error instanceof ObsidianWriteError && error.kind === kind,
     );
     assert.deepEqual(calls, ["obsidian"]);
@@ -797,6 +925,7 @@ test("runObsidianWrite flows: classifies direct append failures and never retrie
 });
 
 test("runObsidianWrite flows: classifies CLI, create, and retry failures", async () => {
+  const reservation = buildFirstBlockContent("repo");
   const missingCli = Object.assign(new Error("spawn obsidian ENOENT"), { code: "ENOENT" });
   await assert.rejects(
     () =>
@@ -807,7 +936,7 @@ test("runObsidianWrite flows: classifies CLI, create, and retry failures", async
         config(),
         "repo.md",
         "BLOCK",
-        "NEW",
+        reservation,
       ),
     (error: unknown) => error instanceof ObsidianWriteError && error.kind === "cli-missing",
   );
@@ -817,7 +946,7 @@ test("runObsidianWrite flows: classifies CLI, create, and retry failures", async
     return { stdout: "", stderr: "permission denied", code: 1 };
   };
   await assert.rejects(
-    () => runObsidianWrite(createFailure, config(), "repo.md", "BLOCK", "NEW"),
+    () => runObsidianWrite(createFailure, config(), "repo.md", "BLOCK", reservation),
     (error: unknown) => error instanceof ObsidianWriteError && error.kind === "write-failed",
   );
 
@@ -829,13 +958,14 @@ test("runObsidianWrite flows: classifies CLI, create, and retry failures", async
     return { stdout: "", stderr: "not running", code: 1 };
   };
   await assert.rejects(
-    () => runObsidianWrite(retryFailure, config(), "repo.md", "BLOCK", "NEW"),
+    () => runObsidianWrite(retryFailure, config(), "repo.md", "BLOCK", reservation),
     (error: unknown) => error instanceof ObsidianWriteError && error.kind === "not-running",
   );
 });
 
 test("runObsidianWrite flows: treats exit-0 CLI errors as failures", async () => {
   // The real Obsidian CLI exits 0 even when it refuses the write.
+  const reservation = buildFirstBlockContent("repo");
   const calls: string[] = [];
   const exec: ObsidianExec = async (_cmd, args) => {
     calls.push(args[1]!);
@@ -846,31 +976,38 @@ test("runObsidianWrite flows: treats exit-0 CLI errors as failures", async () =>
     return { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 };
   };
 
-  assert.deepEqual(await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"), {
-    action: "create",
-    attempts: 3,
-  });
+  assert.deepEqual(
+    await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", reservation),
+    {
+      action: "create",
+      attempts: 3,
+    },
+  );
   assert.deepEqual(calls, ["append", "create", "append"]);
 
   const vaultDown: ObsidianExec = async () => ({ stdout: "Vault not found.", stderr: "", code: 0 });
   await assert.rejects(
-    () => runObsidianWrite(vaultDown, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+    () => runObsidianWrite(vaultDown, config(), "pi-notes/repo.md", "BLOCK", reservation),
     (error: unknown) => error instanceof ObsidianWriteError && error.kind === "vault-not-found",
   );
 
   const silent: ObsidianExec = async () => ({ stdout: "", stderr: "", code: 0 });
   await assert.rejects(
-    () => runObsidianWrite(silent, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+    () => runObsidianWrite(silent, config(), "pi-notes/repo.md", "BLOCK", reservation),
     (error: unknown) => error instanceof ObsidianWriteError && error.kind === "write-failed",
   );
 });
 
-test("runObsidianWrite flows: a create race removes the empty reservation and retries", async () => {
-  // Asked to create an existing note the CLI silently reserves `repo 1.md`.
+test("runObsidianWrite flows: a create race removes the H1 reservation and retries", async () => {
+  // Asked to create an existing note the CLI silently reserves `repo 1.md`
+  // with only the safe H1 reservation.
+  const reservation = buildFirstBlockContent("repo");
   const calls: Array<{ cmd: string; args: string[] }> = [];
   const exec: ObsidianExec = async (cmd, args) => {
     calls.push({ cmd, args });
     if (args[1] === "create") {
+      assert.equal(args[3], "content=# repo — pi notes");
+      assert.ok(isFirstBlockContent(reservation));
       return { stdout: "Created: pi-notes/repo 1.md", stderr: "", code: 0 };
     }
     if (args[1] === "delete") {
@@ -883,26 +1020,33 @@ test("runObsidianWrite flows: a create race removes the empty reservation and re
     return { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 };
   };
 
-  assert.deepEqual(await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"), {
-    action: "append",
-    attempts: 4,
-  });
+  assert.deepEqual(
+    await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", reservation),
+    {
+      action: "append",
+      attempts: 4,
+    },
+  );
   assert.deepEqual(
     calls.map((call) => call.args),
     [
       ["vault=Research", "append", "path=pi-notes/repo.md", "content=BLOCK"],
-      ["vault=Research", "create", "path=pi-notes/repo.md", "content=", "silent"],
+      ["vault=Research", "create", "path=pi-notes/repo.md", "content=# repo — pi notes", "silent"],
       ["vault=Research", "delete", "path=pi-notes/repo 1.md", "permanent"],
       ["vault=Research", "append", "path=pi-notes/repo.md", "content=BLOCK"],
     ],
   );
-  // The sensitive block only ever goes to the requested path.
-  assert.ok(calls.every((call) => call.args[2] !== "path=pi-notes/repo 1.md" || call.args[1] === "delete"));
+  // The sensitive block only ever goes to the requested path; sibling sees only H1.
+  assert.ok(
+    calls.every((call) => call.args[2] !== "path=pi-notes/repo 1.md" || call.args[1] === "delete"),
+  );
+  assert.ok(!calls[1]!.args.some((arg) => arg.includes("BLOCK") || /Idea|Bearer|secret/i.test(arg)));
 });
 
 test("runObsidianWrite flows: parses real Deleted permanently wording through delete+retry", async () => {
   // Exact live CLI wording: `Deleted permanently: pi-notes/x 1.md` must yield
   // path `pi-notes/x 1.md`, not `permanently: pi-notes/x 1.md`.
+  const reservation = buildFirstBlockContent("x");
   const calls: Array<{ cmd: string; args: string[] }> = [];
   const exec: ObsidianExec = async (cmd, args) => {
     calls.push({ cmd, args });
@@ -918,7 +1062,7 @@ test("runObsidianWrite flows: parses real Deleted permanently wording through de
     return { stdout: "Appended to: pi-notes/x.md", stderr: "", code: 0 };
   };
 
-  assert.deepEqual(await runObsidianWrite(exec, config(), "pi-notes/x.md", "BLOCK", "NEW"), {
+  assert.deepEqual(await runObsidianWrite(exec, config(), "pi-notes/x.md", "BLOCK", reservation), {
     action: "append",
     attempts: 4,
   });
@@ -926,7 +1070,7 @@ test("runObsidianWrite flows: parses real Deleted permanently wording through de
     calls.map((call) => call.args),
     [
       ["vault=Research", "append", "path=pi-notes/x.md", "content=BLOCK"],
-      ["vault=Research", "create", "path=pi-notes/x.md", "content=", "silent"],
+      ["vault=Research", "create", "path=pi-notes/x.md", "content=# x — pi notes", "silent"],
       ["vault=Research", "delete", "path=pi-notes/x 1.md", "permanent"],
       ["vault=Research", "append", "path=pi-notes/x.md", "content=BLOCK"],
     ],
@@ -934,6 +1078,7 @@ test("runObsidianWrite flows: parses real Deleted permanently wording through de
 });
 
 test("runObsidianWrite flows: accepts documented delete variants and rejects ambiguous ones", async () => {
+  const reservation = buildFirstBlockContent("repo");
   const variants = [
     "Deleted: pi-notes/repo 1.md",
     "Trashed: pi-notes/repo 1.md",
@@ -951,10 +1096,13 @@ test("runObsidianWrite flows: accepts documented delete variants and rejects amb
       }
       return { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 };
     };
-    assert.deepEqual(await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"), {
-      action: "append",
-      attempts: 4,
-    });
+    assert.deepEqual(
+      await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", reservation),
+      {
+        action: "append",
+        attempts: 4,
+      },
+    );
     assert.deepEqual(calls, ["append", "create", "delete", "append"]);
   }
 
@@ -972,7 +1120,7 @@ test("runObsidianWrite flows: accepts documented delete variants and rejects amb
       return { stdout: "", stderr: "no such file", code: 1 };
     };
     await assert.rejects(
-      () => runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+      () => runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", reservation),
       (error: unknown) => error instanceof ObsidianWriteError,
     );
     assert.deepEqual(calls, ["append", "create", "delete"]);
@@ -980,6 +1128,7 @@ test("runObsidianWrite flows: accepts documented delete variants and rejects amb
 });
 
 test("runObsidianWrite flows: a failed reservation delete fails closed", async () => {
+  const reservation = buildFirstBlockContent("repo");
   for (const deleteResult of [
     { stdout: "", stderr: "", code: 0 },
     { stdout: "Error: File not found.", stderr: "", code: 0 },
@@ -993,7 +1142,7 @@ test("runObsidianWrite flows: a failed reservation delete fails closed", async (
       return { stdout: "", stderr: "no such file", code: 1 };
     };
     await assert.rejects(
-      () => runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+      () => runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", reservation),
       (error: unknown) => error instanceof ObsidianWriteError,
     );
     // No append retry runs after a delete that cannot be confirmed.

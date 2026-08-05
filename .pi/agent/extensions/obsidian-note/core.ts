@@ -847,7 +847,69 @@ export function renderNoteBlock(input: NoteBlockInput): string {
  * always the sanitized `noteName`, never raw repository text.
  */
 export function renderNewNoteContent(input: NoteBlockInput, noteName: string): string {
-  return `# ${noteName} — pi notes\n\n${renderNoteBlock(input)}`;
+  return `${buildFirstBlockContent(noteName)}\n\n${renderNoteBlock(input)}`;
+}
+
+/* ------------------------------------------------------------------------- *
+ * First-create reservation (safe H1 only)
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Sanitized note-name charset used in the create reservation H1.
+ * Matches `sanitizeNoteName` output: 1–80 chars, `[a-z0-9._-]`, no edge `-`/`.`.
+ */
+const SAFE_NOTE_NAME_RE = /^[a-z0-9](?:[a-z0-9._-]{0,78}[a-z0-9])?$/;
+
+/** Exact trusted reservation: `# <safe-name> — pi notes` and nothing else. */
+const FIRST_BLOCK_CONTENT_RE = /^# ([a-z0-9](?:[a-z0-9._-]{0,78}[a-z0-9])?) — pi notes$/;
+
+/**
+ * True when `content` is exactly the trusted first-create reservation H1.
+ * Rejects any idea, synthesis, metadata, secrets, or extra block bytes.
+ */
+export function isFirstBlockContent(content: string): boolean {
+  if (typeof content !== "string") return false;
+  const match = FIRST_BLOCK_CONTENT_RE.exec(content);
+  if (!match) return false;
+  const noteName = match[1]!;
+  return SAFE_NOTE_NAME_RE.test(noteName) && noteName !== "." && noteName !== "..";
+}
+
+/**
+ * Build the create reservation from a sanitized `noteName`.
+ * Fail closed when the name is not a trusted sanitized slug.
+ */
+export function buildFirstBlockContent(noteName: string): string {
+  if (
+    typeof noteName !== "string" ||
+    !SAFE_NOTE_NAME_RE.test(noteName) ||
+    noteName === "." ||
+    noteName === ".."
+  ) {
+    throw new Error("Invalid sanitized note name for first-block reservation");
+  }
+  const content = `# ${noteName} — pi notes`;
+  if (!isFirstBlockContent(content)) {
+    throw new Error("Malformed first-block reservation");
+  }
+  return content;
+}
+
+/**
+ * Derive the create reservation from `isFirstBlockContent` input.
+ *
+ * Accepts either the exact safe H1 or `renderNewNoteContent` output whose first
+ * line is that H1. Returns only the H1; never idea, synthesis, or block bytes.
+ * Returns `null` when the header is malformed (caller fails closed).
+ */
+export function deriveReservationContent(isFirstBlockContentInput: string): string | null {
+  if (typeof isFirstBlockContentInput !== "string") return null;
+  if (isFirstBlockContent(isFirstBlockContentInput)) {
+    return isFirstBlockContentInput;
+  }
+  const firstLine = isFirstBlockContentInput.split(/\r?\n/, 1)[0] ?? "";
+  if (!isFirstBlockContent(firstLine)) return null;
+  return firstLine;
 }
 
 /* ------------------------------------------------------------------------- *
@@ -886,12 +948,6 @@ export function buildObsidianArgs(
   // No `overwrite`: an existing note must never be clobbered.
   return [`vault=${vault}`, "create", `path=${vaultPath}`, `content=${encoded}`, "silent"];
 }
-
-/**
- * Content used to reserve a new note. Deliberately empty: a `create` may land
- * on a numbered sibling, so it must never carry idea or synthesis text.
- */
-export const RESERVATION_CONTENT = "";
 
 export type ObsidianWriteErrorKind =
   | "cli-missing"
@@ -1046,20 +1102,31 @@ async function runOnce(
  * Append `block` to the note, creating it first when it does not exist yet.
  *
  * Every reported success path must equal the requested `vaultPath`; a mismatch
- * fails closed. `create` never carries note content: it reserves the path with
- * `RESERVATION_CONTENT`, and the real first-note content is appended after the
- * reservation is confirmed to be the requested path. When the CLI loses a race
- * and reserves a numbered sibling instead, that empty artifact is validated as
- * a same-directory sibling, removed through argv-only `delete`, and the normal
- * block is appended to the original path.
+ * fails closed. `create` carries only a strict safe H1 reservation from
+ * `isFirstBlockContent` (never idea, synthesis, metadata, or block bytes). On
+ * exact create success, only `block` is appended so the real file starts with
+ * `# <safe-name> — pi notes` at byte 0. When the CLI loses a race and reserves a
+ * numbered sibling instead, that H1-only artifact is validated as a
+ * same-directory sibling, removed through argv-only `delete`, and `block` is
+ * appended to the original path.
  */
 export async function runObsidianWrite(
   exec: ObsidianExec,
   config: NoteConfig,
   vaultPath: string,
   block: string,
-  newNoteContent: string,
+  isFirstBlockContentInput: string,
 ): Promise<ObsidianWriteResult> {
+  // Create argv may contain only this validated reservation — never `block`.
+  const reservation = deriveReservationContent(isFirstBlockContentInput);
+  if (reservation === null) {
+    throw new ObsidianWriteError(
+      "write-failed",
+      "Obsidian create reservation must be a strict safe H1 header",
+      "",
+    );
+  }
+
   const first = await runOnce(exec, "append", config.vault, vaultPath, block);
   const firstPath = successPath("append", first);
   if (firstPath !== null) {
@@ -1076,14 +1143,15 @@ export async function runObsidianWrite(
     );
   }
 
-  // Reserve the path with non-sensitive content only.
-  const created = await runOnce(exec, "create", config.vault, vaultPath, RESERVATION_CONTENT);
+  // Reserve the path with the safe H1 only (H1-first at byte 0).
+  const created = await runOnce(exec, "create", config.vault, vaultPath, reservation);
   const createdPath = successPath("create", created);
   const createdOutput = combined(created);
   let attempts = 2;
 
   if (createdPath !== null && samePath(createdPath, vaultPath)) {
-    const seeded = await runOnce(exec, "append", config.vault, vaultPath, newNoteContent);
+    // Append only the timestamp block; the H1 already owns byte 0.
+    const seeded = await runOnce(exec, "append", config.vault, vaultPath, block);
     const seededPath = successPath("append", seeded);
     const seededOutput = combined(seeded);
     if (seededPath === null) {
@@ -1099,8 +1167,8 @@ export async function runObsidianWrite(
 
   if (createdPath !== null) {
     // The CLI never clobbers: asked to create an existing note it silently
-    // reserves a numbered sibling (`repo 1.md`). Remove that empty artifact
-    // before falling through to the append retry.
+    // reserves a numbered sibling (`repo 1.md`). That sibling holds only the
+    // safe H1 reservation — validate the path, delete it, then append block.
     if (!isNumberedSibling(createdPath, vaultPath)) {
       throw new ObsidianWriteError(
         "write-failed",
@@ -1115,7 +1183,7 @@ export async function runObsidianWrite(
     if (removedPath === null) {
       throw new ObsidianWriteError(
         classify(removedOutput),
-        `Obsidian could not remove the empty reservation '${createdPath}' (exit ${removed.code}): ${removedOutput || "no output"}`,
+        `Obsidian could not remove the H1 reservation '${createdPath}' (exit ${removed.code}): ${removedOutput || "no output"}`,
         removedOutput,
       );
     }
