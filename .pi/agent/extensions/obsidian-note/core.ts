@@ -949,9 +949,11 @@ function combined(result: ObsidianExecResult): string {
 
 const APPEND_OK = /^\s*Appended to:\s*(.+)$/im;
 const CREATE_OK = /^\s*Created:\s*(.+)$/im;
-// Exact delete wording is unverified, so the matcher stays loose but explicit:
-// absence of a success marker always fails closed.
-const DELETE_OK = /^\s*(?:Deleted|Trashed|Removed|Moved to trash)\b[ \t]*:?[ \t]*([^\n]*)$/im;
+// Live CLI wording is `Deleted permanently: <path>`. Keep documented/anticipated
+// safe variants (`Deleted:`, `Trashed:`, `Removed:`, `Moved to trash:`) but
+// require the colon so ambiguous lines never count as success.
+const DELETE_OK =
+  /^\s*(?:Deleted(?:[ \t]+permanently)?|Trashed|Removed|Moved to trash)[ \t]*:[ \t]*(.+)$/im;
 
 /**
  * The Obsidian CLI exits 0 even when it fails (`Error: File "x" not found.`,

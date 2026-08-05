@@ -874,7 +874,8 @@ test("runObsidianWrite flows: a create race removes the empty reservation and re
       return { stdout: "Created: pi-notes/repo 1.md", stderr: "", code: 0 };
     }
     if (args[1] === "delete") {
-      return { stdout: "Deleted: pi-notes/repo 1.md", stderr: "", code: 0 };
+      // Live CLI wording discovered by the smoke probe.
+      return { stdout: "Deleted permanently: pi-notes/repo 1.md", stderr: "", code: 0 };
     }
     if (calls.length === 1) {
       return { stdout: 'Error: File "pi-notes/repo.md" not found.', stderr: "", code: 0 };
@@ -899,11 +900,90 @@ test("runObsidianWrite flows: a create race removes the empty reservation and re
   assert.ok(calls.every((call) => call.args[2] !== "path=pi-notes/repo 1.md" || call.args[1] === "delete"));
 });
 
+test("runObsidianWrite flows: parses real Deleted permanently wording through delete+retry", async () => {
+  // Exact live CLI wording: `Deleted permanently: pi-notes/x 1.md` must yield
+  // path `pi-notes/x 1.md`, not `permanently: pi-notes/x 1.md`.
+  const calls: Array<{ cmd: string; args: string[] }> = [];
+  const exec: ObsidianExec = async (cmd, args) => {
+    calls.push({ cmd, args });
+    if (args[1] === "create") {
+      return { stdout: "Created: pi-notes/x 1.md", stderr: "", code: 0 };
+    }
+    if (args[1] === "delete") {
+      return { stdout: "Deleted permanently: pi-notes/x 1.md", stderr: "", code: 0 };
+    }
+    if (calls.length === 1) {
+      return { stdout: 'Error: File "pi-notes/x.md" not found.', stderr: "", code: 0 };
+    }
+    return { stdout: "Appended to: pi-notes/x.md", stderr: "", code: 0 };
+  };
+
+  assert.deepEqual(await runObsidianWrite(exec, config(), "pi-notes/x.md", "BLOCK", "NEW"), {
+    action: "append",
+    attempts: 4,
+  });
+  assert.deepEqual(
+    calls.map((call) => call.args),
+    [
+      ["vault=Research", "append", "path=pi-notes/x.md", "content=BLOCK"],
+      ["vault=Research", "create", "path=pi-notes/x.md", "content=", "silent"],
+      ["vault=Research", "delete", "path=pi-notes/x 1.md", "permanent"],
+      ["vault=Research", "append", "path=pi-notes/x.md", "content=BLOCK"],
+    ],
+  );
+});
+
+test("runObsidianWrite flows: accepts documented delete variants and rejects ambiguous ones", async () => {
+  const variants = [
+    "Deleted: pi-notes/repo 1.md",
+    "Trashed: pi-notes/repo 1.md",
+    "Removed: pi-notes/repo 1.md",
+    "Moved to trash: pi-notes/repo 1.md",
+  ];
+  for (const stdout of variants) {
+    const calls: string[] = [];
+    const exec: ObsidianExec = async (_cmd, args) => {
+      calls.push(args[1]!);
+      if (args[1] === "create") return { stdout: "Created: pi-notes/repo 1.md", stderr: "", code: 0 };
+      if (args[1] === "delete") return { stdout, stderr: "", code: 0 };
+      if (calls.length === 1) {
+        return { stdout: 'Error: File "pi-notes/repo.md" not found.', stderr: "", code: 0 };
+      }
+      return { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 };
+    };
+    assert.deepEqual(await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"), {
+      action: "append",
+      attempts: 4,
+    });
+    assert.deepEqual(calls, ["append", "create", "delete", "append"]);
+  }
+
+  // Ambiguous lines without the required colon must not count as delete success.
+  for (const stdout of [
+    "Deleted permanently pi-notes/repo 1.md",
+    "Deleted something: pi-notes/repo 1.md",
+    "File deleted: pi-notes/repo 1.md",
+  ]) {
+    const calls: string[] = [];
+    const exec: ObsidianExec = async (_cmd, args) => {
+      calls.push(args[1]!);
+      if (args[1] === "create") return { stdout: "Created: pi-notes/repo 1.md", stderr: "", code: 0 };
+      if (args[1] === "delete") return { stdout, stderr: "", code: 0 };
+      return { stdout: "", stderr: "no such file", code: 1 };
+    };
+    await assert.rejects(
+      () => runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+      (error: unknown) => error instanceof ObsidianWriteError,
+    );
+    assert.deepEqual(calls, ["append", "create", "delete"]);
+  }
+});
+
 test("runObsidianWrite flows: a failed reservation delete fails closed", async () => {
   for (const deleteResult of [
     { stdout: "", stderr: "", code: 0 },
     { stdout: "Error: File not found.", stderr: "", code: 0 },
-    { stdout: "Deleted: pi-notes/other.md", stderr: "", code: 0 },
+    { stdout: "Deleted permanently: pi-notes/other.md", stderr: "", code: 0 },
   ] as ObsidianExecResult[]) {
     const calls: string[] = [];
     const exec: ObsidianExec = async (_cmd, args) => {
