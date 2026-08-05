@@ -14,14 +14,17 @@ import {
   buildNoteEvidence,
   buildNotePrompt,
   buildObsidianArgs,
+  canonicalNumberedSibling,
   deriveNoteTarget,
   deriveReservationContent,
   encodeObsidianContent,
   formatLocalTimestamp,
   ideaSnippet,
+  isCanonicalVaultPath,
   isFirstBlockContent,
   isNumberedSibling,
   loadConfig,
+  makeInert,
   neutralizeIdeaText,
   noteMessages,
   redactNotification,
@@ -49,6 +52,28 @@ function repo(overrides: Partial<NoteRepoInfo> = {}): NoteRepoInfo {
     cwd: "/Users/jose/dotfiles",
     ...overrides,
   };
+}
+
+/**
+ * The inert-text allowlist, asserted as a whole-string invariant.
+ *
+ * Only letters, digits, whitespace, inert punctuation, and numeric HTML
+ * entities may survive. Redaction placeholders are the single exception that
+ * may still contain brackets.
+ */
+const INERT_ALLOWED_RE = /^(?:[A-Za-z0-9\s.,;:?!'"()/@+\-&#]|[^\x00-\x7f])*$/;
+
+function assertInert(text: string, label: string): void {
+  const body = text.replace(/\[REDACTED(?: [A-Z]+)*\]/g, "REDACTED");
+  assert.ok(INERT_ALLOWED_RE.test(body), `${label} charset: ${JSON.stringify(text)}`);
+  // `&` and `#` may appear only as part of a numeric/named entity.
+  assert.doesNotMatch(body, /&(?!#\d{2,4};|amp;)/, `${label} stray &`);
+  assert.doesNotMatch(body, /(?<!&)#/, `${label} stray #`);
+  // Nothing autolinkable survives: no scheme, host, bare domain, or email.
+  assert.doesNotMatch(body, /:\/\//, `${label} scheme`);
+  assert.doesNotMatch(body, /\bwww\./i, `${label} www host`);
+  assert.doesNotMatch(body, /[A-Za-z0-9]@[A-Za-z0-9]/, `${label} email`);
+  assert.doesNotMatch(body, /[A-Za-z0-9]\.[A-Za-z]{2,24}\b/, `${label} bare domain`);
 }
 
 test("config load/validation: merges defaults and normalizes paths", async () => {
@@ -274,7 +299,7 @@ test("output validation: rejects empty/non-text output and sanitizes model text"
     "```markdown\n# Heading\r\nVisible\u0000 text\u0007\n\tTabbed\n```",
     noteConfig,
   );
-  assert.equal(cleaned, "\\# Heading\nVisible text\n  Tabbed");
+  assert.equal(cleaned, "&#35; Heading\nVisible text\nTabbed");
   assert.doesNotMatch(cleaned, /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/);
 
   const bounded = validateSynthesis("start-" + "x".repeat(200) + "-end", noteConfig);
@@ -316,77 +341,144 @@ test("output validation: neutralizes hostile structural Markdown", () => {
   ].join("\n");
   const output = validateSynthesis(hostile, config());
 
+  // The whole output obeys the inert allowlist.
+  assertInert(output, "hostile synthesis");
   // Nothing may make Obsidian fetch, resolve, or embed anything.
-  assert.doesNotMatch(output, /!\[/);
-  assert.doesNotMatch(output, /\]\(/);
-  assert.doesNotMatch(output, /\[\[|\]\]/);
-  assert.doesNotMatch(output, /<[^\n]*>/);
+  assert.doesNotMatch(output, /[\[\]<>`|*_~^%$=\\{}]/);
   assert.doesNotMatch(output, /evil\.example/);
-  // The embed collapses to inert plain text with no resolvable reference.
-  assert.match(output, /^Secret Vault Note$/m);
   // No structural Markdown may survive at the start of a line.
   assert.doesNotMatch(output, /^\s*#/m);
   assert.doesNotMatch(output, /^\s*>/m);
-  assert.doesNotMatch(output, /^\s*\|/m);
-  assert.doesNotMatch(output, /^\s*(-{3,}|\*{3,}|_{3,})\s*$/m);
-  assert.doesNotMatch(output, /`{3,}|~{3,}/);
+  assert.doesNotMatch(output, /^\s*(-{2,}|\*{2,}|_{2,})\s*$/m);
   assert.doesNotMatch(output, /^ {4,}\S/m);
 
-  // Readable prose and simple bullets survive.
+  // Readable prose and normalized top-level bullets survive.
   assert.match(output, /^- star bullet$/m);
   assert.match(output, /^- plus bullet$/m);
   assert.match(output, /^- normal bullet$/m);
+  assert.match(output, /^Secret Vault Note$/m);
   assert.match(output, /alias text/);
   assert.match(output, /click me/);
   assert.match(output, /ref link/);
-  assert.match(output, /^\\# Injected heading$/m);
-  assert.match(output, /^\\> \[!danger\] Callout$/m);
+  assert.match(output, /^&#35; Injected heading$/m);
+  assert.match(output, /Callout/);
+  assert.match(output, /indented code block/);
 });
 
-test("output validation: closes residual synthesis markup gaps", () => {
-  const residual = [
-    "visit https://evil.example/bare or www.evil.example today",
-    "mail me at mailto:someone@evil.example",
-    "[ref]: https://evil.example/definition",
-    "a ] ( b and c ] [ d",
-    "col a | col b",
-    "1. ordered item",
-    "2) other item",
-    "- [ ] task item",
-    "`inline code`",
-    "::: warning container",
-    "%% obsidian comment %%",
-    "^block-ref",
-    "===",
-    "plain prose survives",
-    "- kept bullet",
+test("output validation: every residual Markdown/Obsidian construct is inert", () => {
+  // Each case: hostile input, the raw token that must not survive, and readable
+  // text that must survive.
+  const cases: Array<[string, RegExp, RegExp]> = [
+    ["*emphasis* text", /(?<!&#42;)\*/, /emphasis/],
+    ["__bold__ text", /_/, /bold/],
+    ["==highlight== text", /=/, /highlight/],
+    ["%% inline comment %%", /%/, /inline comment/],
+    ["a line with a block id ^abc123", /\^/, /block id/],
+    ["^leading-block-id", /\^/, /leading-block-id/],
+    ["#tag and #nested/tag", /(?<!&)#(?!\d)/, /tag/],
+    ["$x^2$ and $$math$$", /\$/, /math/],
+    ["---\ntitle: front matter\n---", /^-{3}$/m, /front matter/],
+    ["::: callout container", /^:{2,}/m, /callout container/],
+    ["`raw code` and ``double``", /`/, /raw code/],
+    ["```js\nfenced\n```", /`/, /fenced/],
+    ["[ref link][label]", /[\[\]]/, /ref link/],
+    ["- [ ] task item", /\[[ xX]\]/, /task item/],
+    ["1. ordered item", /^\d+\.\s/m, /ordered item/],
+    ["3) paren ordered", /^\d+\)\s/m, /paren ordered/],
+    ["  - nested bullet", /^\s+-/m, /nested bullet/],
+    ["![alt](https://evil.example/p.png)", /evil\.example/, /alt/],
+    ["[text](https://evil.example/x)", /evil\.example/, /text/],
+    ["<b>html</b> and <br/>", /[<>]/, /html/],
+    ["[[Wiki Link|shown]]", /[\[\]]/, /shown/],
+    ["![[Embedded Note]]", /[\[\]]/, /Embedded Note/],
+    ["> [!warning] callout body", /^>/m, /callout body/],
+    ["| col a | col b |", /\|/, /col a/],
+    ["###### heading six", /(?<!&)#/, /heading six/],
+    ["***", /\*/, /.*/],
+    ["visit https://evil.example/bare now", /https:\/\//, /visit/],
+    ["visit www.evil.example now", /www\./, /visit/],
+    ["visit evil.example now", /evil\.example/, /visit/],
+    ["write to someone@evil.example now", /@evil/, /write to/],
+    ["mailto:someone@evil.example", /mailto:/, /someone/],
+    ["javascript:alert(1)", /javascript:/, /alert/],
+    ["&#35; pre-encoded heading", /(?<!&amp;)&#35;/, /pre-encoded heading/],
+    ["&lt;script&gt;", /(?<!&amp;)&lt;/, /script/],
+  ];
+
+  for (const [input, forbidden, required] of cases) {
+    for (const [label, output] of [
+      ["synthesis", validateSynthesis(input, config())],
+      ["idea", neutralizeIdeaText(input)],
+    ] as Array<[string, string]>) {
+      assertInert(output, `${label}: ${input}`);
+      assert.doesNotMatch(output, forbidden, `${label} kept a live token for ${JSON.stringify(input)}`);
+      assert.match(output, required, `${label} lost readable text for ${JSON.stringify(input)}`);
+    }
+  }
+});
+
+test("output validation: preserves prose, bullets, and both caps under the inert policy", () => {
+  // A link-reference definition carries only a target: the whole line is dropped.
+  const definition = makeInert("[label]: https://evil.example/target");
+  assert.equal(definition.trim(), "");
+
+  const prose = [
+    "This is readable prose with punctuation: commas, semicolons; and a question?",
+    "- first bullet",
+    "* second bullet",
+    "+ third bullet",
   ].join("\n");
-  const output = validateSynthesis(residual, config());
+  const output = validateSynthesis(prose, config());
+  assert.match(output, /^This is readable prose with punctuation: commas, semicolons; and a question\?$/m);
+  assert.match(output, /^- first bullet$/m);
+  assert.match(output, /^- second bullet$/m);
+  assert.match(output, /^- third bullet$/m);
 
-  // No autolinkable URL, scheme, or host survives.
-  assert.doesNotMatch(output, /https:\/\//);
-  assert.doesNotMatch(output, /www\.evil/);
-  assert.doesNotMatch(output, /mailto:/);
-  // No link, reference link, or link-reference definition can re-form.
-  assert.doesNotMatch(output, /\]\(/);
-  assert.doesNotMatch(output, /\]\[/);
-  assert.doesNotMatch(output, /\]:/);
-  // No table, ordered list, task list, container, comment, or block ref.
-  assert.doesNotMatch(output, /(?<!\\)\|/);
-  assert.doesNotMatch(output, /^\s*\d+[.)]\s/m);
-  assert.doesNotMatch(output, /^\s*- \[[ xX]\]/m);
-  assert.doesNotMatch(output, /^\s*:{3,}/m);
-  assert.doesNotMatch(output, /^\s*%%/m);
-  assert.doesNotMatch(output, /^\s*\^/m);
-  assert.doesNotMatch(output, /^\s*={2,}\s*$/m);
-  assert.doesNotMatch(output, /(?<!\\)`/);
+  // The character cap still holds after entity encoding expands the text.
+  const noisy = validateSynthesis("#".repeat(400) + " tail", config({ maxIdeaChars: 200 }));
+  assert.ok(noisy.length <= 800, `length ${noisy.length}`);
+  assertInert(noisy, "noisy synthesis");
 
-  // Plain prose and normalized bullets survive.
-  assert.match(output, /^plain prose survives$/m);
-  assert.match(output, /^- kept bullet$/m);
-  assert.match(output, /ordered item/);
-  assert.match(output, /task item/);
-  assert.match(output, /col a/);
+  // The 200-word cap still holds after encoding.
+  const wordy = validateSynthesis(
+    Array.from({ length: 400 }, (_, index) => `*w${index}*`).join(" "),
+    config(),
+  );
+  assert.equal(wordy.split(/\s+/).filter((word) => word !== "…").length, SYNTHESIS_MAX_WORDS);
+});
+
+test("redaction order: URL credentials cannot survive neutralization", () => {
+  const forms = [
+    "https://user:secret@example.com",
+    "http://admin:secret@10.0.0.1/path",
+    "ftp://user:secret@files.example.com/x",
+    "see https://user:secret@example.com/path?q=1 for details",
+    "HTTPS://User:secret@Example.COM",
+    "redis://default:secret@cache.example.com:6379",
+  ];
+  for (const form of forms) {
+    for (const [label, output] of [
+      ["makeInert", makeInert(form)],
+      ["idea", neutralizeIdeaText(form)],
+      ["synthesis", validateSynthesis(form, config())],
+      ["metadata", sanitizeMetadataValue(form)],
+    ] as Array<[string, string]>) {
+      assert.doesNotMatch(output, /secret/, `${label} leaked a URL credential for ${form}`);
+      assert.match(output, /\[REDACTED\]/, `${label} lost the redaction marker for ${form}`);
+      assertInert(output, `${label}: ${form}`);
+    }
+  }
+
+  // The idea rendered into a note block never carries the credential either.
+  const block = renderNoteBlock({
+    timestamp: new Date(2026, 7, 5, 14, 3, 9),
+    idea: "connect with https://user:secret@example.com now",
+    synthesis: "summary",
+    repo: repo({ name: "https://user:secret@example.com" }),
+    config: config(),
+  });
+  assert.doesNotMatch(block, /secret/);
+  assert.match(block, /\[REDACTED\]/);
 });
 
 test("output validation: enforces the 200-word cap and redacts secrets", () => {
@@ -496,21 +588,15 @@ test("rendering: neutralizes hostile idea text before persistence", () => {
   ].join("\n");
 
   const line = neutralizeIdeaText(hostile);
-  assert.doesNotMatch(line, /!\[/);
-  assert.doesNotMatch(line, /\]\(/);
-  assert.doesNotMatch(line, /\]\[/);
-  assert.doesNotMatch(line, /\]:/);
-  assert.doesNotMatch(line, /\[\[|\]\]/);
-  assert.doesNotMatch(line, /<[^\n]*>/);
-  assert.doesNotMatch(line, /(?<!\\)`/);
-  assert.doesNotMatch(line, /(?<!\\)\|/);
+  assertInert(line, "hostile idea");
+  assert.doesNotMatch(line, /[\[\]<>`|*_~^%$=\\{}]/);
   assert.doesNotMatch(line, /^\s*#/m);
   assert.doesNotMatch(line, /^\s*>/m);
-  assert.doesNotMatch(line, /^\s*(-{3,}|\*{3,}|_{3,})\s*$/m);
+  assert.doesNotMatch(line, /^\s*(-{2,}|\*{2,}|_{2,})\s*$/m);
   assert.doesNotMatch(line, /https:\/\//);
   assert.doesNotMatch(line, /www\.evil/);
-  assert.doesNotMatch(line, /^\s*1\./m);
-  assert.doesNotMatch(line, /^- \[ \]/m);
+  assert.doesNotMatch(line, /evil\.example/);
+  assert.doesNotMatch(line, /^\s*\d+[.)]\s/m);
   // Readable text survives.
   assert.match(line, /heading idea/);
   assert.match(line, /alias/);
@@ -527,7 +613,7 @@ test("rendering: neutralizes hostile idea text before persistence", () => {
   });
   const ideaLine = block.split("\n").find((entry) => entry.startsWith("**Idea:**"))!;
   assert.equal(block.split("\n").filter((entry) => entry.startsWith("**Idea:**")).length, 1);
-  assert.doesNotMatch(ideaLine, /!\[|\]\(|\[\[|\]\]|<[^\n]*>|(?<!\\)`/);
+  assertInert(ideaLine.replace(/^\*\*Idea:\*\* /, ""), "rendered idea line");
   assert.doesNotMatch(ideaLine, /https:\/\//);
 });
 
@@ -537,7 +623,8 @@ test("rendering: sanitizes hostile repository metadata", () => {
 
   const hostile = sanitizeMetadataValue("repo\n# heading [[wiki]] | pipe `code` ![x](https://evil.example)");
   assert.doesNotMatch(hostile, /\n/);
-  assert.doesNotMatch(hostile, /(?<!\\)[#|`*_~>\[\]]/);
+  assertInert(hostile, "hostile metadata");
+  assert.doesNotMatch(hostile, /[\[\]<>`|*_~^%$=\\{}]/);
   assert.doesNotMatch(hostile, /https:\/\//);
 
   // Secret-shaped metadata never reaches the note.
@@ -561,7 +648,8 @@ test("rendering: sanitizes hostile repository metadata", () => {
     config: config(),
   });
   const footer = block.split("\n").find((entry) => entry.startsWith("repo: "))!;
-  assert.doesNotMatch(footer, /(?<!\\)[#|`\[\]]/);
+  assertInert(footer.replace(/ · /g, " "), "metadata footer");
+  assert.doesNotMatch(footer, /[\[\]<>`|*_~^%$=\\{}]/);
   assert.equal(block.split("\n").filter((entry) => entry.startsWith("## ")).length, 1);
 });
 
@@ -698,10 +786,45 @@ test("first-block reservation: accepts only a strict sanitized H1", () => {
   assert.equal(deriveReservationContent("Authorization: Bearer secret"), null);
 });
 
-test("numbered-sibling validation: accepts only same-directory numbered siblings", () => {
+test("canonical vault paths: only exact, canonical, relative `.md` paths are accepted", () => {
+  assert.ok(isCanonicalVaultPath("pi-notes/repo.md"));
+  assert.ok(isCanonicalVaultPath("repo.md"));
+  assert.ok(isCanonicalVaultPath("a/b/c/repo name.md"));
+
+  const rejected = [
+    "",
+    ".md",
+    "/pi-notes/repo.md",
+    "pi-notes/repo",
+    "pi-notes/repo.MD",
+    "pi-notes/repo.markdown",
+    "pi-notes\\repo.md",
+    "pi-notes/../repo.md",
+    "pi-notes/./repo.md",
+    "pi-notes//repo.md",
+    " pi-notes/repo.md",
+    "pi-notes/repo.md ",
+    "pi-notes/ repo.md",
+    "pi-notes/repo.md\n",
+    "pi-notes/repo.md\r",
+    "pi-notes/repo\u0000.md",
+    123,
+    null,
+    undefined,
+  ];
+  for (const value of rejected) {
+    assert.equal(isCanonicalVaultPath(value), false, JSON.stringify(value));
+  }
+});
+
+test("numbered-sibling validation: returns the exact canonical sibling path or null", () => {
+  // The validator returns the path itself, so callers never pass a raw
+  // CLI-reported string to `delete`.
+  assert.equal(canonicalNumberedSibling("pi-notes/repo 1.md", "pi-notes/repo.md"), "pi-notes/repo 1.md");
+  assert.equal(canonicalNumberedSibling("pi-notes/repo 12.md", "pi-notes/repo.md"), "pi-notes/repo 12.md");
+  assert.equal(canonicalNumberedSibling("pi-notes/repo 999.md", "pi-notes/repo.md"), "pi-notes/repo 999.md");
+  assert.equal(canonicalNumberedSibling("repo 3.md", "repo.md"), "repo 3.md");
   assert.ok(isNumberedSibling("pi-notes/repo 1.md", "pi-notes/repo.md"));
-  assert.ok(isNumberedSibling("pi-notes/repo 12.md", "pi-notes/repo.md"));
-  assert.ok(isNumberedSibling("repo 3.md", "repo.md"));
 
   const rejected = [
     ["pi-notes/repo.md", "pi-notes/repo.md"],
@@ -709,15 +832,29 @@ test("numbered-sibling validation: accepts only same-directory numbered siblings
     ["elsewhere/repo 1.md", "pi-notes/repo.md"],
     ["pi-notes/sub/repo 1.md", "pi-notes/repo.md"],
     ["pi-notes/../repo 1.md", "pi-notes/repo.md"],
+    ["pi-notes/./repo 1.md", "pi-notes/repo.md"],
     ["pi-notes\\repo 1.md", "pi-notes/repo.md"],
+    ["/pi-notes/repo 1.md", "pi-notes/repo.md"],
     ["/etc/passwd", "pi-notes/repo.md"],
     ["pi-notes/repo 1.txt", "pi-notes/repo.md"],
+    ["pi-notes/repo 1.MD", "pi-notes/repo.md"],
     ["pi-notes/repo 0.md", "pi-notes/repo.md"],
+    ["pi-notes/repo 01.md", "pi-notes/repo.md"],
     ["pi-notes/repo 1234.md", "pi-notes/repo.md"],
     ["pi-notes/repo1.md", "pi-notes/repo.md"],
+    ["pi-notes/Repo 1.md", "pi-notes/repo.md"],
+    [" pi-notes/repo 1.md", "pi-notes/repo.md"],
+    ["pi-notes/repo 1.md ", "pi-notes/repo.md"],
     ["", "pi-notes/repo.md"],
+    ["pi-notes/repo 1.md", "/pi-notes/repo.md"],
+    ["pi-notes/repo 1.md", "pi-notes/repo"],
   ];
   for (const [reported, requested] of rejected) {
+    assert.equal(
+      canonicalNumberedSibling(reported, requested),
+      null,
+      `${reported} vs ${requested}`,
+    );
     assert.equal(isNumberedSibling(reported, requested), false, `${reported} vs ${requested}`);
   }
 });
@@ -1077,41 +1214,52 @@ test("runObsidianWrite flows: parses real Deleted permanently wording through de
   );
 });
 
-test("runObsidianWrite flows: accepts documented delete variants and rejects ambiguous ones", async () => {
+test("runObsidianWrite flows: only the exact live delete wording counts as success", async () => {
   const reservation = buildFirstBlockContent("repo");
-  const variants = [
+
+  // The exact live wording succeeds.
+  const okCalls: string[] = [];
+  const okExec: ObsidianExec = async (_cmd, args) => {
+    okCalls.push(args[1]!);
+    if (args[1] === "create") return { stdout: "Created: pi-notes/repo 1.md", stderr: "", code: 0 };
+    if (args[1] === "delete") {
+      return { stdout: "Deleted permanently: pi-notes/repo 1.md", stderr: "", code: 0 };
+    }
+    if (okCalls.length === 1) {
+      return { stdout: 'Error: File "pi-notes/repo.md" not found.', stderr: "", code: 0 };
+    }
+    return { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 };
+  };
+  assert.deepEqual(
+    await runObsidianWrite(okExec, config(), "pi-notes/repo.md", "BLOCK", reservation),
+    { action: "append", attempts: 4 },
+  );
+  assert.deepEqual(okCalls, ["append", "create", "delete", "append"]);
+
+  // Trash-only, reworded, mismatched, and noncanonical replies all fail closed.
+  const rejected = [
     "Deleted: pi-notes/repo 1.md",
     "Trashed: pi-notes/repo 1.md",
     "Removed: pi-notes/repo 1.md",
     "Moved to trash: pi-notes/repo 1.md",
-  ];
-  for (const stdout of variants) {
-    const calls: string[] = [];
-    const exec: ObsidianExec = async (_cmd, args) => {
-      calls.push(args[1]!);
-      if (args[1] === "create") return { stdout: "Created: pi-notes/repo 1.md", stderr: "", code: 0 };
-      if (args[1] === "delete") return { stdout, stderr: "", code: 0 };
-      if (calls.length === 1) {
-        return { stdout: 'Error: File "pi-notes/repo.md" not found.', stderr: "", code: 0 };
-      }
-      return { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 };
-    };
-    assert.deepEqual(
-      await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", reservation),
-      {
-        action: "append",
-        attempts: 4,
-      },
-    );
-    assert.deepEqual(calls, ["append", "create", "delete", "append"]);
-  }
-
-  // Ambiguous lines without the required colon must not count as delete success.
-  for (const stdout of [
+    "deleted permanently: pi-notes/repo 1.md",
+    "Deleted  permanently: pi-notes/repo 1.md",
     "Deleted permanently pi-notes/repo 1.md",
     "Deleted something: pi-notes/repo 1.md",
     "File deleted: pi-notes/repo 1.md",
-  ]) {
+    "  Deleted permanently: pi-notes/repo 1.md",
+    "Deleted permanently: /pi-notes/repo 1.md",
+    "Deleted permanently: pi-notes/repo 1",
+    "Deleted permanently: pi-notes/repo 1.MD",
+    "Deleted permanently: pi-notes\\repo 1.md",
+    "Deleted permanently: pi-notes/../repo 1.md",
+    "Deleted permanently: pi-notes/./repo 1.md",
+    "Deleted permanently:  pi-notes/repo 1.md",
+    "Deleted permanently: pi-notes/repo 1.md ",
+    "Deleted permanently: pi-notes/repo 2.md",
+    "Deleted permanently: pi-notes/other.md",
+  ];
+  for (const stdout of rejected) {
     const calls: string[] = [];
     const exec: ObsidianExec = async (_cmd, args) => {
       calls.push(args[1]!);
@@ -1122,9 +1270,50 @@ test("runObsidianWrite flows: accepts documented delete variants and rejects amb
     await assert.rejects(
       () => runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", reservation),
       (error: unknown) => error instanceof ObsidianWriteError,
+      stdout,
     );
-    assert.deepEqual(calls, ["append", "create", "delete"]);
+    // No append retry runs after a delete that cannot be confirmed.
+    assert.deepEqual(calls, ["append", "create", "delete"], stdout);
   }
+});
+
+test("runObsidianWrite flows: reported write paths are matched byte-for-byte", async () => {
+  const reservation = buildFirstBlockContent("repo");
+  const rejected = [
+    "Appended to: /pi-notes/repo.md",
+    "Appended to: pi-notes/repo",
+    "Appended to: pi-notes/repo.MD",
+    "Appended to: pi-notes/repo.markdown",
+    "Appended to: pi-notes\\repo.md",
+    "Appended to: pi-notes/../pi-notes/repo.md",
+    "Appended to: pi-notes/./repo.md",
+    "Appended to: pi-notes//repo.md",
+    "Appended to:  pi-notes/repo.md",
+    "Appended to: pi-notes/repo.md ",
+    "Appended to: Pi-Notes/repo.md",
+    "Appended to: pi-notes/Repo.md",
+    "  Appended to: pi-notes/repo.md",
+    "appended to: pi-notes/repo.md",
+  ];
+  for (const stdout of rejected) {
+    const exec: ObsidianExec = async () => ({ stdout, stderr: "", code: 0 });
+    await assert.rejects(
+      () => runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", reservation),
+      (error: unknown) => error instanceof ObsidianWriteError,
+      stdout,
+    );
+  }
+
+  // Only the exact requested path is accepted.
+  const exact: ObsidianExec = async () => ({
+    stdout: "Appended to: pi-notes/repo.md",
+    stderr: "",
+    code: 0,
+  });
+  assert.deepEqual(
+    await runObsidianWrite(exact, config(), "pi-notes/repo.md", "BLOCK", reservation),
+    { action: "append", attempts: 1 },
+  );
 });
 
 test("runObsidianWrite flows: a failed reservation delete fails closed", async () => {
