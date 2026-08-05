@@ -18,8 +18,11 @@ import {
   buildNotePrompt,
   deriveNoteTarget,
   loadConfig,
+  noteMessages,
   NOTE_SYSTEM_PROMPT,
   ObsidianWriteError,
+  redactNotification,
+  redactSecrets,
   renderNewNoteContent,
   renderNoteBlock,
   runObsidianWrite,
@@ -32,8 +35,6 @@ import {
 const CONFIG_PATH = join(homedir(), ".pi", "agent", "obsidian-note.json");
 const OBSIDIAN_TIMEOUT_MS = 15_000;
 const GIT_TIMEOUT_MS = 5_000;
-const IDEA_SNIPPET_CHARS = 120;
-const USAGE = "Usage: /note <idea>";
 
 type NoteAuth = {
   apiKey?: string;
@@ -94,9 +95,12 @@ export default function obsidianNoteExtension(pi: ExtensionAPI): void {
     message: string,
     type: "info" | "warning" | "error",
   ): void {
+    // Every notification is a sink for raw input, model text, or CLI output, so
+    // redaction is enforced here rather than at each call site.
+    const safe = redactNotification(message);
     // Post-await notifications may race a disposed UI (e.g. `/reload`).
     try {
-      ctx.ui.notify(message, type);
+      ctx.ui.notify(safe, type);
     } catch {
       // The session is gone; nothing left to tell.
     }
@@ -170,7 +174,7 @@ export default function obsidianNoteExtension(pi: ExtensionAPI): void {
       if (!controller.signal.aborted) {
         notifyCtx(
           seed.ctx,
-          `note #${seed.id} ${status} → ${seed.config.vault}/${preflight.target.vaultPath}`,
+          noteMessages.progress(seed.id, status, seed.config.vault, preflight.target.vaultPath),
           "info",
         );
       }
@@ -244,33 +248,27 @@ export default function obsidianNoteExtension(pi: ExtensionAPI): void {
 
     const usage = response.usage;
     const tokens = usage ? ` (${usage.input}/${usage.output} tokens)` : "";
-    notify(job, `note #${job.id} saved → ${job.config.vault}/${target.vaultPath}${tokens}`, "info");
+    notify(job, noteMessages.saved(job.id, job.config.vault, target.vaultPath, tokens), "info");
   }
 
   function reportFailure(job: NoteJob, error: unknown): void {
+    // Thrown, model, and CLI text may echo the idea or credentials.
+    const detail = redactNotification(errorMessage(error));
     if (error instanceof NoteModelError) {
-      notify(job, `note #${job.id} model error: ${error.message}`, "error");
+      notify(job, noteMessages.modelError(job.id, detail), "error");
       return;
     }
     if (error instanceof ObsidianWriteError) {
       if (error.kind === "cli-missing") {
-        notify(job, "obsidian CLI not found on PATH", "error");
+        notify(job, noteMessages.cliMissing(), "error");
         return;
       }
       if (error.kind === "not-running" || error.kind === "vault-not-found") {
-        notify(
-          job,
-          `note #${job.id} failed: Obsidian not running or vault '${job.config.vault}' unavailable — idea not saved: ${ideaSnippet(job.idea)}`,
-          "error",
-        );
+        notify(job, noteMessages.obsidianUnavailable(job.id, job.config.vault, job.idea), "error");
         return;
       }
     }
-    notify(
-      job,
-      `note #${job.id} failed: ${errorMessage(error)} — idea not saved: ${ideaSnippet(job.idea)}`,
-      "error",
-    );
+    notify(job, noteMessages.failed(job.id, detail, job.idea), "error");
   }
 
   /** Never throws: a job failure must not poison the queue or escape unhandled. */
@@ -303,9 +301,11 @@ export default function obsidianNoteExtension(pi: ExtensionAPI): void {
   pi.registerCommand("note", {
     description: "Capture an idea to the repo's Obsidian note with synthesized context",
     handler: async (args, ctx) => {
-      const idea = (args ?? "").trim();
+      // Redact at intake: no later sink — model prompt, note block, or
+      // notification — ever sees the raw idea.
+      const idea = redactSecrets((args ?? "").trim()).trim();
       if (idea.length === 0) {
-        ctx.ui.notify(USAGE, "error");
+        notifyCtx(ctx, noteMessages.usage(), "error");
         return;
       }
 
@@ -314,7 +314,7 @@ export default function obsidianNoteExtension(pi: ExtensionAPI): void {
       try {
         config = await loadConfig(CONFIG_PATH);
       } catch (error) {
-        ctx.ui.notify(errorMessage(error), "error");
+        notifyCtx(ctx, noteMessages.configError(errorMessage(error)), "error");
         return;
       }
 
@@ -325,22 +325,22 @@ export default function obsidianNoteExtension(pi: ExtensionAPI): void {
         await ctx.modelRegistry.refresh();
         model = ctx.modelRegistry.find(config.provider, config.model);
       } catch (error) {
-        ctx.ui.notify(`Note model lookup failed: ${errorMessage(error)}`, "error");
+        notifyCtx(ctx, noteMessages.modelLookupFailed(errorMessage(error)), "error");
         return;
       }
       if (!model) {
-        ctx.ui.notify(`Note model not found: ${config.provider}/${config.model}`, "error");
+        notifyCtx(ctx, noteMessages.modelNotFound(config.provider, config.model), "error");
         return;
       }
       let auth: Awaited<ReturnType<typeof ctx.modelRegistry.getApiKeyAndHeaders>>;
       try {
         auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
       } catch (error) {
-        ctx.ui.notify(`Note credentials unavailable: ${errorMessage(error)}`, "error");
+        notifyCtx(ctx, noteMessages.credentialsUnavailable(errorMessage(error)), "error");
         return;
       }
       if (!auth.ok) {
-        ctx.ui.notify(auth.error, "error");
+        notifyCtx(ctx, noteMessages.credentialsUnavailable(auth.error), "error");
         return;
       }
 
@@ -373,14 +373,11 @@ export default function obsidianNoteExtension(pi: ExtensionAPI): void {
 
       const busy = running || queue.length > 0;
       if (busy && config.concurrencyPolicy === "reject") {
-        ctx.ui.notify("/note busy — try again", "warning");
+        notifyCtx(ctx, noteMessages.busy(), "warning");
         return;
       }
       if (busy && queue.length >= config.maxQueuedJobs) {
-        ctx.ui.notify(
-          `/note queue full (${config.maxQueuedJobs}) — idea not saved: ${ideaSnippet(idea)}`,
-          "error",
-        );
+        notifyCtx(ctx, noteMessages.queueFull(config.maxQueuedJobs, idea), "error");
         return;
       }
 
@@ -423,11 +420,6 @@ function responseText(response: AssistantMessage): string {
 function baseName(path: string): string {
   const parts = path.replace(/\\/g, "/").replace(/\/+$/, "").split("/");
   return parts[parts.length - 1] ?? path;
-}
-
-function ideaSnippet(idea: string): string {
-  const flat = idea.replace(/\s+/g, " ").trim();
-  return flat.length <= IDEA_SNIPPET_CHARS ? flat : `${flat.slice(0, IDEA_SNIPPET_CHARS)}…`;
 }
 
 function isAbortError(error: unknown): boolean {

@@ -1,19 +1,29 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import {
   DEFAULT_CONFIG,
+  IDEA_SNIPPET_CHARS,
   NOTE_SYSTEM_PROMPT,
+  NOTE_USAGE,
   ObsidianWriteError,
+  RESERVATION_CONTENT,
+  SYNTHESIS_MAX_WORDS,
   buildNoteEvidence,
   buildNotePrompt,
   buildObsidianArgs,
   deriveNoteTarget,
   encodeObsidianContent,
   formatLocalTimestamp,
+  ideaSnippet,
+  isNumberedSibling,
   loadConfig,
+  neutralizeIdeaText,
+  noteMessages,
+  redactNotification,
+  sanitizeMetadataValue,
   renderNewNoteContent,
   renderNoteBlock,
   runObsidianWrite,
@@ -262,7 +272,7 @@ test("output validation: rejects empty/non-text output and sanitizes model text"
     "```markdown\n# Heading\r\nVisible\u0000 text\u0007\n\tTabbed\n```",
     noteConfig,
   );
-  assert.equal(cleaned, "\\# Heading\nVisible text\n\tTabbed");
+  assert.equal(cleaned, "\\# Heading\nVisible text\n  Tabbed");
   assert.doesNotMatch(cleaned, /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/);
 
   const bounded = validateSynthesis("start-" + "x".repeat(200) + "-end", noteConfig);
@@ -271,6 +281,156 @@ test("output validation: rejects empty/non-text output and sanitizes model text"
   assert.match(bounded, /-end$/);
 
   assert.equal(validateSynthesis("~~~\nplain\n~~~", config()), "plain");
+});
+
+test("output validation: neutralizes hostile structural Markdown", () => {
+  const hostile = [
+    "# Injected heading",
+    "###### deep heading",
+    "> [!danger] Callout",
+    ">> nested quote",
+    "![remote](https://evil.example/pixel.png)",
+    "![](https://evil.example/tracker.gif)",
+    "[click me](https://evil.example/steal)",
+    "[ref link][target]",
+    "![[Secret Vault Note]]",
+    "[[Other Note|alias text]]",
+    "<img src='https://evil.example/x.png'>",
+    "<script>fetch('https://evil.example')</script>",
+    "<https://evil.example/autolink>",
+    "````",
+    "```js",
+    "inner fence",
+    "```",
+    "````",
+    "~~~~",
+    "| a | b |",
+    "---",
+    "***",
+    "    indented code block",
+    "* star bullet",
+    "+ plus bullet",
+    "- normal bullet",
+  ].join("\n");
+  const output = validateSynthesis(hostile, config());
+
+  // Nothing may make Obsidian fetch, resolve, or embed anything.
+  assert.doesNotMatch(output, /!\[/);
+  assert.doesNotMatch(output, /\]\(/);
+  assert.doesNotMatch(output, /\[\[|\]\]/);
+  assert.doesNotMatch(output, /<[^\n]*>/);
+  assert.doesNotMatch(output, /evil\.example/);
+  // The embed collapses to inert plain text with no resolvable reference.
+  assert.match(output, /^Secret Vault Note$/m);
+  // No structural Markdown may survive at the start of a line.
+  assert.doesNotMatch(output, /^\s*#/m);
+  assert.doesNotMatch(output, /^\s*>/m);
+  assert.doesNotMatch(output, /^\s*\|/m);
+  assert.doesNotMatch(output, /^\s*(-{3,}|\*{3,}|_{3,})\s*$/m);
+  assert.doesNotMatch(output, /`{3,}|~{3,}/);
+  assert.doesNotMatch(output, /^ {4,}\S/m);
+
+  // Readable prose and simple bullets survive.
+  assert.match(output, /^- star bullet$/m);
+  assert.match(output, /^- plus bullet$/m);
+  assert.match(output, /^- normal bullet$/m);
+  assert.match(output, /alias text/);
+  assert.match(output, /click me/);
+  assert.match(output, /ref link/);
+  assert.match(output, /^\\# Injected heading$/m);
+  assert.match(output, /^\\> \[!danger\] Callout$/m);
+});
+
+test("output validation: closes residual synthesis markup gaps", () => {
+  const residual = [
+    "visit https://evil.example/bare or www.evil.example today",
+    "mail me at mailto:someone@evil.example",
+    "[ref]: https://evil.example/definition",
+    "a ] ( b and c ] [ d",
+    "col a | col b",
+    "1. ordered item",
+    "2) other item",
+    "- [ ] task item",
+    "`inline code`",
+    "::: warning container",
+    "%% obsidian comment %%",
+    "^block-ref",
+    "===",
+    "plain prose survives",
+    "- kept bullet",
+  ].join("\n");
+  const output = validateSynthesis(residual, config());
+
+  // No autolinkable URL, scheme, or host survives.
+  assert.doesNotMatch(output, /https:\/\//);
+  assert.doesNotMatch(output, /www\.evil/);
+  assert.doesNotMatch(output, /mailto:/);
+  // No link, reference link, or link-reference definition can re-form.
+  assert.doesNotMatch(output, /\]\(/);
+  assert.doesNotMatch(output, /\]\[/);
+  assert.doesNotMatch(output, /\]:/);
+  // No table, ordered list, task list, container, comment, or block ref.
+  assert.doesNotMatch(output, /(?<!\\)\|/);
+  assert.doesNotMatch(output, /^\s*\d+[.)]\s/m);
+  assert.doesNotMatch(output, /^\s*- \[[ xX]\]/m);
+  assert.doesNotMatch(output, /^\s*:{3,}/m);
+  assert.doesNotMatch(output, /^\s*%%/m);
+  assert.doesNotMatch(output, /^\s*\^/m);
+  assert.doesNotMatch(output, /^\s*={2,}\s*$/m);
+  assert.doesNotMatch(output, /(?<!\\)`/);
+
+  // Plain prose and normalized bullets survive.
+  assert.match(output, /^plain prose survives$/m);
+  assert.match(output, /^- kept bullet$/m);
+  assert.match(output, /ordered item/);
+  assert.match(output, /task item/);
+  assert.match(output, /col a/);
+});
+
+test("output validation: enforces the 200-word cap and redacts secrets", () => {
+  const long = Array.from({ length: 400 }, (_, index) => `word${index}`).join(" ");
+  const capped = validateSynthesis(long, config({ maxIdeaChars: 4_000 }));
+  const words = capped.split(/\s+/).filter((word) => word !== "…");
+  assert.equal(words.length, SYNTHESIS_MAX_WORDS);
+  assert.equal(SYNTHESIS_MAX_WORDS, 200);
+  assert.match(capped, /^word0 word1 /);
+  assert.match(capped, / …$/);
+  assert.doesNotMatch(capped, /word200/);
+
+  const secretive = validateSynthesis(
+    "Use Authorization: Bearer super-secret-token when calling the API.",
+    config(),
+  );
+  assert.doesNotMatch(secretive, /super-secret-token/);
+  assert.match(secretive, /\[REDACTED\]/);
+
+  assert.throws(() => validateSynthesis("<b></b>", config()), /empty synthesis/);
+});
+
+test("notification sink: redacts secrets in idea, model, and CLI text", () => {
+  assert.equal(
+    redactNotification("note #1 model error: Authorization: Bearer secret-value failed"),
+    "note #1 model error: Authorization: Bearer [REDACTED] failed",
+  );
+  assert.doesNotMatch(
+    redactNotification("idea not saved: ghp_abcdefghijklmnopqrstuvwxyz012345"),
+    /ghp_abcdefghijklmnopqrstuvwxyz012345/,
+  );
+  assert.doesNotMatch(
+    redactNotification('Error: File "x" not found. api_key="abcdefgh12345678"'),
+    /abcdefgh12345678/,
+  );
+});
+
+test("prompt safety: redacts the idea and evidence before model submission", () => {
+  const prompt = buildNotePrompt(
+    "Authorization: Bearer evidence-secret-token",
+    "password: hunter2000secret",
+    config(),
+  );
+  assert.doesNotMatch(prompt, /evidence-secret-token/);
+  assert.doesNotMatch(prompt, /hunter2000secret/);
+  assert.match(prompt, /\[REDACTED\]/);
 });
 
 test("rendering: emits bounded redacted blocks and stable note headers", () => {
@@ -304,10 +464,149 @@ test("rendering: emits bounded redacted blocks and stable note headers", () => {
   assert.match(empty, /cwd: \/Users\/jose\/dotfiles/);
   assert.doesNotMatch(empty, /repo:|branch:|commit:/);
 
-  assert.match(renderNewNoteContent(input, "fallback"), /^# dotfiles — pi notes\n\n## /);
+  // The H1 always uses the already-sanitized note name, never repository text.
+  assert.match(renderNewNoteContent(input, "fallback"), /^# fallback — pi notes\n\n## /);
   assert.match(
-    renderNewNoteContent({ ...input, repo: repo({ name: null }) }, "fallback"),
-    /^# fallback — pi notes\n\n## /,
+    renderNewNoteContent({ ...input, repo: repo({ name: "# ../evil [[note]]" }) }, "my-repo"),
+    /^# my-repo — pi notes\n\n## /,
+  );
+});
+
+test("rendering: neutralizes hostile idea text before persistence", () => {
+  const hostile = [
+    "# heading idea",
+    "![remote](https://evil.example/pixel.png)",
+    "[click](https://evil.example/steal)",
+    "[[Secret Note|alias]]",
+    "![[Embedded Note]]",
+    "<img src='https://evil.example/x.png'>",
+    "<script>fetch('https://evil.example')</script>",
+    "> [!danger] callout",
+    "| a | b |",
+    "---",
+    "```js",
+    "code",
+    "```",
+    "see https://evil.example/bare and www.evil.example",
+    "[ref]: https://evil.example/def",
+    "1. ordered item",
+    "- [ ] task item",
+  ].join("\n");
+
+  const line = neutralizeIdeaText(hostile);
+  assert.doesNotMatch(line, /!\[/);
+  assert.doesNotMatch(line, /\]\(/);
+  assert.doesNotMatch(line, /\]\[/);
+  assert.doesNotMatch(line, /\]:/);
+  assert.doesNotMatch(line, /\[\[|\]\]/);
+  assert.doesNotMatch(line, /<[^\n]*>/);
+  assert.doesNotMatch(line, /(?<!\\)`/);
+  assert.doesNotMatch(line, /(?<!\\)\|/);
+  assert.doesNotMatch(line, /^\s*#/m);
+  assert.doesNotMatch(line, /^\s*>/m);
+  assert.doesNotMatch(line, /^\s*(-{3,}|\*{3,}|_{3,})\s*$/m);
+  assert.doesNotMatch(line, /https:\/\//);
+  assert.doesNotMatch(line, /www\.evil/);
+  assert.doesNotMatch(line, /^\s*1\./m);
+  assert.doesNotMatch(line, /^- \[ \]/m);
+  // Readable text survives.
+  assert.match(line, /heading idea/);
+  assert.match(line, /alias/);
+  assert.match(line, /Embedded Note/);
+  assert.match(line, /ordered item/);
+  assert.match(line, /task item/);
+
+  const block = renderNoteBlock({
+    timestamp: new Date(2026, 7, 5, 14, 3, 9),
+    idea: hostile,
+    synthesis: "summary",
+    repo: repo(),
+    config: config(),
+  });
+  const ideaLine = block.split("\n").find((entry) => entry.startsWith("**Idea:**"))!;
+  assert.equal(block.split("\n").filter((entry) => entry.startsWith("**Idea:**")).length, 1);
+  assert.doesNotMatch(ideaLine, /!\[|\]\(|\[\[|\]\]|<[^\n]*>|(?<!\\)`/);
+  assert.doesNotMatch(ideaLine, /https:\/\//);
+});
+
+test("rendering: sanitizes hostile repository metadata", () => {
+  assert.equal(sanitizeMetadataValue("dotfiles"), "dotfiles");
+  assert.equal(sanitizeMetadataValue("feature/thing"), "feature/thing");
+
+  const hostile = sanitizeMetadataValue("repo\n# heading [[wiki]] | pipe `code` ![x](https://evil.example)");
+  assert.doesNotMatch(hostile, /\n/);
+  assert.doesNotMatch(hostile, /(?<!\\)[#|`*_~>\[\]]/);
+  assert.doesNotMatch(hostile, /https:\/\//);
+
+  // Secret-shaped metadata never reaches the note.
+  assert.doesNotMatch(
+    sanitizeMetadataValue("branch-ghp_abcdefghijklmnopqrstuvwxyz012345"),
+    /ghp_abcdefghijklmnopqrstuvwxyz012345/,
+  );
+  // Metadata is bounded.
+  assert.ok(sanitizeMetadataValue("x".repeat(500)).length <= 120);
+
+  const block = renderNoteBlock({
+    timestamp: new Date(2026, 7, 5, 14, 3, 9),
+    idea: "idea",
+    synthesis: "summary",
+    repo: {
+      name: "# evil [[note]]",
+      branch: "main\n## injected",
+      commit: "abc | def",
+      cwd: "/tmp/`code`",
+    },
+    config: config(),
+  });
+  const footer = block.split("\n").find((entry) => entry.startsWith("repo: "))!;
+  assert.doesNotMatch(footer, /(?<!\\)[#|`\[\]]/);
+  assert.equal(block.split("\n").filter((entry) => entry.startsWith("## ")).length, 1);
+});
+
+test("notification text: every command message is redacted, bounded, and stable", () => {
+  assert.equal(noteMessages.usage(), NOTE_USAGE);
+  assert.equal(NOTE_USAGE, "Usage: /note <idea>");
+  assert.equal(noteMessages.configError("bad json"), "Note config error: bad json");
+  assert.equal(noteMessages.modelLookupFailed("boom"), "Note model lookup failed: boom");
+  assert.equal(noteMessages.modelNotFound("openai", "gpt"), "Note model not found: openai/gpt");
+  assert.equal(noteMessages.credentialsUnavailable("no key"), "Note credentials unavailable: no key");
+  assert.equal(noteMessages.busy(), "/note busy — try again");
+  assert.equal(noteMessages.queueFull(4, "an idea"), "/note queue full (4) — idea not saved: an idea");
+  assert.equal(
+    noteMessages.progress(2, "queued", "Research", "pi-notes/repo.md"),
+    "note #2 queued → Research/pi-notes/repo.md",
+  );
+  assert.equal(
+    noteMessages.saved(2, "Research", "pi-notes/repo.md", " (1/2 tokens)"),
+    "note #2 saved → Research/pi-notes/repo.md (1/2 tokens)",
+  );
+  assert.equal(noteMessages.modelError(3, "nope"), "note #3 model error: nope");
+  assert.equal(noteMessages.cliMissing(), "obsidian CLI not found on PATH");
+  assert.equal(
+    noteMessages.obsidianUnavailable(4, "Research", "my idea"),
+    "note #4 failed: Obsidian not running or vault 'Research' unavailable — idea not saved: my idea",
+  );
+  assert.equal(noteMessages.failed(5, "why", "my idea"), "note #5 failed: why — idea not saved: my idea");
+
+  // Idea snippets are flattened, bounded, and redacted at every echoing sink.
+  assert.equal(ideaSnippet(" a\n  b "), "a b");
+  assert.equal(ideaSnippet("x".repeat(200)).length, IDEA_SNIPPET_CHARS + 1);
+  for (const message of [
+    noteMessages.queueFull(4, "token ghp_abcdefghijklmnopqrstuvwxyz012345"),
+    noteMessages.obsidianUnavailable(1, "V", "token ghp_abcdefghijklmnopqrstuvwxyz012345"),
+    noteMessages.failed(1, "detail", "token ghp_abcdefghijklmnopqrstuvwxyz012345"),
+  ]) {
+    assert.doesNotMatch(message, /ghp_abcdefghijklmnopqrstuvwxyz012345/);
+  }
+});
+
+test("notification sink: the command handler has exactly one notify call site", async () => {
+  const source = await readFile(new URL("./index.ts", import.meta.url), "utf8");
+  assert.equal((source.match(/ctx\.ui\.notify\(/g) ?? []).length, 1);
+  // The single call site is the redacting, try/catch-safe helper.
+  assert.match(
+    source,
+    /const safe = redactNotification\(message\);[\s\S]*?try \{\s*ctx\.ui\.notify\(safe, type\);\s*\} catch \{/,
   );
 });
 
@@ -327,6 +626,44 @@ test("encoding and exact argv: escapes content without shell interpretation", ()
     "content=slash\\\\value\\nnext\\tcolumn\\n",
     "silent",
   ]);
+  // `obsidian help`: delete  file=<name>  path=<path>  permanent
+  assert.deepEqual(buildObsidianArgs("delete", "Research Vault", "pi-notes/repo 1.md", content), [
+    "vault=Research Vault",
+    "delete",
+    "path=pi-notes/repo 1.md",
+    "permanent",
+  ]);
+  // A delete argv never carries note content.
+  assert.ok(
+    buildObsidianArgs("delete", "V", "p.md", "SENSITIVE").every(
+      (arg) => !arg.includes("SENSITIVE"),
+    ),
+  );
+  assert.equal(RESERVATION_CONTENT, "");
+});
+
+test("numbered-sibling validation: accepts only same-directory numbered siblings", () => {
+  assert.ok(isNumberedSibling("pi-notes/repo 1.md", "pi-notes/repo.md"));
+  assert.ok(isNumberedSibling("pi-notes/repo 12.md", "pi-notes/repo.md"));
+  assert.ok(isNumberedSibling("repo 3.md", "repo.md"));
+
+  const rejected = [
+    ["pi-notes/repo.md", "pi-notes/repo.md"],
+    ["pi-notes/other 1.md", "pi-notes/repo.md"],
+    ["elsewhere/repo 1.md", "pi-notes/repo.md"],
+    ["pi-notes/sub/repo 1.md", "pi-notes/repo.md"],
+    ["pi-notes/../repo 1.md", "pi-notes/repo.md"],
+    ["pi-notes\\repo 1.md", "pi-notes/repo.md"],
+    ["/etc/passwd", "pi-notes/repo.md"],
+    ["pi-notes/repo 1.txt", "pi-notes/repo.md"],
+    ["pi-notes/repo 0.md", "pi-notes/repo.md"],
+    ["pi-notes/repo 1234.md", "pi-notes/repo.md"],
+    ["pi-notes/repo1.md", "pi-notes/repo.md"],
+    ["", "pi-notes/repo.md"],
+  ];
+  for (const [reported, requested] of rejected) {
+    assert.equal(isNumberedSibling(reported, requested), false, `${reported} vs ${requested}`);
+  }
 });
 
 test("runObsidianWrite flows: append success and missing-note create success", async () => {
@@ -350,20 +687,68 @@ test("runObsidianWrite flows: append success and missing-note create success", a
     args: ["vault=Research", "append", "path=pi-notes/repo.md", "content=BLOCK"],
   });
 
+  // Create reserves the path with empty content, then the first-note content is
+  // appended only after the reservation lands on the requested path.
   calls.length = 0;
   responses.length = 0;
   responses.push(
     { stdout: "", stderr: "file does not exist", code: 1 },
     { stdout: "Created: pi-notes/repo.md", stderr: "", code: 0 },
+    { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 },
   );
   assert.deepEqual(await runObsidianWrite(exec, noteConfig, "pi-notes/repo.md", "BLOCK", "NEW"), {
     action: "create",
-    attempts: 2,
+    attempts: 3,
   });
   assert.deepEqual(calls, [
     { cmd: "obsidian", args: ["vault=Research", "append", "path=pi-notes/repo.md", "content=BLOCK"] },
-    { cmd: "obsidian", args: ["vault=Research", "create", "path=pi-notes/repo.md", "content=NEW", "silent"] },
+    { cmd: "obsidian", args: ["vault=Research", "create", "path=pi-notes/repo.md", "content=", "silent"] },
+    { cmd: "obsidian", args: ["vault=Research", "append", "path=pi-notes/repo.md", "content=NEW"] },
   ]);
+});
+
+test("runObsidianWrite flows: a reported path that is not the requested note fails closed", async () => {
+  const wrongAppend: ObsidianExec = async () => ({
+    stdout: "Appended to: pi-notes/other.md",
+    stderr: "",
+    code: 0,
+  });
+  await assert.rejects(
+    () => runObsidianWrite(wrongAppend, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+    (error: unknown) =>
+      error instanceof ObsidianWriteError &&
+      error.kind === "write-failed" &&
+      /reported 'pi-notes\/other\.md'/.test(error.message),
+  );
+
+  // A create reporting an unrelated path is never handed to delete.
+  const calls: string[] = [];
+  const strangeCreate: ObsidianExec = async (_cmd, args) => {
+    calls.push(args[1]!);
+    if (args[1] === "append") return { stdout: "", stderr: "no such file", code: 1 };
+    return { stdout: "Created: ../../etc/passwd.md", stderr: "", code: 0 };
+  };
+  await assert.rejects(
+    () => runObsidianWrite(strangeCreate, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+    (error: unknown) =>
+      error instanceof ObsidianWriteError &&
+      error.kind === "write-failed" &&
+      /unexpected path/.test(error.message),
+  );
+  assert.deepEqual(calls, ["append", "create"]);
+
+  // The first-note append must also land on the requested path.
+  const wrongSeed: ObsidianExec = async (_cmd, args) => {
+    if (args[1] === "create") return { stdout: "Created: pi-notes/repo.md", stderr: "", code: 0 };
+    if (args[3] === "content=NEW") {
+      return { stdout: "Appended to: pi-notes/repo 1.md", stderr: "", code: 0 };
+    }
+    return { stdout: "", stderr: "no such file", code: 1 };
+  };
+  await assert.rejects(
+    () => runObsidianWrite(wrongSeed, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+    (error: unknown) => error instanceof ObsidianWriteError && error.kind === "write-failed",
+  );
 });
 
 test("runObsidianWrite flows: create race falls back to one append retry", async () => {
@@ -463,9 +848,9 @@ test("runObsidianWrite flows: treats exit-0 CLI errors as failures", async () =>
 
   assert.deepEqual(await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"), {
     action: "create",
-    attempts: 2,
+    attempts: 3,
   });
-  assert.deepEqual(calls, ["append", "create"]);
+  assert.deepEqual(calls, ["append", "create", "append"]);
 
   const vaultDown: ObsidianExec = async () => ({ stdout: "Vault not found.", stderr: "", code: 0 });
   await assert.rejects(
@@ -480,13 +865,16 @@ test("runObsidianWrite flows: treats exit-0 CLI errors as failures", async () =>
   );
 });
 
-test("runObsidianWrite flows: a create landing on a numbered sibling retries the append", async () => {
-  // Asked to create an existing note the CLI silently writes `repo 1.md`.
-  const calls: string[] = [];
-  const exec: ObsidianExec = async (_cmd, args) => {
-    calls.push(args[1]!);
+test("runObsidianWrite flows: a create race removes the empty reservation and retries", async () => {
+  // Asked to create an existing note the CLI silently reserves `repo 1.md`.
+  const calls: Array<{ cmd: string; args: string[] }> = [];
+  const exec: ObsidianExec = async (cmd, args) => {
+    calls.push({ cmd, args });
     if (args[1] === "create") {
       return { stdout: "Created: pi-notes/repo 1.md", stderr: "", code: 0 };
+    }
+    if (args[1] === "delete") {
+      return { stdout: "Deleted: pi-notes/repo 1.md", stderr: "", code: 0 };
     }
     if (calls.length === 1) {
       return { stdout: 'Error: File "pi-notes/repo.md" not found.', stderr: "", code: 0 };
@@ -496,7 +884,39 @@ test("runObsidianWrite flows: a create landing on a numbered sibling retries the
 
   assert.deepEqual(await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"), {
     action: "append",
-    attempts: 3,
+    attempts: 4,
   });
-  assert.deepEqual(calls, ["append", "create", "append"]);
+  assert.deepEqual(
+    calls.map((call) => call.args),
+    [
+      ["vault=Research", "append", "path=pi-notes/repo.md", "content=BLOCK"],
+      ["vault=Research", "create", "path=pi-notes/repo.md", "content=", "silent"],
+      ["vault=Research", "delete", "path=pi-notes/repo 1.md", "permanent"],
+      ["vault=Research", "append", "path=pi-notes/repo.md", "content=BLOCK"],
+    ],
+  );
+  // The sensitive block only ever goes to the requested path.
+  assert.ok(calls.every((call) => call.args[2] !== "path=pi-notes/repo 1.md" || call.args[1] === "delete"));
+});
+
+test("runObsidianWrite flows: a failed reservation delete fails closed", async () => {
+  for (const deleteResult of [
+    { stdout: "", stderr: "", code: 0 },
+    { stdout: "Error: File not found.", stderr: "", code: 0 },
+    { stdout: "Deleted: pi-notes/other.md", stderr: "", code: 0 },
+  ] as ObsidianExecResult[]) {
+    const calls: string[] = [];
+    const exec: ObsidianExec = async (_cmd, args) => {
+      calls.push(args[1]!);
+      if (args[1] === "create") return { stdout: "Created: pi-notes/repo 1.md", stderr: "", code: 0 };
+      if (args[1] === "delete") return deleteResult;
+      return { stdout: "", stderr: "no such file", code: 1 };
+    };
+    await assert.rejects(
+      () => runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+      (error: unknown) => error instanceof ObsidianWriteError,
+    );
+    // No append retry runs after a delete that cannot be confirmed.
+    assert.deepEqual(calls, ["append", "create", "delete"]);
+  }
 });
