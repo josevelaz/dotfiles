@@ -692,6 +692,28 @@ function combined(result: ObsidianExecResult): string {
   return `${result.stdout ?? ""}\n${result.stderr ?? ""}`.trim();
 }
 
+const APPEND_OK = /^\s*Appended to:\s*(.+)$/im;
+const CREATE_OK = /^\s*Created:\s*(.+)$/im;
+
+/**
+ * The Obsidian CLI exits 0 even when it fails (`Error: File "x" not found.`,
+ * `Vault not found.`), so the exit status alone cannot decide success. A write
+ * succeeded only when the CLI reported the write and the exit status was 0.
+ * Returns the path the CLI reported writing to, or `null` on failure.
+ */
+function successPath(action: ObsidianAction, result: ObsidianExecResult): string | null {
+  if ((result.code ?? 0) !== 0) return null;
+  const match = combined(result).match(action === "append" ? APPEND_OK : CREATE_OK);
+  if (!match) return null;
+  return (match[1] ?? "").trim();
+}
+
+/** Compare CLI-reported and requested vault paths, ignoring the `.md` suffix. */
+function samePath(a: string, b: string): boolean {
+  const strip = (value: string) => value.trim().replace(/^\/+/, "").replace(/\.md$/i, "");
+  return strip(a) === strip(b);
+}
+
 async function runOnce(
   exec: ObsidianExec,
   action: ObsidianAction,
@@ -727,7 +749,7 @@ export async function runObsidianWrite(
   newNoteContent: string,
 ): Promise<ObsidianWriteResult> {
   const first = await runOnce(exec, "append", config.vault, vaultPath, block);
-  if (first.code === 0) return { action: "append", attempts: 1 };
+  if (successPath("append", first) !== null) return { action: "append", attempts: 1 };
 
   const firstOutput = combined(first);
   if (!isMissingFile(firstOutput) || isNotRunning(firstOutput) || isVaultProblem(firstOutput)) {
@@ -739,10 +761,17 @@ export async function runObsidianWrite(
   }
 
   const created = await runOnce(exec, "create", config.vault, vaultPath, newNoteContent);
-  if (created.code === 0) return { action: "create", attempts: 2 };
+  const createdPath = successPath("create", created);
+  if (createdPath !== null && samePath(createdPath, vaultPath)) {
+    return { action: "create", attempts: 2 };
+  }
 
+  // The CLI never clobbers: asked to create an existing note it silently writes
+  // a numbered sibling (`repo 1.md`) and still reports success. A reported path
+  // that differs from the requested one therefore means the note already
+  // existed, so fall through to the append retry.
   const createdOutput = combined(created);
-  if (!isAlreadyExists(createdOutput)) {
+  if (createdPath === null && !isAlreadyExists(createdOutput)) {
     throw new ObsidianWriteError(
       classify(createdOutput),
       `Obsidian create failed (exit ${created.code}): ${createdOutput || "no output"}`,
@@ -751,7 +780,7 @@ export async function runObsidianWrite(
   }
 
   const retry = await runOnce(exec, "append", config.vault, vaultPath, block);
-  if (retry.code === 0) return { action: "append", attempts: 3 };
+  if (successPath("append", retry) !== null) return { action: "append", attempts: 3 };
 
   const retryOutput = combined(retry);
   throw new ObsidianWriteError(

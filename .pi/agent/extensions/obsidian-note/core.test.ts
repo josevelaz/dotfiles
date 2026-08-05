@@ -332,7 +332,7 @@ test("encoding and exact argv: escapes content without shell interpretation", ()
 test("runObsidianWrite flows: append success and missing-note create success", async () => {
   const calls: Array<{ cmd: string; args: string[] }> = [];
   const responses: ObsidianExecResult[] = [
-    { stdout: "", stderr: "", code: 0 },
+    { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 },
     { stdout: "", stderr: "", code: 0 },
   ];
   const exec: ObsidianExec = async (cmd, args) => {
@@ -354,7 +354,7 @@ test("runObsidianWrite flows: append success and missing-note create success", a
   responses.length = 0;
   responses.push(
     { stdout: "", stderr: "file does not exist", code: 1 },
-    { stdout: "created", stderr: "", code: 0 },
+    { stdout: "Created: pi-notes/repo.md", stderr: "", code: 0 },
   );
   assert.deepEqual(await runObsidianWrite(exec, noteConfig, "pi-notes/repo.md", "BLOCK", "NEW"), {
     action: "create",
@@ -371,7 +371,7 @@ test("runObsidianWrite flows: create race falls back to one append retry", async
   const responses: ObsidianExecResult[] = [
     { stdout: "", stderr: "No such file", code: 1 },
     { stdout: "", stderr: "file already exists", code: 1 },
-    { stdout: "", stderr: "", code: 0 },
+    { stdout: "Appended to: repo.md", stderr: "", code: 0 },
   ];
   const exec: ObsidianExec = async (cmd, args) => {
     calls.push({ cmd, args });
@@ -442,4 +442,56 @@ test("runObsidianWrite flows: classifies CLI, create, and retry failures", async
     () => runObsidianWrite(retryFailure, config(), "repo.md", "BLOCK", "NEW"),
     (error: unknown) => error instanceof ObsidianWriteError && error.kind === "not-running",
   );
+});
+
+test("runObsidianWrite flows: treats exit-0 CLI errors as failures", async () => {
+  // The real Obsidian CLI exits 0 even when it refuses the write.
+  const calls: string[] = [];
+  const exec: ObsidianExec = async (_cmd, args) => {
+    calls.push(args[1]!);
+    if (args[1] === "append" && calls.length === 1) {
+      return { stdout: 'Error: File "pi-notes/repo.md" not found.', stderr: "", code: 0 };
+    }
+    if (args[1] === "create") return { stdout: "Created: pi-notes/repo.md", stderr: "", code: 0 };
+    return { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 };
+  };
+
+  assert.deepEqual(await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"), {
+    action: "create",
+    attempts: 2,
+  });
+  assert.deepEqual(calls, ["append", "create"]);
+
+  const vaultDown: ObsidianExec = async () => ({ stdout: "Vault not found.", stderr: "", code: 0 });
+  await assert.rejects(
+    () => runObsidianWrite(vaultDown, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+    (error: unknown) => error instanceof ObsidianWriteError && error.kind === "vault-not-found",
+  );
+
+  const silent: ObsidianExec = async () => ({ stdout: "", stderr: "", code: 0 });
+  await assert.rejects(
+    () => runObsidianWrite(silent, config(), "pi-notes/repo.md", "BLOCK", "NEW"),
+    (error: unknown) => error instanceof ObsidianWriteError && error.kind === "write-failed",
+  );
+});
+
+test("runObsidianWrite flows: a create landing on a numbered sibling retries the append", async () => {
+  // Asked to create an existing note the CLI silently writes `repo 1.md`.
+  const calls: string[] = [];
+  const exec: ObsidianExec = async (_cmd, args) => {
+    calls.push(args[1]!);
+    if (args[1] === "create") {
+      return { stdout: "Created: pi-notes/repo 1.md", stderr: "", code: 0 };
+    }
+    if (calls.length === 1) {
+      return { stdout: 'Error: File "pi-notes/repo.md" not found.', stderr: "", code: 0 };
+    }
+    return { stdout: "Appended to: pi-notes/repo.md", stderr: "", code: 0 };
+  };
+
+  assert.deepEqual(await runObsidianWrite(exec, config(), "pi-notes/repo.md", "BLOCK", "NEW"), {
+    action: "append",
+    attempts: 3,
+  });
+  assert.deepEqual(calls, ["append", "create", "append"]);
 });
