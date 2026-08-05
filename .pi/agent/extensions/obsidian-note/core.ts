@@ -1,6 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { posix as pathPosix } from "node:path";
 
+import { clipMiddle, redactSecrets } from "../insights/core.ts";
+
+export { clipMiddle, redactSecrets };
+
 export type NoteReasoningLevel = "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
 export type NoteConcurrencyPolicy = "queue" | "reject";
 
@@ -240,6 +244,157 @@ function validateFolder(value: unknown): string {
     }
   }
   return segments.join("/");
+}
+
+export type NoteEvidenceSection = {
+  /** Section heading body, e.g. `[0007] TOOL RESULT bash ERROR`. */
+  label: string;
+  text: string;
+  weight: number;
+};
+
+const EMPTY_EVIDENCE = "[No observable conversation context.]";
+
+/**
+ * Extract only plain text from a message content value.
+ *
+ * Hidden reasoning parts (`thinking`, `redacted_thinking`) are structurally
+ * excluded: only `type === "text"` parts contribute text. When
+ * `includeToolCallNames` is set, assistant tool calls contribute their name
+ * only — never the argument payload.
+ */
+function contentText(content: unknown, includeToolCallNames: boolean): string {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
+  const parts: string[] = [];
+  for (const item of content) {
+    if (!isRecord(item)) continue;
+    if (item.type === "text" && typeof item.text === "string") parts.push(item.text);
+    else if (item.type === "image") parts.push("[image omitted]");
+    else if (includeToolCallNames && item.type === "toolCall") {
+      const name = typeof item.name === "string" ? item.name : "unknown";
+      parts.push(`TOOL CALL ${name}`);
+    }
+  }
+  return parts.join("\n\n");
+}
+
+/** Map one context entry to an evidence section, or null when not observable. */
+function entrySection(
+  entry: unknown,
+  index: number,
+  config: NoteConfig,
+): NoteEvidenceSection | null {
+  if (!isRecord(entry)) return null;
+  const sequence = String(index + 1).padStart(4, "0");
+  if (entry.type === "message" && isRecord(entry.message)) {
+    const message = entry.message;
+    if (message.role === "user") {
+      return {
+        label: `[${sequence}] USER`,
+        text: clipMiddle(contentText(message.content, false), config.maxMessageChars, "user message"),
+        weight: 4,
+      };
+    }
+    if (message.role === "assistant") {
+      return {
+        label: `[${sequence}] ASSISTANT`,
+        text: clipMiddle(
+          contentText(message.content, true),
+          config.maxMessageChars,
+          "assistant response",
+        ),
+        weight: 4,
+      };
+    }
+    if (message.role === "toolResult") {
+      const toolName = typeof message.toolName === "string" ? message.toolName : "unknown";
+      const error = message.isError ? " ERROR" : "";
+      return {
+        label: `[${sequence}] TOOL RESULT ${toolName}${error}`,
+        text: clipMiddle(contentText(message.content, false), config.maxToolResultChars, "tool result"),
+        weight: 1,
+      };
+    }
+    return null;
+  }
+  if (entry.type === "compaction") {
+    return {
+      label: `[${sequence}] COMPACTION SUMMARY`,
+      text: clipMiddle(
+        typeof entry.summary === "string" ? entry.summary : "",
+        config.maxMessageChars,
+        "summary",
+      ),
+      weight: 2,
+    };
+  }
+  if (entry.type === "branch_summary") {
+    return {
+      label: `[${sequence}] BRANCH SUMMARY`,
+      text: clipMiddle(
+        typeof entry.summary === "string" ? entry.summary : "",
+        config.maxMessageChars,
+        "summary",
+      ),
+      weight: 2,
+    };
+  }
+  if (entry.type === "custom_message") {
+    return {
+      label: `[${sequence}] CUSTOM MESSAGE`,
+      text: clipMiddle(contentText(entry.content, false), config.maxMessageChars, "custom message"),
+      weight: 1,
+    };
+  }
+  return null;
+}
+
+/**
+ * Convert a `buildContextEntries()` snapshot into bounded, redacted, inert
+ * evidence text.
+ *
+ * Pure: it never touches Pi context, the system prompt, or the skills catalog.
+ * The caller must take the snapshot synchronously and pass it in.
+ */
+export function buildNoteEvidence(entries: unknown[], config: NoteConfig): string {
+  const sections = entries
+    .map((entry, index) => entrySection(entry, index, config))
+    .filter((section): section is NoteEvidenceSection => Boolean(section));
+  if (sections.length === 0) return EMPTY_EVIDENCE;
+
+  const cleaned = sections.map((section) => ({
+    ...section,
+    text: escapeEvidenceMarkers(redactSecrets(section.text.trim()) || "[empty]"),
+  }));
+  const full = cleaned.map(formatSection).join("\n\n");
+  if (full.length <= config.maxEvidenceChars) return full;
+
+  // `### ` + label + `\n` = label.length + 5; sections are joined by "\n\n".
+  const fixedCost =
+    cleaned.reduce((sum, section) => sum + section.label.length + 5, 0) + (cleaned.length - 1) * 2;
+  const budget = Math.max(0, config.maxEvidenceChars - fixedCost);
+  const totalWeight = cleaned.reduce((sum, section) => sum + section.weight, 0);
+  let allocated = 0;
+  return cleaned
+    .map((section, index) => {
+      const share =
+        index === cleaned.length - 1
+          ? Math.max(0, budget - allocated)
+          : Math.floor((budget * section.weight) / totalWeight);
+      allocated += share;
+      return formatSection({ ...section, text: clipMiddle(section.text, share, "section") });
+    })
+    .join("\n\n");
+}
+
+/** Neutralize `### [nnnn] ...` lines inside message text so sections stay unforgeable. */
+function escapeEvidenceMarkers(text: string): string {
+  return text.replace(/^### (?=\[\d{4}\] [^\r\n]+\r?$)/gm, "\\### ");
+}
+
+function formatSection(section: NoteEvidenceSection): string {
+  return `### ${section.label}\n${section.text}`;
 }
 
 function isRecord(value: unknown): value is Record<string, any> {
