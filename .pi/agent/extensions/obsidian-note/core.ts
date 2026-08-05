@@ -25,16 +25,21 @@ const URL_USERINFO_RE = /([A-Za-z][A-Za-z0-9+.-]*:\/\/)([^\s/?#@]*)@/g;
  * Scheme-relative authority userinfo (`//:secret@example.com`).
  *
  * A protocol-relative URL carries the same credentials without a scheme, so it
- * is redacted with the same rule. The leading boundary keeps a comment marker
- * or a path fragment (`a//b@c`) from being mistaken for an authority.
+ * is redacted with the same rule. There is deliberately **no** delimiter or
+ * boundary allowlist: an authority is valid after `=`, `[`, `,`, a path-like
+ * prefix, a quote, a space, or the start of the text, and any allowlist that
+ * tried to enumerate those positions would miss one. Every `//userinfo@` is
+ * rewritten, so a comment marker (`//@ts-ignore`) or a path fragment
+ * (`a//b@c`) is redacted too. Over-redaction is the intended trade: a false
+ * positive is cosmetic, a missed credential is a leak.
  */
-const SCHEME_RELATIVE_USERINFO_RE = /(^|[\s"'`(<])(\/\/)([^\s/?#@]*)@/g;
+const SCHEME_RELATIVE_USERINFO_RE = /(\/\/)([^\s/?#@]*)@/g;
 
 /** Rewrite every userinfo form, scheme-qualified and scheme-relative alike. */
 function redactUserinfo(text: string): string {
   return text
     .replace(URL_USERINFO_RE, "$1[REDACTED]@")
-    .replace(SCHEME_RELATIVE_USERINFO_RE, "$1$2[REDACTED]@");
+    .replace(SCHEME_RELATIVE_USERINFO_RE, "$1[REDACTED]@");
 }
 
 /**
@@ -323,11 +328,49 @@ function contentText(content: unknown, includeToolCallNames: boolean): string {
     if (item.type === "text" && typeof item.text === "string") parts.push(item.text);
     else if (item.type === "image") parts.push("[image omitted]");
     else if (includeToolCallNames && item.type === "toolCall") {
-      const name = typeof item.name === "string" ? item.name : "unknown";
-      parts.push(`TOOL CALL ${name}`);
+      parts.push(`TOOL CALL ${sanitizeEvidenceToolName(item.name)}`);
     }
   }
   return parts.join("\n\n");
+}
+
+/** Widest dynamic tool name accepted inside an evidence section label. */
+const EVIDENCE_TOOL_NAME_MAX_CHARS = 40;
+
+/**
+ * Make a dynamic tool name safe to place inside an evidence section label.
+ *
+ * The name is model- and host-supplied, so it is redacted first, then reduced
+ * to `[A-Za-z0-9._-]` and bounded. The surviving charset has no newline, no
+ * `#`, and no `:`/`/`/`@`, so a label can neither leak a credential nor forge
+ * an extra line or an `### [nnnn] ...` section header.
+ */
+function sanitizeEvidenceToolName(value: unknown): string {
+  if (typeof value !== "string") return "unknown";
+  const cleaned = redactNoteSecrets(value)
+    .replace(/[^A-Za-z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-.]+|[-.]+$/g, "");
+  if (cleaned.length === 0) return "unknown";
+  return cleaned.slice(0, EVIDENCE_TOOL_NAME_MAX_CHARS).replace(/[-.]+$/g, "") || "unknown";
+}
+
+/**
+ * The one way evidence text may be clipped.
+ *
+ * `clipMiddle` cuts in the middle of the text, so clipping raw content can
+ * split a credential before its `@` and leave the secret prefix behind. Every
+ * value is therefore redacted **before** the clip, and redacted again
+ * **after** it because the cut itself can expose a new authority boundary.
+ * The second redaction can lengthen the text (`[REDACTED]` is longer than a
+ * short secret), so the result is hard-bounded to `limit`; slicing only ever
+ * removes characters, so it cannot re-expose anything.
+ *
+ * Callers must never call `clipMiddle` on evidence directly.
+ */
+function clipEvidenceText(value: string, limit: number, label: string): string {
+  const clipped = redactNoteSecrets(clipMiddle(redactNoteSecrets(value), limit, label));
+  return clipped.length <= limit ? clipped : clipped.slice(0, limit);
 }
 
 /** Map one context entry to an evidence section, or null when not observable. */
@@ -343,14 +386,14 @@ function entrySection(
     if (message.role === "user") {
       return {
         label: `[${sequence}] USER`,
-        text: clipMiddle(contentText(message.content, false), config.maxMessageChars, "user message"),
+        text: clipEvidenceText(contentText(message.content, false), config.maxMessageChars, "user message"),
         weight: 4,
       };
     }
     if (message.role === "assistant") {
       return {
         label: `[${sequence}] ASSISTANT`,
-        text: clipMiddle(
+        text: clipEvidenceText(
           contentText(message.content, true),
           config.maxMessageChars,
           "assistant response",
@@ -359,11 +402,11 @@ function entrySection(
       };
     }
     if (message.role === "toolResult") {
-      const toolName = typeof message.toolName === "string" ? message.toolName : "unknown";
+      const toolName = sanitizeEvidenceToolName(message.toolName);
       const error = message.isError ? " ERROR" : "";
       return {
         label: `[${sequence}] TOOL RESULT ${toolName}${error}`,
-        text: clipMiddle(contentText(message.content, false), config.maxToolResultChars, "tool result"),
+        text: clipEvidenceText(contentText(message.content, false), config.maxToolResultChars, "tool result"),
         weight: 1,
       };
     }
@@ -372,7 +415,7 @@ function entrySection(
   if (entry.type === "compaction") {
     return {
       label: `[${sequence}] COMPACTION SUMMARY`,
-      text: clipMiddle(
+      text: clipEvidenceText(
         typeof entry.summary === "string" ? entry.summary : "",
         config.maxMessageChars,
         "summary",
@@ -383,7 +426,7 @@ function entrySection(
   if (entry.type === "branch_summary") {
     return {
       label: `[${sequence}] BRANCH SUMMARY`,
-      text: clipMiddle(
+      text: clipEvidenceText(
         typeof entry.summary === "string" ? entry.summary : "",
         config.maxMessageChars,
         "summary",
@@ -394,7 +437,7 @@ function entrySection(
   if (entry.type === "custom_message") {
     return {
       label: `[${sequence}] CUSTOM MESSAGE`,
-      text: clipMiddle(contentText(entry.content, false), config.maxMessageChars, "custom message"),
+      text: clipEvidenceText(contentText(entry.content, false), config.maxMessageChars, "custom message"),
       weight: 1,
     };
   }
@@ -434,9 +477,25 @@ export function buildNoteEvidence(entries: unknown[], config: NoteConfig): strin
           ? Math.max(0, budget - allocated)
           : Math.floor((budget * section.weight) / totalWeight);
       allocated += share;
-      return formatSection({ ...section, text: clipMiddle(section.text, share, "section") });
+      // Redact on both sides of the weighted clip, re-escape any header the cut
+      // exposed, then hard-bound the result so `maxEvidenceChars` still holds.
+      return formatSection({ ...section, text: clipEvidenceSection(section.text, share) });
     })
     .join("\n\n");
+}
+
+/**
+ * Final weighted clip of one already-cleaned section body.
+ *
+ * The cut can both split a credential and expose a fresh `### [nnnn] ...`
+ * line, so the text is redacted around the clip and re-escaped afterwards.
+ * Redaction and escaping can each add characters, so the result is bounded
+ * last; slicing the tail only removes characters and cannot create a new line
+ * start, so neither invariant can be undone.
+ */
+function clipEvidenceSection(text: string, limit: number): string {
+  const escaped = escapeEvidenceMarkers(clipEvidenceText(text, limit, "section"));
+  return escaped.length <= limit ? escaped : escaped.slice(0, limit);
 }
 
 /** Neutralize `### [nnnn] ...` lines inside message text so sections stay unforgeable. */
