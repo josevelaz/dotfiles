@@ -1,7 +1,22 @@
 import { readFile } from "node:fs/promises";
+import { posix as pathPosix } from "node:path";
 
 export type NoteReasoningLevel = "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
 export type NoteConcurrencyPolicy = "queue" | "reject";
+
+export type NoteTargetInput = {
+  gitRoot: string | null;
+  cwd: string;
+};
+
+export type NoteTarget = {
+  /** Vault-relative path using forward slashes, e.g. `pi-notes/dotfiles.md`. */
+  vaultPath: string;
+  /** Sanitized note basename without `.md`. */
+  noteName: string;
+};
+
+const NOTE_NAME_MAX_CHARS = 80;
 
 export type NoteConfig = {
   /** Obsidian vault name. Required: there is deliberately no default. */
@@ -144,6 +159,44 @@ export async function loadConfig(path: string): Promise<NoteConfig> {
   }
 
   return config;
+}
+
+/**
+ * Normalize a repo/cwd basename into a vault-safe note slug.
+ * NFKC → lowercase → replace non `[a-z0-9._-]` with `-` → collapse `-` →
+ * strip edge `-`/`.` → cap 80 chars; empty/`.`/`..` become `untitled`.
+ */
+export function sanitizeNoteName(raw: string): string {
+  let name = raw.normalize("NFKC").toLowerCase();
+  name = name.replace(/[^a-z0-9._-]+/g, "-");
+  name = name.replace(/-+/g, "-");
+  name = name.replace(/^[-.]+|[-.]+$/g, "");
+  if (name.length > NOTE_NAME_MAX_CHARS) {
+    name = name.slice(0, NOTE_NAME_MAX_CHARS).replace(/[-.]+$/g, "");
+  }
+  if (name.length === 0 || name === "." || name === "..") {
+    return "untitled";
+  }
+  return name;
+}
+
+/**
+ * Derive the one-note-per-repo vault path from Git root (or cwd fallback) and
+ * a validated folder. Never uses user/model text for the path.
+ */
+export function deriveNoteTarget(input: NoteTargetInput, folder: string): NoteTarget {
+  const base =
+    input.gitRoot !== null
+      ? pathBasename(input.gitRoot)
+      : `no-repo-${pathBasename(input.cwd)}`;
+  const noteName = sanitizeNoteName(base);
+  const fileName = `${noteName}.md`;
+  const vaultPath = folder.length === 0 ? fileName : `${folder}/${fileName}`;
+  return { vaultPath, noteName };
+}
+
+function pathBasename(p: string): string {
+  return pathPosix.basename(p.replace(/\\/g, "/"));
 }
 
 function validateVault(value: unknown): string {
