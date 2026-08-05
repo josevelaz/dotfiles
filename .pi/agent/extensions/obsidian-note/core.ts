@@ -10,49 +10,75 @@ export { clipMiddle, redactSecrets };
  * ------------------------------------------------------------------------- */
 
 /**
- * URL authority userinfo, up to and including the `@`.
+ * Authority prefixes that can introduce userinfo.
  *
- * The shared `redactSecrets` only matches `scheme://user:pass@host`, so an
- * RFC-valid empty username (`https://:secret@example.com`) or a username-only
- * authority survives it. This pattern matches every userinfo form: empty,
- * username-only, `user:pass`, and percent-encoded or non-ASCII userinfo. It
- * stops at `/`, `?`, and `#`, so a path or query can never be mistaken for
- * credentials.
- *
- * Tab (U+0009), line feed (U+000A), and carriage return (U+000D) are accepted
- * inside the userinfo, inside the scheme, and around the `:` and the two
+ * `SCHEME_AUTHORITY` is `scheme://`; `RELATIVE_AUTHORITY` is the bare `//` of a
+ * protocol-relative URL. Tab (U+0009), line feed (U+000A), and carriage return
+ * (U+000D) are accepted inside the scheme and around the `:` and the two
  * slashes, because a URL parser removes those three characters before it
- * parses the URL. `https://user:se\tcret@example.com` is therefore the same
- * credential as `https://user:secret@example.com`, and a pattern that only
- * saw unbroken text would hand the secret straight to a renderer that does
- * remove them. No other whitespace is removable, so a space still ends the
- * userinfo and prose can never be swallowed whole.
+ * parses the URL.
  */
-const URL_USERINFO_RE =
-  /([A-Za-z][A-Za-z0-9+.\t\n\r-]*:[\t\n\r]*\/[\t\n\r]*\/)((?:[^\s/?#@]|[\t\n\r])*)@/g;
+const SCHEME_AUTHORITY = /[A-Za-z][A-Za-z0-9+.\t\n\r-]*:[\t\n\r]*\/[\t\n\r]*\//.source;
+const RELATIVE_AUTHORITY = /\/[\t\n\r]*\//.source;
 
 /**
- * Scheme-relative authority userinfo (`//:secret@example.com`).
+ * Userinfo body that may itself contain `@`.
  *
- * A protocol-relative URL carries the same credentials without a scheme, so it
- * is redacted with the same rule. There is deliberately **no** delimiter or
- * boundary allowlist: an authority is valid after `=`, `[`, `,`, a path-like
- * prefix, a quote, a space, or the start of the text, and any allowlist that
- * tried to enumerate those positions would miss one. Every `//userinfo@` is
- * rewritten, so a comment marker (`//@ts-ignore`) or a path fragment
- * (`a//b@c`) is redacted too. Over-redaction is the intended trade: a false
- * positive is cosmetic, a missed credential is a leak.
+ * WHATWG authority parsing splits userinfo from host at the **last** `@` before
+ * the first `/`, `?`, or `#`, so `https://user:p@ssw0rd@example.com` is the
+ * single credential `user:p@ssw0rd`. A body that stopped at the first `@` would
+ * publish `ssw0rd@example.com` next to the redaction marker. `@` is therefore
+ * part of the body and the match is greedy, so redaction runs through the last
+ * raw `@` of the authority.
  *
- * Removable ASCII whitespace is accepted between the two slashes and inside
- * the userinfo for the same reason as `URL_USERINFO_RE`.
+ * The body still stops at `/`, `?`, and `#`, so a path, query, or fragment can
+ * never be mistaken for credentials. Removable whitespace stays inside the body
+ * for the same reason as the authority prefixes: `https://user:se\tcret@host`
+ * is the same credential as `https://user:secret@host`.
  */
-const SCHEME_RELATIVE_USERINFO_RE = /(\/[\t\n\r]*\/)((?:[^\s/?#@]|[\t\n\r])*)@/g;
+const REMOVABLE_WS_USERINFO = /(?:[^\s/?#]|[\t\n\r])*/.source;
+
+/**
+ * Userinfo body that may contain literal spaces, but no line break.
+ *
+ * A space is not removable, yet a URL parser percent-encodes it rather than
+ * rejecting the authority, so `https://user:p ssw0rd@example.com` still reaches
+ * a fetcher as one credential. Spaces are treated conservatively as redactable:
+ * everything up to the last authority `@` is rewritten, and false-positive
+ * redaction before such an `@` is accepted, because a cosmetic loss beats a
+ * leak.
+ *
+ * Line feed and carriage return are excluded from this body on purpose. Without
+ * that exclusion a greedy space-tolerant body would join prose lines
+ * (`// a comment\nmail user@example.com`) and destroy readable line breaks
+ * outside URLs. Credentials split by a line break are still covered, by
+ * `REMOVABLE_WS_USERINFO`.
+ */
+const SPACED_USERINFO = /(?:[^\s/?#]|[ \t])*/.source;
+
+/**
+ * Every authority-prefix and userinfo-body pairing, in application order.
+ *
+ * There is deliberately **no** delimiter or boundary allowlist before `//`: an
+ * authority is valid after `=`, `[`, `,`, a path-like prefix, a quote, a space,
+ * or the start of the text, and any allowlist that tried to enumerate those
+ * positions would miss one. Every `//userinfo@` is rewritten, so a comment
+ * marker (`//@ts-ignore`) or a path fragment (`a//b@c`) is redacted too.
+ */
+const USERINFO_PATTERNS = [
+  new RegExp(`(${SCHEME_AUTHORITY})(?:${REMOVABLE_WS_USERINFO})@`, "g"),
+  new RegExp(`(${RELATIVE_AUTHORITY})(?:${REMOVABLE_WS_USERINFO})@`, "g"),
+  new RegExp(`(${SCHEME_AUTHORITY})(?:${SPACED_USERINFO})@`, "g"),
+  new RegExp(`(${RELATIVE_AUTHORITY})(?:${SPACED_USERINFO})@`, "g"),
+];
 
 /** Rewrite every userinfo form, scheme-qualified and scheme-relative alike. */
 function redactUserinfo(text: string): string {
-  return text
-    .replace(URL_USERINFO_RE, "$1[REDACTED]@")
-    .replace(SCHEME_RELATIVE_USERINFO_RE, "$1[REDACTED]@");
+  let output = text;
+  for (const pattern of USERINFO_PATTERNS) {
+    output = output.replace(pattern, "$1[REDACTED]@");
+  }
+  return output;
 }
 
 /**

@@ -2075,9 +2075,9 @@ test("redaction: removable ASCII whitespace cannot split a URL credential", () =
     }
   }
 
-  // A space is not removable, so it still ends the userinfo and no credential
-  // is invented across it.
-  assert.equal(redactNoteSecrets("// LEAKSECRET@example.com"), "// LEAKSECRET@example.com");
+  // A literal space is conservatively treated as part of the userinfo, because
+  // a URL parser percent-encodes it rather than rejecting the authority.
+  assert.equal(redactNoteSecrets("// LEAKSECRET@example.com"), "//[REDACTED]@example.com");
 });
 
 test("redaction: readable line breaks outside URL credentials survive", () => {
@@ -2168,5 +2168,168 @@ test("evidence clipping: a whitespace-split credential cannot forge a section he
     assertNoCredentialFragment(evidence, `forged header ${JSON.stringify(ws)}`);
     assert.doesNotMatch(evidence, /^### \[9999\] USER\r?$/m);
     assert.match(evidence, /^### \[0001\] USER$/m);
+  }
+});
+
+/* ------------------------------------------------------------------------- *
+ * Boundary remediation: multi-`@` and literal-space URL userinfo
+ * ------------------------------------------------------------------------- */
+
+/**
+ * WHATWG authority parsing splits userinfo from host at the **last** `@`, and a
+ * URL parser percent-encodes a literal space inside the authority rather than
+ * rejecting it. Both forms are one credential, so redaction must consume the
+ * whole userinfo instead of stopping at the first `@` or the first space.
+ */
+const AUTHORITY_CREDENTIALS = [
+  // Multiple raw `@`: the password itself contains `@`.
+  "https://user:p@ssw0rd@example.com",
+  "https://user:p@ss@w0rd@example.com",
+  "https://:p@ssw0rd@example.com",
+  "https://p@ssw0rd@example.com",
+  // Scheme-relative equivalents.
+  "//user:p@ssw0rd@example.com",
+  "//:p@ssw0rd@example.com",
+  "see //user:p@ss@w0rd@example.com now",
+  // Percent-encoded and non-ASCII userinfo with multiple `@`.
+  "https://us%65r:p@%73ecret@example.com",
+  "https://\u00fcs\u00e9r:p@ssw0rd@example.com",
+  // Fullwidth compatibility forms fold to ASCII under NFKC.
+  "https\uff1a\uff0f\uff0fuser\uff1ap\uff20ssw0rd\uff20example\uff0ecom",
+  // Removable whitespace woven through a multi-`@` credential.
+  "https://user:p@ssw\t0rd@example.com",
+  "https://user:p@ssw\n0rd@example.com",
+  "https://user:p@ssw\r0rd@example.com",
+  // Literal spaces inside the userinfo.
+  "https://user:p ssw0rd@example.com",
+  "https://user name:secret@example.com",
+  "https://:my secret@example.com",
+  "//user:p ssw0rd@example.com",
+  "// secret@example.com",
+  // Both hazards at once.
+  "https://user:p @ssw0rd@example.com",
+  "//user:p @ss w0rd@example.com",
+];
+
+/** Fragments that must never survive redaction of the forms above. */
+const AUTHORITY_FRAGMENTS = ["ssw0rd", "secret", "%73ecret", "w0rd", "0rd"] as const;
+
+function assertNoAuthorityFragment(text: string, label: string): void {
+  for (const fragment of AUTHORITY_FRAGMENTS) {
+    assert.ok(
+      !text.includes(fragment),
+      `${label} leaked ${JSON.stringify(fragment)}: ${JSON.stringify(text)}`,
+    );
+  }
+}
+
+test("redaction: userinfo dies at the last authority `@`, spaces included", () => {
+  for (const form of AUTHORITY_CREDENTIALS) {
+    const label = JSON.stringify(form);
+    const redacted = redactNoteSecrets(form);
+    assert.ok(redacted.includes("[REDACTED]@"), `no marker for ${label}: ${redacted}`);
+    assertNoAuthorityFragment(redacted, `redactNoteSecrets ${label}`);
+    // Redaction stays a fixed point.
+    assert.equal(redactNoteSecrets(redacted), redacted, label);
+
+    // Every sink that persists or displays text.
+    for (const fragment of AUTHORITY_FRAGMENTS) {
+      assertNoLeakAtEverySink(form, fragment);
+    }
+
+    // Handler-facing formatters, redacted at the single notification sink.
+    for (const [name, message] of [
+      ["configError", noteMessages.configError(form)],
+      ["modelLookupFailed", noteMessages.modelLookupFailed(form)],
+      ["modelNotFound", noteMessages.modelNotFound("provider", form)],
+      ["credentialsUnavailable", noteMessages.credentialsUnavailable(form)],
+      ["modelError", noteMessages.modelError(1, form)],
+      ["queueFull", noteMessages.queueFull(4, form)],
+      ["obsidianUnavailable", noteMessages.obsidianUnavailable(1, "Research", form)],
+      ["failed", noteMessages.failed(1, form, form)],
+    ] as Array<[string, string]>) {
+      assertNoAuthorityFragment(redactNotification(message), `${name} ${label}`);
+    }
+
+    // Persisted note text stays inert as well as secret-free.
+    assertInert(makeInert(form), `makeInert ${label}`);
+    assertInert(neutralizeIdeaText(form), `idea ${label}`);
+    assertInert(sanitizeMetadataValue(form), `metadata ${label}`);
+  }
+});
+
+test("redaction: a path `@` after the authority slash is not userinfo", () => {
+  // Credentials before the first `/` die; the `@` in the path survives intact.
+  assert.equal(
+    redactNoteSecrets("https://user:p@ssw0rd@example.com/path/a@b"),
+    "https://[REDACTED]@example.com/path/a@b",
+  );
+  assert.equal(
+    redactNoteSecrets("//user:p ssw0rd@example.com/path/a@b"),
+    "//[REDACTED]@example.com/path/a@b",
+  );
+  // No authority at all: a bare path or query keeps its `@`.
+  for (const text of [
+    "https://example.com/path/a@b",
+    "https://example.com/p?to=a@b",
+    "https://example.com/p#a@b",
+    "docs/team/a@b.md",
+  ]) {
+    assert.equal(redactNoteSecrets(text), text, JSON.stringify(text));
+  }
+});
+
+test("evidence clipping: multi-`@` and spaced credentials never survive a clip", () => {
+  for (const credential of [
+    "https://user:p@ssw0rd@example.com",
+    "https://user:p ssw0rd@example.com",
+    "//user:p@ss w0rd@example.com",
+  ]) {
+    for (const kind of EVIDENCE_KINDS) {
+      // Unclipped: the marker is present and no fragment survives.
+      const intact = buildNoteEvidence(
+        [evidenceEntry(kind, `before ${credential} after`)],
+        config({ maxEvidenceChars: 10_000 }),
+      );
+      assertNoAuthorityFragment(intact, `${kind} intact`);
+      assert.match(intact, /\[REDACTED\]/);
+
+      // Per-type clipping: walk the credential across every cut.
+      const perType = config({
+        maxEvidenceChars: 4_000,
+        maxMessageChars: 1_000,
+        maxToolResultChars: 1_000,
+      });
+      for (let offset = 0; offset < 120; offset += 17) {
+        const text = "a".repeat(400 + offset) + credential + "b".repeat(400);
+        const evidence = buildNoteEvidence([evidenceEntry(kind, text)], perType);
+        assertNoAuthorityFragment(evidence, `${kind} per-type@${offset}`);
+        assert.ok(evidence.length <= 4_000, `${kind} per-type@${offset} length`);
+        assertNoAuthorityFragment(
+          buildNotePrompt(evidence, "unrelated idea", perType),
+          `${kind} per-type@${offset} prompt`,
+        );
+      }
+
+      // Final weighted clipping: per-type limits are wide, the total is not.
+      const weighted = config({
+        maxEvidenceChars: 200,
+        maxMessageChars: 100_000,
+        maxToolResultChars: 100_000,
+      });
+      for (let offset = 0; offset < 120; offset += 11) {
+        const text = "a".repeat(offset) + credential + "b".repeat(600);
+        const evidence = buildNoteEvidence(
+          [evidenceEntry(kind, text), evidenceEntry(kind, `c${"d".repeat(600)}`)],
+          weighted,
+        );
+        assertNoAuthorityFragment(evidence, `${kind} weighted@${offset}`);
+        assert.ok(evidence.length <= 200, `${kind} weighted@${offset} length ${evidence.length}`);
+        assertNoAuthorityFragment(
+          buildNotePrompt(evidence, "unrelated idea", weighted),
+          `${kind} weighted@${offset} prompt`,
+        );
+      }
+    }
   }
 });
