@@ -534,8 +534,9 @@ function selectEvidenceSections(
 
 /**
  * Final fail-safe: truncate to `limit` without reintroducing a secret or a
- * forged `### [nnnn] ...` header. Slicing only removes characters; re-escaping
- * then re-slicing keeps both invariants if a cut exposed a marker line.
+ * forged `### [dddd...] ...` header (four or more digits). Slicing only
+ * removes characters; re-escaping then re-slicing keeps both invariants if a
+ * cut exposed a marker line.
  */
 function hardBoundEvidence(text: string, limit: number): string {
   if (limit <= 0) return "";
@@ -547,20 +548,23 @@ function hardBoundEvidence(text: string, limit: number): string {
 /**
  * Final weighted clip of one already-cleaned section body.
  *
- * The cut can both split a credential and expose a fresh `### [nnnn] ...`
- * line, so the text is redacted around the clip and re-escaped afterwards.
- * Redaction and escaping can each add characters, so the result is bounded
- * last; slicing the tail only removes characters and cannot create a new line
- * start, so neither invariant can be undone.
+ * The cut can both split a credential and expose a fresh `### [dddd...] ...`
+ * line (four or more digits), so the text is redacted around the clip and
+ * re-escaped afterwards. Redaction and escaping can each add characters, so
+ * the result is bounded last; slicing the tail only removes characters and
+ * cannot create a new line start, so neither invariant can be undone.
  */
 function clipEvidenceSection(text: string, limit: number): string {
   const escaped = escapeEvidenceMarkers(clipEvidenceText(text, limit, "section"));
   return escaped.length <= limit ? escaped : escaped.slice(0, limit);
 }
 
-/** Neutralize `### [nnnn] ...` lines inside message text so sections stay unforgeable. */
+/**
+ * Neutralize forged `### [dddd...] ...` lines (four or more digits) inside
+ * message text so only generated section headers stay parseable.
+ */
 function escapeEvidenceMarkers(text: string): string {
-  return text.replace(/^### (?=\[\d{4}\] [^\r\n]+\r?$)/gm, "\\### ");
+  return text.replace(/^### (?=\[\d{4,}\] [^\r\n]+\r?$)/gm, "\\### ");
 }
 
 function formatSection(section: NoteEvidenceSection): string {
