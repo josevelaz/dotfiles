@@ -18,8 +18,18 @@ export { clipMiddle, redactSecrets };
  * username-only, `user:pass`, and percent-encoded or non-ASCII userinfo. It
  * stops at `/`, `?`, and `#`, so a path or query can never be mistaken for
  * credentials.
+ *
+ * Tab (U+0009), line feed (U+000A), and carriage return (U+000D) are accepted
+ * inside the userinfo, inside the scheme, and around the `:` and the two
+ * slashes, because a URL parser removes those three characters before it
+ * parses the URL. `https://user:se\tcret@example.com` is therefore the same
+ * credential as `https://user:secret@example.com`, and a pattern that only
+ * saw unbroken text would hand the secret straight to a renderer that does
+ * remove them. No other whitespace is removable, so a space still ends the
+ * userinfo and prose can never be swallowed whole.
  */
-const URL_USERINFO_RE = /([A-Za-z][A-Za-z0-9+.-]*:\/\/)([^\s/?#@]*)@/g;
+const URL_USERINFO_RE =
+  /([A-Za-z][A-Za-z0-9+.\t\n\r-]*:[\t\n\r]*\/[\t\n\r]*\/)((?:[^\s/?#@]|[\t\n\r])*)@/g;
 
 /**
  * Scheme-relative authority userinfo (`//:secret@example.com`).
@@ -32,8 +42,11 @@ const URL_USERINFO_RE = /([A-Za-z][A-Za-z0-9+.-]*:\/\/)([^\s/?#@]*)@/g;
  * rewritten, so a comment marker (`//@ts-ignore`) or a path fragment
  * (`a//b@c`) is redacted too. Over-redaction is the intended trade: a false
  * positive is cosmetic, a missed credential is a leak.
+ *
+ * Removable ASCII whitespace is accepted between the two slashes and inside
+ * the userinfo for the same reason as `URL_USERINFO_RE`.
  */
-const SCHEME_RELATIVE_USERINFO_RE = /(\/\/)([^\s/?#@]*)@/g;
+const SCHEME_RELATIVE_USERINFO_RE = /(\/[\t\n\r]*\/)((?:[^\s/?#@]|[\t\n\r])*)@/g;
 
 /** Rewrite every userinfo form, scheme-qualified and scheme-relative alike. */
 function redactUserinfo(text: string): string {
