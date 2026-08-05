@@ -2081,16 +2081,23 @@ test("redaction: removable ASCII whitespace cannot split a URL credential", () =
 });
 
 test("redaction: readable line breaks outside URL credentials survive", () => {
+  // Ordinary text without a matching `//...@authority` pattern keeps breaks.
   for (const text of [
     "first line\nsecond line\nthird line",
     "- bullet one\n- bullet two",
     "col1\tcol2\ncol3\tcol4",
-    "// a comment\nmail user@example.com",
     "path\nfragment#anchor\nquery?value",
     "carriage\r\nreturn pair",
+    "mail user@example.com\nand more",
   ]) {
     assert.equal(redactNoteSecrets(text), text, JSON.stringify(text));
   }
+  // Conservative false-positive: prose parseable as scheme-relative authority
+  // is redacted so mixed-whitespace credentials cannot slip through.
+  assert.equal(
+    redactNoteSecrets("// a comment\nmail user@example.com"),
+    "//[REDACTED]@example.com",
+  );
 });
 
 test("evidence clipping: whitespace-split credentials never survive a clip boundary", () => {
@@ -2326,6 +2333,170 @@ test("evidence clipping: multi-`@` and spaced credentials never survive a clip",
         assertNoAuthorityFragment(evidence, `${kind} weighted@${offset}`);
         assert.ok(evidence.length <= 200, `${kind} weighted@${offset} length ${evidence.length}`);
         assertNoAuthorityFragment(
+          buildNotePrompt(evidence, "unrelated idea", weighted),
+          `${kind} weighted@${offset} prompt`,
+        );
+      }
+    }
+  }
+});
+
+/* ------------------------------------------------------------------------- *
+ * Boundary remediation: mixed space + removable whitespace URL userinfo
+ *
+ * Split bodies that allow spaces *or* removable whitespace, but not both, miss
+ * credentials such as `https://us er:se\ncret@example.com`. One conservative
+ * greedy authority body covers the mix; false-positive redaction of prose that
+ * parses as `//...@authority` is accepted.
+ * ------------------------------------------------------------------------- */
+
+/** Fragments that must never survive mixed-whitespace credential redaction. */
+const MIXED_WS_FRAGMENTS = [
+  "LEAKSECRET",
+  "LEAK",
+  "SECRET",
+  "cret",
+  "ssw0rd",
+  "secret",
+  "w0rd",
+  "0rd",
+] as const;
+
+function assertNoMixedWsFragment(text: string, label: string): void {
+  for (const fragment of MIXED_WS_FRAGMENTS) {
+    assert.ok(
+      !text.includes(fragment),
+      `${label} leaked ${JSON.stringify(fragment)}: ${JSON.stringify(text)}`,
+    );
+  }
+}
+
+/**
+ * Credentials that mix literal spaces with tab/CR/LF (each and multiples),
+ * multi-line userinfo, multiple `@`, Unicode/fullwidth forms, and long text.
+ */
+const MIXED_WS_CREDENTIALS = [
+  // The exact bypass: space + newline in one authority.
+  "https://us er:se\ncret@example.com",
+  "https://us er:se\rcret@example.com",
+  "https://us er:se\tcret@example.com",
+  // Space with each removable whitespace, and with multiples.
+  "https://user:LEAK \nSECRET@example.com",
+  "https://user:LEAK\n SECRET@example.com",
+  "https://user:LEAK \t\r\nSECRET@example.com",
+  "https://us\ter:se cret@example.com",
+  "https://user :p\nLEAKSECRET@example.com",
+  // Multi-line userinfo.
+  "https://user:line1\nline2\nLEAKSECRET@example.com",
+  "https://user:\r\nLEAKSECRET\r\n@example.com",
+  "//user:first\nsecond LEAKSECRET@example.com",
+  // Multiple `@` plus mixed whitespace.
+  "https://user:p @ss\nw0rd@example.com",
+  "https://user:p@ss w\t0rd@example.com",
+  "https://:p @\nssw0rd@example.com",
+  "//user:p @ss\r\nw0rd@example.com",
+  // Unicode whitespace and controls inside the authority body.
+  "https://user:LEAK\u00a0SECRET@example.com",
+  "https://user:LEAK\u2003SECRET@example.com",
+  "https://user:LEAK\u0001SECRET@example.com",
+  "https://user:LEAK\u000bSECRET@example.com",
+  // Fullwidth / compatibility forms that fold under NFKC.
+  "https\uff1a\uff0f\uff0fus er\uff1ase\ncret\uff20example\uff0ecom",
+  "https\uff1a\uff0f\uff0fuser\uff1aLEAK\nSECRET\uff20example\uff0ecom",
+  // Scheme-relative mixes.
+  "//us er:se\ncret@example.com",
+  "see //user:LEAK \tSECRET@example.com now",
+  // Long authority text with mixed whitespace.
+  `https://user:${"x".repeat(200)} LEAK\nSECRET${"y".repeat(200)}@example.com`,
+];
+
+test("redaction: mixed space and removable whitespace cannot split a URL credential", () => {
+  for (const form of MIXED_WS_CREDENTIALS) {
+    const label = JSON.stringify(form);
+    const redacted = redactNoteSecrets(form);
+    assert.ok(redacted.includes("[REDACTED]@"), `no marker for ${label}: ${redacted}`);
+    assertNoMixedWsFragment(redacted, `redactNoteSecrets ${label}`);
+    assert.equal(redactNoteSecrets(redacted), redacted, label);
+
+    for (const fragment of MIXED_WS_FRAGMENTS) {
+      if (form.includes(fragment) || form.normalize("NFKC").includes(fragment)) {
+        assertNoLeakAtEverySink(form, fragment);
+      }
+    }
+
+    for (const [name, message] of [
+      ["configError", noteMessages.configError(form)],
+      ["modelLookupFailed", noteMessages.modelLookupFailed(form)],
+      ["modelNotFound", noteMessages.modelNotFound("provider", form)],
+      ["credentialsUnavailable", noteMessages.credentialsUnavailable(form)],
+      ["modelError", noteMessages.modelError(1, form)],
+      ["queueFull", noteMessages.queueFull(4, form)],
+      ["obsidianUnavailable", noteMessages.obsidianUnavailable(1, "Research", form)],
+      ["failed", noteMessages.failed(1, form, form)],
+    ] as Array<[string, string]>) {
+      assertNoMixedWsFragment(redactNotification(message), `${name} ${label}`);
+    }
+
+    assertInert(makeInert(form), `makeInert ${label}`);
+    assertInert(neutralizeIdeaText(form), `idea ${label}`);
+    assertInert(sanitizeMetadataValue(form), `metadata ${label}`);
+  }
+
+  // Path/query/fragment `@` after an authority terminator stays untouched.
+  assert.equal(
+    redactNoteSecrets("https://us er:se\ncret@example.com/path/a@b?to=c@d#e@f"),
+    "https://[REDACTED]@example.com/path/a@b?to=c@d#e@f",
+  );
+  assert.equal(
+    redactNoteSecrets("//us er:se\tcret@example.com/path/a@b"),
+    "//[REDACTED]@example.com/path/a@b",
+  );
+});
+
+test("evidence clipping: mixed-whitespace credentials never survive a clip", () => {
+  for (const credential of [
+    "https://us er:se\ncret@example.com",
+    "https://user:p @ss\nw0rd@example.com",
+    "//us er:LEAK\tSECRET@example.com",
+  ]) {
+    for (const kind of EVIDENCE_KINDS) {
+      const intact = buildNoteEvidence(
+        [evidenceEntry(kind, `before ${credential} after`)],
+        config({ maxEvidenceChars: 10_000 }),
+      );
+      assertNoMixedWsFragment(intact, `${kind} intact`);
+      assert.match(intact, /\[REDACTED\]/);
+
+      const perType = config({
+        maxEvidenceChars: 4_000,
+        maxMessageChars: 1_000,
+        maxToolResultChars: 1_000,
+      });
+      for (let offset = 0; offset < 120; offset += 17) {
+        const text = "a".repeat(400 + offset) + credential + "b".repeat(400);
+        const evidence = buildNoteEvidence([evidenceEntry(kind, text)], perType);
+        assertNoMixedWsFragment(evidence, `${kind} per-type@${offset}`);
+        assert.ok(evidence.length <= 4_000, `${kind} per-type@${offset} length`);
+        assertNoMixedWsFragment(
+          buildNotePrompt(evidence, "unrelated idea", perType),
+          `${kind} per-type@${offset} prompt`,
+        );
+      }
+
+      const weighted = config({
+        maxEvidenceChars: 200,
+        maxMessageChars: 100_000,
+        maxToolResultChars: 100_000,
+      });
+      for (let offset = 0; offset < 120; offset += 11) {
+        const text = "a".repeat(offset) + credential + "b".repeat(600);
+        const evidence = buildNoteEvidence(
+          [evidenceEntry(kind, text), evidenceEntry(kind, `c${"d".repeat(600)}`)],
+          weighted,
+        );
+        assertNoMixedWsFragment(evidence, `${kind} weighted@${offset}`);
+        assert.ok(evidence.length <= 200, `${kind} weighted@${offset} length ${evidence.length}`);
+        assertNoMixedWsFragment(
           buildNotePrompt(evidence, "unrelated idea", weighted),
           `${kind} weighted@${offset} prompt`,
         );

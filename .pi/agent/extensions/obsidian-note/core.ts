@@ -22,42 +22,31 @@ const SCHEME_AUTHORITY = /[A-Za-z][A-Za-z0-9+.\t\n\r-]*:[\t\n\r]*\/[\t\n\r]*\//.
 const RELATIVE_AUTHORITY = /\/[\t\n\r]*\//.source;
 
 /**
- * Userinfo body that may itself contain `@`.
+ * Conservative greedy authority body for scheme and scheme-relative URLs.
  *
  * WHATWG authority parsing splits userinfo from host at the **last** `@` before
  * the first `/`, `?`, or `#`, so `https://user:p@ssw0rd@example.com` is the
  * single credential `user:p@ssw0rd`. A body that stopped at the first `@` would
- * publish `ssw0rd@example.com` next to the redaction marker. `@` is therefore
- * part of the body and the match is greedy, so redaction runs through the last
- * raw `@` of the authority.
+ * publish `ssw0rd@example.com` next to the redaction marker. The body therefore
+ * includes `@` and is greedy, so redaction runs through the last raw `@` of the
+ * authority.
  *
- * The body still stops at `/`, `?`, and `#`, so a path, query, or fragment can
- * never be mistaken for credentials. Removable whitespace stays inside the body
- * for the same reason as the authority prefixes: `https://user:se\tcret@host`
- * is the same credential as `https://user:secret@host`.
+ * The body stops only at the authority terminators `/`, `?`, and `#`. Everything
+ * else is allowed: spaces, tabs, CR, LF, Unicode whitespace, controls, and
+ * repeated `@`. Mixed forms such as `https://us er:se\ncret@example.com` must
+ * redact as one credential, because a URL parser removes the newline and
+ * percent-encodes the space. Split bodies that allow spaces *or* removable
+ * whitespace, but not both, leave that case unmatched.
+ *
+ * False-positive policy: prose that is parseable as `//...@authority` (for
+ * example `// a comment\nmail user@example.com`) is redacted on purpose. A
+ * cosmetic loss beats a leak. Ordinary text without a matching
+ * `//...@authority` pattern keeps its line breaks.
  */
-const REMOVABLE_WS_USERINFO = /(?:[^\s/?#]|[\t\n\r])*/.source;
+const AUTHORITY_USERINFO = /[^/?#]*/.source;
 
 /**
- * Userinfo body that may contain literal spaces, but no line break.
- *
- * A space is not removable, yet a URL parser percent-encodes it rather than
- * rejecting the authority, so `https://user:p ssw0rd@example.com` still reaches
- * a fetcher as one credential. Spaces are treated conservatively as redactable:
- * everything up to the last authority `@` is rewritten, and false-positive
- * redaction before such an `@` is accepted, because a cosmetic loss beats a
- * leak.
- *
- * Line feed and carriage return are excluded from this body on purpose. Without
- * that exclusion a greedy space-tolerant body would join prose lines
- * (`// a comment\nmail user@example.com`) and destroy readable line breaks
- * outside URLs. Credentials split by a line break are still covered, by
- * `REMOVABLE_WS_USERINFO`.
- */
-const SPACED_USERINFO = /(?:[^\s/?#]|[ \t])*/.source;
-
-/**
- * Every authority-prefix and userinfo-body pairing, in application order.
+ * Every authority-prefix pairing, in application order.
  *
  * There is deliberately **no** delimiter or boundary allowlist before `//`: an
  * authority is valid after `=`, `[`, `,`, a path-like prefix, a quote, a space,
@@ -66,10 +55,8 @@ const SPACED_USERINFO = /(?:[^\s/?#]|[ \t])*/.source;
  * marker (`//@ts-ignore`) or a path fragment (`a//b@c`) is redacted too.
  */
 const USERINFO_PATTERNS = [
-  new RegExp(`(${SCHEME_AUTHORITY})(?:${REMOVABLE_WS_USERINFO})@`, "g"),
-  new RegExp(`(${RELATIVE_AUTHORITY})(?:${REMOVABLE_WS_USERINFO})@`, "g"),
-  new RegExp(`(${SCHEME_AUTHORITY})(?:${SPACED_USERINFO})@`, "g"),
-  new RegExp(`(${RELATIVE_AUTHORITY})(?:${SPACED_USERINFO})@`, "g"),
+  new RegExp(`(${SCHEME_AUTHORITY})(?:${AUTHORITY_USERINFO})@`, "g"),
+  new RegExp(`(${RELATIVE_AUTHORITY})(?:${AUTHORITY_USERINFO})@`, "g"),
 ];
 
 /** Rewrite every userinfo form, scheme-qualified and scheme-relative alike. */
