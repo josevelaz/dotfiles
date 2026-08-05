@@ -450,12 +450,19 @@ function entrySection(
  *
  * Pure: it never touches Pi context, the system prompt, or the skills catalog.
  * The caller must take the snapshot synchronously and pass it in.
+ *
+ * When the full render exceeds `maxEvidenceChars`, only sections whose headers,
+ * join separators, and at least one body character fit are kept. Selection
+ * ranks by weight (user/assistant 4, summaries 2, tools/custom 1) with a
+ * stable original-index tie-break, then renders survivors in original order.
  */
 export function buildNoteEvidence(entries: unknown[], config: NoteConfig): string {
   const sections = entries
     .map((entry, index) => entrySection(entry, index, config))
     .filter((section): section is NoteEvidenceSection => Boolean(section));
-  if (sections.length === 0) return EMPTY_EVIDENCE;
+  if (sections.length === 0) {
+    return hardBoundEvidence(EMPTY_EVIDENCE, config.maxEvidenceChars);
+  }
 
   const cleaned = sections.map((section) => ({
     ...section,
@@ -464,24 +471,77 @@ export function buildNoteEvidence(entries: unknown[], config: NoteConfig): strin
   const full = cleaned.map(formatSection).join("\n\n");
   if (full.length <= config.maxEvidenceChars) return full;
 
-  // `### ` + label + `\n` = label.length + 5; sections are joined by "\n\n".
+  const selected = selectEvidenceSections(cleaned, config.maxEvidenceChars);
+  if (selected.length === 0) {
+    return hardBoundEvidence(EMPTY_EVIDENCE, config.maxEvidenceChars);
+  }
+
+  // Exact fixed cost for selected sections only: `### ` + label + `\n`, plus
+  // `\n\n` between sections. Body budget always covers ≥1 character each.
   const fixedCost =
-    cleaned.reduce((sum, section) => sum + section.label.length + 5, 0) + (cleaned.length - 1) * 2;
-  const budget = Math.max(0, config.maxEvidenceChars - fixedCost);
-  const totalWeight = cleaned.reduce((sum, section) => sum + section.weight, 0);
-  let allocated = 0;
-  return cleaned
+    selected.reduce((sum, section) => sum + section.label.length + 5, 0) +
+    (selected.length - 1) * 2;
+  // Selection guarantees bodyBudget >= selected.length (one body char each).
+  const bodyBudget = Math.max(0, config.maxEvidenceChars - fixedCost);
+  const remaining = Math.max(0, bodyBudget - selected.length);
+  const totalWeight = selected.reduce((sum, section) => sum + section.weight, 0);
+  let allocatedExtra = 0;
+  const rendered = selected
     .map((section, index) => {
-      const share =
-        index === cleaned.length - 1
-          ? Math.max(0, budget - allocated)
-          : Math.floor((budget * section.weight) / totalWeight);
-      allocated += share;
+      const extra =
+        index === selected.length - 1
+          ? Math.max(0, remaining - allocatedExtra)
+          : Math.floor((remaining * section.weight) / totalWeight);
+      allocatedExtra += extra;
       // Redact on both sides of the weighted clip, re-escape any header the cut
-      // exposed, then hard-bound the result so `maxEvidenceChars` still holds.
-      return formatSection({ ...section, text: clipEvidenceSection(section.text, share) });
+      // exposed, then hard-bound the body so the section limit still holds.
+      return formatSection({
+        ...section,
+        text: clipEvidenceSection(section.text, 1 + extra),
+      });
     })
     .join("\n\n");
+  return hardBoundEvidence(rendered, config.maxEvidenceChars);
+}
+
+/**
+ * Pick the highest-weight sections that fit under `maxEvidenceChars` with at
+ * least one body character each. Tie-break is the original index (ascending).
+ * The returned list preserves original order.
+ */
+function selectEvidenceSections(
+  sections: NoteEvidenceSection[],
+  maxEvidenceChars: number,
+): NoteEvidenceSection[] {
+  const ranked = sections
+    .map((section, index) => ({ section, index }))
+    .sort((a, b) => b.section.weight - a.section.weight || a.index - b.index);
+
+  const chosen = new Set<number>();
+  let sumMinCosts = 0;
+  for (const { section, index } of ranked) {
+    const nextCount = chosen.size + 1;
+    // Header (`### ` + label + `\n`) plus one body character.
+    const nextSum = sumMinCosts + section.label.length + 6;
+    const nextTotal = nextSum + Math.max(0, nextCount - 1) * 2;
+    if (nextTotal <= maxEvidenceChars) {
+      chosen.add(index);
+      sumMinCosts = nextSum;
+    }
+  }
+  return sections.filter((_, index) => chosen.has(index));
+}
+
+/**
+ * Final fail-safe: truncate to `limit` without reintroducing a secret or a
+ * forged `### [nnnn] ...` header. Slicing only removes characters; re-escaping
+ * then re-slicing keeps both invariants if a cut exposed a marker line.
+ */
+function hardBoundEvidence(text: string, limit: number): string {
+  if (limit <= 0) return "";
+  if (text.length <= limit) return text;
+  const sliced = escapeEvidenceMarkers(text.slice(0, limit));
+  return sliced.length <= limit ? sliced : sliced.slice(0, limit);
 }
 
 /**
