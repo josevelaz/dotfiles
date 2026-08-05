@@ -389,6 +389,11 @@ test("runObsidianWrite flows: create race falls back to one append retry", async
 test("runObsidianWrite flows: classifies direct append failures and never retries them", async () => {
   const cases: Array<[string, string, ObsidianWriteError["kind"]]> = [
     ["not running", "not-running"],
+    // Verbatim wording of the real CLI when Obsidian is closed.
+    [
+      "The CLI is unable to find Obsidian. Please make sure Obsidian is running and try again.",
+      "not-running",
+    ],
     ["vault not found", "vault-not-found"],
     ["permission denied", "write-failed"],
   ];

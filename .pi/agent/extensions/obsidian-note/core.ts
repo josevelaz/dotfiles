@@ -673,7 +673,7 @@ function isAlreadyExists(output: string): boolean {
 }
 
 function isNotRunning(output: string): boolean {
-  return /(not running|is not open|no running|could not connect|connection refused|unable to connect|no instance|not responding|launch obsidian)/i.test(
+  return /(not running|is not open|no running|could not connect|connection refused|unable to connect|unable to find obsidian|obsidian is running|no instance|not responding|launch obsidian)/i.test(
     output,
   );
 }
