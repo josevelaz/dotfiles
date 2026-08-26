@@ -1,9 +1,0 @@
-{
-  "id": "T-9fd18902-f2e4-430e-9a74-84e2065ad9cc",
-  "subject": "Wave 4 verification coverage",
-  "description": "Update targeted functional tests for new feedback/exception props and run lint, typecheck, build, and relevant suites.",
-  "status": "pending",
-  "threadID": "ses_2abec265effeab5e0ONVTJd3BL",
-  "blocks": [],
-  "blockedBy": []
-}

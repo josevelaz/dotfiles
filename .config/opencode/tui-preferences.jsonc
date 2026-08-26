@@ -1,0 +1,9 @@
+// Shared preferences for opencode TUI plugins.
+// One top-level key per plugin (short name). See each plugin's README for
+// its supported settings. This file is safe to hand-edit; plugins update
+// individual keys in place and preserve comments.
+{
+  "aft": {
+    "collapsed": true
+  }
+}

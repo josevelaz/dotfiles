@@ -1,130 +1,63 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "warming": true,
+  "agents": {
+    "explore": {
+      "disabled": true
+    },
+    "general": {
+      "disabled": true
+    },
+    "scout": {
+      "disabled": true
+    }
+  },
   "instructions": [
     "DESIGN.md"
   ],
-  "permission": {
-    "question": "allow",
-    "lsp": "allow",
-    "read": "allow",
-    "aft_*": "allow",
-    "skill_manage": "allow",
-    "skill_pending_list": "allow",
-    "skill_pending_diff": "allow",
-    "skill_pending_reject": "allow",
-    "skill_pending_apply": "ask",
-    "edit": {
-      "~/*": "ask"
-    },
-    "external_directory": {
-      "/tmp/**": "allow",
-      "/dev/**": "allow",
-      "~/.local/share/cortexkit/aft/opencode/bash-tasks/**": "allow",
-      "~/dotfiles/.local/share/opencode/worktree/**": "allow",
-      "~/.local/share/opencode/self-improve/**": "ask"
-    }
-  },
-  "provider": {
-    "xai": {
-      "options": {
-        "baseURL": "http://127.0.0.1:17321",
+  "mcp": {
+    "servers": {
+      "context7": {
         "headers": {
-          "sleeve-provider": "xai",
-          "sleeve-harness": "opencode"
-        }
+          "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+        },
+        "type": "remote",
+        "oauth": false,
+        "url": "https://mcp.context7.com/mcp"
       },
-      "models": {
-        "grok-composer-2.5-fast": {
-          "name": "Composer 2.5 Fast"
-        },
-        "grok-build-0.1": {
-          "name": "Grok Build"
-        }
-      }
+      "grep": {
+        "type": "remote",
+        "url": "https://mcp.grep.app"
+      },
     },
-    "openai": {
-      "options": {
-        "baseURL": "http://127.0.0.1:17321",
-        "headers": {
-          "sleeve-provider": "codex",
-          "sleeve-harness": "opencode"
-        }
-      }
-    },
-    "anthropic": {
-      "options": {
-        "headers": {
-          "sleeve-provider": "anthropic",
-          "sleeve-harness": "opencode"
-        },
-        "baseURL": "http://127.0.0.1:17321"
-      }
-    },
-    "opencode": {
-      "options": {
-        "headers": {
-          "sleeve-provider": "opencode",
-          "sleeve-harness": "opencode"
-        },
-        "baseURL": "http://127.0.0.1:17321"
-      }
-    },
-    "opencode-go": {
-      "options": {
-        "headers": {
-          "sleeve-provider": "opencode-go",
-          "sleeve-harness": "opencode"
-        },
-        "baseURL": "http://127.0.0.1:17321"
-      }
-    }
   },
-  "plugin": [
-    "@ex-machina/opencode-anthropic-auth",
-    "@opencode_weave/weave@latest",
+  // "permission": {
+  //   "aft_*": "allow",
+  //   "external_directory": {
+  //     "/Users/jose/dotfiles/.local/share/cortexkit/**": "allow",
+  //     "/Users/jose/dotfiles/.local/share/opencode/worktree/**": "allow",
+  //     "/dev/**": "allow",
+  //     "/tmp/**": "allow",
+  //     "~/.local/share/opencode/self-improve/**": "ask"
+  //   },
+  //   "glob": "allow",
+  //   "grep": "allow",
+  //   "list": "allow",
+  //   "lsp": "allow",
+  //   "question": "allow",
+  //   "read": "allow",
+  //   "skill_manage": "allow",
+  //   "skill_pending_apply": "ask",
+  //   "skill_pending_diff": "allow",
+  //   "skill_pending_list": "allow",
+  //   "skill_pending_reject": "allow",
+  //   "~": "ask"
+  // },
+  "plugins": [
+    "./plugins/goal/index.ts",
+    "/Users/jose/projects/opencode-claude-code-auth/src/index.ts",
     "@franlol/opencode-md-table-formatter@latest",
     "@cortexkit/aft-opencode@latest",
-    "@honcho-ai/opencode-honcho"
+    "@honcho-ai/opencode-honcho",
   ],
-  "agent": {
-    "build": {
-      "disable": true
-    },
-    "plan": {
-      "disable": true
-    },
-    "general": {
-      "disable": true
-    },
-    "explore": {
-      "disable": true
-    },
-    "scout": {
-      "disable": true
-    }
-  },
-  "mcp": {
-    "context7": {
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp",
-      "headers": {
-        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
-      }
-    },
-    "grep": {
-      "type": "remote",
-      "url": "https://mcp.grep.app"
-    },
-    "asana": {
-      "type": "remote",
-      "url": "https://mcp.asana.com/v2/mcp",
-      "oauth": {
-        "clientId": "1215734563644920",
-        "clientSecret": "{env:ASANA_CLIENT_SECRET}"
-      }
-    },
-  },
-  "compaction": {
-    "prune": false
-  },
 }
