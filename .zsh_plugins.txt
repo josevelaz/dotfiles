@@ -1,4 +1,4 @@
-zsh-users/zsh-history-substring-search
+marlonrichert/zsh-autocomplete
 
 zsh-users/zsh-completions
 

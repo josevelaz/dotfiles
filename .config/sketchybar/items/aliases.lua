@@ -14,13 +14,6 @@ local alias_background = {
 -- visible status item is not always the bundle-id entry. Use the queried item that
 -- matches the actual menu extra width/placement, not just the prettiest identifier.
 
-local anarlog = sbar.add("alias", "Control Center,com.hyprnote.stable", {
-  position = "right",
-  padding_left = -18,
-  padding_right = 0,
-  background = alias_background,
-})
-
 local onepassword = sbar.add("alias", "Control Center,bb3cc23c-6950-4e96-8b40-850e09f46934", {
   position = "right",
   padding_left = -18,
@@ -34,6 +27,18 @@ local codexbarcodex = sbar.add("alias", "Control Center,codexbar-codex", {
   padding_right = 0,
   background = alias_background,
 })
+local codexbarcursor = sbar.add("alias", "Control Center,codexbar-cursor", {
+  position = "right",
+  padding_left = -18,
+  padding_right = 0,
+  background = alias_background,
+})
+-- local codexbargrok = sbar.add("alias", "Control Center,codexbar-grok", {
+--   position = "right",
+--   padding_left = -18,
+--   padding_right = 0,
+--   background = alias_background,
+-- })
 local codexbarclaude = sbar.add("alias", "Control Center,codexbar-claude", {
   position = "right",
   padding_left = -18,
@@ -50,8 +55,8 @@ local fantastical = sbar.add("alias", "Control Center,Fantastical", {
   click_script = CONFIG_DIR .. "/plugins/fantastical.sh",
 })
 
-anarlog:set({ padding_left = -18, padding_right = 0, background = alias_background })
 onepassword:set({ padding_left = -18, padding_right = 0, background = alias_background })
 codexbarcodex:set({ padding_left = -18, padding_right = 0, background = alias_background })
+codexbarcursor:set({ padding_left = -18, padding_right = 0, background = alias_background })
 codexbarclaude:set({ padding_left = -18, padding_right = 0, background = alias_background })
 fantastical:set({ padding_left = 0, padding_right = 0, background = alias_background })

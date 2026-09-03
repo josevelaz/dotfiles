@@ -1,0 +1,23 @@
+[mgr]
+prepend_keymap = [
+  # Oil-style navigation.
+  { on = [ "g", "?" ], run = "help", desc = "Open help" },
+  { on = "<Enter>", run = "plugin smart-enter", desc = "Enter directory or open file" },
+  { on = "o", run = "open", desc = "Open file or directory" },
+  { on = "<Esc>", run = "leave", desc = "Go to parent directory" },
+  { on = "-", run = "leave", desc = "Go to parent directory" },
+  { on = "<C-r>", run = "refresh", desc = "Refresh directory" },
+  { on = "<C-t>", run = "tab_create --current", desc = "Open current directory in new tab" },
+  { on = [ "g", "." ], run = "hidden toggle", desc = "Toggle hidden files" },
+  { on = [ "g", "x" ], run = "shell -- open %s", desc = "Open externally", for = "macos" },
+
+  # Oil opens a sort picker with `gs`; Yazi exposes sort commands directly.
+  { on = [ "g", "s", "n" ], run = "sort natural --reverse=no", desc = "Sort naturally" },
+  { on = [ "g", "s", "N" ], run = "sort natural --reverse=yes", desc = "Sort naturally (reverse)" },
+  { on = [ "g", "s", "m" ], run = [ "sort mtime --reverse=no", "linemode mtime" ], desc = "Sort by modified time" },
+  { on = [ "g", "s", "M" ], run = [ "sort mtime --reverse=yes", "linemode mtime" ], desc = "Sort by modified time (reverse)" },
+  { on = [ "g", "s", "s" ], run = [ "sort size --reverse=no", "linemode size" ], desc = "Sort by size" },
+  { on = [ "g", "s", "S" ], run = [ "sort size --reverse=yes", "linemode size" ], desc = "Sort by size (reverse)" },
+  { on = [ "g", "s", "e" ], run = "sort extension --reverse=no", desc = "Sort by extension" },
+  { on = [ "g", "s", "E" ], run = "sort extension --reverse=yes", desc = "Sort by extension (reverse)" },
+]

@@ -27,7 +27,6 @@ local function add_gap(name)
   })
 end
 
-add_gap("status.alias_gap.anarlog")
 add_gap("status.alias_gap.onepassword")
 add_gap("status.alias_gap.codex")
 
@@ -45,8 +44,6 @@ sbar.add("bracket", "status.resources", { "cpu", "ram" }, {
 })
 
 sbar.add("bracket", "status.menu_extras", {
-  "Control Center,com.hyprnote.stable",
-  "status.alias_gap.anarlog",
   "Control Center,bb3cc23c-6950-4e96-8b40-850e09f46934",
   "status.alias_gap.onepassword",
   "Control Center,codexbar-codex",

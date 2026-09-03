@@ -1,6 +1,14 @@
 export OP_DEFAULT_ENVIRONMENT="43rm5gh7jf5dndejrsm5s5tcmm"
 export TERM="xterm-ghostty"
 
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	command yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+	command rm -f -- "$tmp"
+}
+
 _openv_cache_file() {
   local environment="${1:-$OP_DEFAULT_ENVIRONMENT}"
 
@@ -126,6 +134,8 @@ openv() {
 }
 
 
+
+
 # =========== SECRETS / LOCAL OVERRIDES ================
 # Source optional machine-local secrets and overrides (not committed to repo)
 [[ -f ~/.zsh_secrets.sh ]] && source ~/.zsh_secrets.sh
@@ -163,7 +173,7 @@ export PATH="$PATH:$HOME/.local/bin"
 
 # =========== OH MY POSH ================
 if command -v oh-my-posh &>/dev/null && [[ "$TERM_PROGRAM" != "Apple_Terminal" ]]; then
-  eval "$(oh-my-posh init zsh --config ~/.rose_pine.omp.json)"
+  eval "$(oh-my-posh init zsh --config ~/.orng.omp.json)"
 fi
 # =========== END OH MY POSH ================
 
@@ -171,16 +181,15 @@ export EDITOR=$(which nvim)
 
 alias vim="nvim"
 alias nvime="NVIM_APPNAME=nvim-experimental nvim"
-# alias opencode='op run --environment $OP_DEFAULT_ENVIRONMENT -- opencode'
-alias oc="opencode"
+alias opencode="opencode2"
 
 # FZF styling
 export FZF_DEFAULT_OPTS="
-	--color=fg:#908caa,bg:#191724,hl:#ebbcba
-	--color=fg+:#e0def4,bg+:#26233a,hl+:#ebbcba
-	--color=border:#403d52,header:#31748f,gutter:#191724
-	--color=spinner:#f6c177,info:#9ccfd8
-	--color=pointer:#c4a7e7,marker:#eb6f92,prompt:#908caa"
+	--color=fg:#808080,bg:#0a0a0a,hl:#EE7948
+	--color=fg+:#eeeeee,bg+:#242424,hl+:#EC5B2B
+	--color=border:#3a3a3a,header:#56b6c2,gutter:#0a0a0a
+	--color=spinner:#e5c07b,info:#6ba1e6
+	--color=pointer:#EC5B2B,marker:#e06c75,prompt:#EE7948"
 
 bindkey '\t'   complete-word       # tab          | complete
 bindkey '\t\t' autosuggest-accept  # shift + tab  | autosuggest
@@ -227,6 +236,10 @@ fi
 
 # uv / rustup env shim (if installed)
 [[ -f "$HOME/.local/bin/env" ]] && . "$HOME/.local/bin/env"
+# Weave's Pi adapter requires Pi's 0.82+ CLI to run under Bun so Bun-only
+# runtime modules remain available to extensions. This wrapper has precedence
+# over Volta's native Pi binary while preserving the same installed version.
+[[ -x "$HOME/.pi/agent/bin/pi" ]] && export PATH="$HOME/.pi/agent/bin:$PATH"
 # =========== END PATHS ================
 
 
@@ -364,6 +377,9 @@ _sqz_preexec() {
 export PATH=/Users/jose/.opencode/bin:$PATH
 
 . "$HOME/.cargo/env"
+
+
+
 
 # >>> grok installer >>>
 export PATH="$HOME/.grok/bin:$PATH"

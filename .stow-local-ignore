@@ -6,6 +6,5 @@ tests/*
 docs/*
 .DS_Store
 AGENTS.md
-.zsh_secrets.sh
 .local/share/*
 .local/state/*
