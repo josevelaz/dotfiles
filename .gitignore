@@ -4,6 +4,7 @@
 .pi/agent/auth.json
 
 .zsh_secrets.sh
+.config/github-copilot/
 .config/github-copilot/apps.json
 .config/.wrangler/
 .claude/
@@ -81,3 +82,14 @@
 .local/bin/ocx
 .local/bin/python3.11
 .local/bin/sleev
+
+# Pi bash-audit extension: the extension writes no files, but an older loaded
+# copy in a running Pi process can still recreate this cache. Never commit it.
+.pi/agent/bash-audit-cache.json
+# Dev-only type-check install for Pi extensions (bun install; never committed)
+.pi/agent/extensions/*/node_modules/
+
+# Credentials, OAuth dumps, and crash reports. Purged from history; do not force-add.
+.config/opencode/service.json
+.config/google-chrome-for-testing/
+.config/go/telemetry/
