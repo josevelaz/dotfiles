@@ -36,18 +36,11 @@ return {
       desc = "[S]earch [F]iles",
     },
     {
-      "<leader>sy",
-      function()
-        Snacks.picker.lsp_symbols()
-      end,
-      desc = "[S]earch LSP S[y]mbols",
-    },
-    {
       "<leader>ss",
       function()
         Snacks.picker()
       end,
-      desc = "[S]earch [S]elect Telescope",
+      desc = "[S]earch [S]elect picker",
     },
     {
       "<leader>sw",
@@ -62,13 +55,6 @@ return {
         Snacks.picker.grep({ hidden = true, exclude = { "node_modules", ".git", "tmp", "cdk.out" } })
       end,
       desc = "[S]earch by [G]rep",
-    },
-    {
-      "<leader>sd",
-      function()
-        Snacks.picker.diagnostics()
-      end,
-      desc = "[S]earch [D]iagnostics",
     },
     {
       "<leader>sr",

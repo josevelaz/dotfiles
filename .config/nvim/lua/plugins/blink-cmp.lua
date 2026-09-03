@@ -1,5 +1,4 @@
 return {
-  { "rafamadriz/friendly-snippets" },
   {
     "saghen/blink.cmp",
     lazy = false,
@@ -9,24 +8,16 @@ return {
     ---@type blink.cmp.Config
     opts = {
       sources = {
-        default = { "lazydev", "lsp", "snippets", "path", "buffer" },
-        providers = {
-          -- dont show LuaLS require statements when lazydev has items
-          lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", score_offset = 100 },
-          snippets = { opts = { extended_filetypes = { typescript = { "javascript" } } } },
-        },
+        default = { "path", "buffer" },
       },
       keymap = {
         preset = "enter",
-
-        ["<C-l>"] = { "snippet_forward" },
-        ["<C-h>"] = { "snippet_backward" },
 
         ["<C-u>"] = { "scroll_documentation_up", "fallback" },
         ["<C-d>"] = { "scroll_documentation_down", "fallback" },
       },
 
-      signature = { enabled = true },
+      signature = { enabled = false },
       completion = {
         list = {
           selection = { preselect = false, auto_insert = false },

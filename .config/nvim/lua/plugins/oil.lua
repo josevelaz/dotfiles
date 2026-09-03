@@ -11,6 +11,7 @@ return {
 			vim.g.loaded_netrwPlugin = 1
 		end,
 		opts = {
+			delete_to_trash = true,
 			keymaps = {
 				["<leader>M"] = {
 					callback = function()
@@ -48,11 +49,7 @@ return {
 			view_options = {
 				show_hidden = true,
 			},
-			lsp_file_methods = {
-				auto_save_changes = true,
-			},
 		},
-		-- Optional dependencies
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 	},
 }

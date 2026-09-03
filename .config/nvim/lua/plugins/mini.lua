@@ -2,9 +2,9 @@ return {
 	{ -- Collection of various small independent plugins/modules
 		"echasnovski/mini.nvim",
 		config = function()
-			local nmap = function(keymap, cmd, desc) end
-
-      require("mini.indentscope").setup()
+			local MiniIcons = require("mini.icons")
+			MiniIcons.setup()
+			require("mini.indentscope").setup()
 
 			-- Better Around/Inside textobjects
 			--

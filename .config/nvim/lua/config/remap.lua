@@ -38,40 +38,6 @@ vim.keymap.set(
 
 -- vim.keymap.set("v", "c", [["_di]])
 
-vim.keymap.set("n", "<leader>k", function()
-	vim.diagnostic.open_float({
-		border = "rounded",
-		scope = "cursor",
-		prefix = " ",
-		source = true,
-	})
-end)
-
--- vim.keymap.set(
--- 	"n",
--- 	"<leader>xw",
--- 	"<cmd>TroubleToggle workspace_diagnostics<cr>",
--- 	{ silent = true, noremap = true, desc = "Toggle Trouble Workspace Diagnostics" }
--- )
--- vim.keymap.set(
--- 	"n",
--- 	"<leader>xd",
--- 	"<cmd>TroubleToggle document_diagnostics<cr>",
--- 	{ silent = true, noremap = true, desc = "Toggle Trouble Document Diagnostics" }
--- )
--- vim.keymap.set(
--- 	"n",
--- 	"<leader>xl",
--- 	"<cmd>TroubleToggle loclist<cr>",
--- 	{ silent = true, noremap = true, desc = "Toggle Trouble Location List" }
--- )
--- vim.keymap.set(
--- 	"n",
--- 	"<leader>xq",
--- 	"<cmd>TroubleToggle quickfix<cr>",
--- 	{ silent = true, noremap = true, desc = "Toggle Trouble Quickfix" }
--- )
-
 vim.keymap.set("n", "<leader><leader>", "<cmd>w<cr>", { desc = "Save Buffer", noremap = true })
 
 vim.keymap.set("n", "<leader>q", "<cmd>qa<cr>", { desc = "Quit Neovim", noremap = true })

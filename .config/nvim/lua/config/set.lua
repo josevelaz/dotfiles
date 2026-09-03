@@ -17,6 +17,7 @@ vim.opt.backup = false
 local undodir = os.getenv("HOME") .. "/.vim/undodir"
 vim.fn.mkdir(undodir, "p")
 vim.opt.undodir = undodir
+vim.opt.undofile = true
 
 vim.opt.hlsearch = false
 vim.opt.incsearch = true
@@ -35,11 +36,15 @@ vim.opt.isfname:append("@-@")
 
 vim.opt.updatetime = 50
 
-vim.opt.foldcolumn = "1" -- '0' is not bad
-vim.opt.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+vim.opt.foldcolumn = "0"
 vim.opt.foldlevelstart = 99
 vim.opt.foldenable = true
-vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
+vim.o.fillchars = [[eob: ,fold: ]]
+
+-- Use Neovim's built-in heading folds for Markdown.
+vim.g.markdown_folding = 1
+
+vim.diagnostic.config({ virtual_text = true })
 
 vim.opt.colorcolumn = "80"
 
