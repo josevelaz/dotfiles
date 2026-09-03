@@ -1,4 +1,6 @@
 .DS_store
+.DS_Store
+**/.DS_Store
 
 .pi/agent/sessions/
 .pi/agent/auth.json
@@ -130,3 +132,16 @@
 # Bundled Raycast extension builds
 .config/raycast/extensions/picast/*.js
 .config/raycast/extensions/**/assets/.raycast/
+.config/raycast/extensions/node_modules
+
+# Logs, sockets, backups, and Weave runtime
+**/*.log
+**/*.sock
+**/*.pid
+**/*.bak
+**/.weave/
+
+# Install trees and machine-local telemetry
+**/node_modules/
+mutagen.yml.lock
+.config/turborepo/telemetry.json
