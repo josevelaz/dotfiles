@@ -126,3 +126,6 @@
 .local/bin/btw
 .local/bin/rtk
 **/__pycache__/
+
+# Bundled Raycast extension builds
+.config/raycast/extensions/picast/*.js

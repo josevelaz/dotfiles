@@ -1,0 +1,36 @@
+#!/bin/bash
+# Report parent agent hierarchy metadata for tree display in Herdr sidebar
+# Usage: herdr-report-agent-parent <pane-id> <parent-name> <depth>
+#
+# Example:
+#   herdr-report-agent-parent w5:p8X loom 1
+#   herdr-report-agent-parent w5:p9Y shuttle-core 2
+
+set -euo pipefail
+
+if [ $# -ne 3 ]; then
+  echo "Usage: $0 <pane-id> <parent-name> <depth>" >&2
+  echo "Example: $0 w5:p8X loom 1" >&2
+  exit 1
+fi
+
+PANE_ID="$1"
+PARENT_NAME="$2"
+DEPTH="$3"
+
+# Create indentation based on depth (2 spaces per level)
+INDENT=""
+for ((i=0; i<DEPTH; i++)); do
+  if [ $i -eq $((DEPTH-1)) ]; then
+    INDENT="${INDENT}├─ "
+  else
+    INDENT="${INDENT}  "
+  fi
+done
+
+# Report metadata to Herdr
+herdr pane report-metadata "$PANE_ID" \
+  --source "pi-hierarchy" \
+  --token "parent=$PARENT_NAME" \
+  --token "depth=$DEPTH" \
+  --token "indent=$INDENT"
