@@ -1,0 +1,3 @@
+interface:
+  display_name: "Mailpit QA"
+  short_description: "Inspect application email during QA"
