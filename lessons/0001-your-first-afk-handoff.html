@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Lesson 0001 — Your first AFK handoff</title>
+		<meta
+			name="description"
+			content="Hand a Pi session off to iMessage, form a reply the parser accepts, and take the session back."
+		/>
+		<link rel="stylesheet" href="../assets/course.css" />
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to lesson</a>
+		<div class="shell">
+			<header class="masthead">
+				<p class="eyebrow">Lesson 0001 · 5–8 minutes</p>
+				<h1>Your first AFK handoff</h1>
+				<p class="lede">
+					By the end of this page you will know what AFK actually hands you, and you will
+					be able to write a reply that lands in the right session on the first try.
+				</p>
+				<p class="masthead__meta">
+					<span>Win: form a correct reply</span>
+					<span>Mission: use it confidently</span>
+					<span
+						>Reference:
+						<a href="../reference/afk-quick-reference.html">quick reference</a></span
+					>
+				</p>
+			</header>
+
+			<main id="main">
+				<!-- ============================================================ -->
+				<section class="section" id="model">
+					<h2>1. What AFK is, and what it is not</h2>
+					<p>
+						AFK is a <strong>session-scoped handoff</strong>. You are not getting a
+						terminal on your phone. One Pi session texts you when the extension sees one
+						of a small, named set of events — a Pi question routed through its
+						<code>afk:question</code> integration, one of two specific blocked reports, or
+						the session going idle after a run — and your reply goes back into
+						<em>that</em> session. That is the whole surface.
+					</p>
+					<p>
+						This matters because it sets your expectations correctly. You cannot browse
+						files, cancel a tool, or start a new session from iMessage. You can make the
+						one decision the session is waiting on. Follow the tape:
+					</p>
+
+					<ol class="route-tape">
+						<li class="route-tape__stop">
+							<span class="route-tape__mark">Stop 1</span>
+							<span class="route-tape__label">Your phone</span>
+							<span class="route-tape__note"
+								>The single number in <code>PI_AFK_PHONE</code>. Messages from anywhere
+								else are ignored.</span
+							>
+						</li>
+						<li class="route-tape__stop">
+							<span class="route-tape__mark">Stop 2</span>
+							<span class="route-tape__label">Session key</span>
+							<span class="route-tape__note"
+								>Eight characters, e.g. <code>019f94f1</code>. Shown in session-specific
+								texts and in the Pi footer; broker-wide replies can omit it.</span
+							>
+						</li>
+						<li class="route-tape__stop">
+							<span class="route-tape__mark">Stop 3</span>
+							<span class="route-tape__label">The Pi session</span>
+							<span class="route-tape__note"
+								>Answers its question, or takes your text as a message and continues the
+								run.</span
+							>
+						</li>
+					</ol>
+
+					<p class="fineprint print-url">
+						Source:
+						<a href="../.pi/agent/extensions/afk/README.md"
+							>.pi/agent/extensions/afk/README.md</a
+						>
+						and
+						<a href="../.pi/agent/extensions/afk/index.ts">index.ts</a>.
+					</p>
+				</section>
+
+				<!-- ============================================================ -->
+				<section class="section" id="prereqs">
+					<h2>2. Before you can turn it on</h2>
+					<p>Three things, once:</p>
+					<ol>
+						<li>
+							A Photon project with iMessage enabled, from
+							<a href="https://app.photon.codes">app.photon.codes</a>.
+						</li>
+						<li>
+							Three variables exported <em>before</em> Pi starts:
+							<code>PHOTON_PROJECT_ID</code>, <code>PHOTON_PROJECT_SECRET</code>,
+							<code>PI_AFK_PHONE</code>.
+						</li>
+						<li>
+							Extension dependencies installed:
+							<code>npm install --omit=dev</code> inside
+							<code>~/.pi/agent/extensions/afk</code>.
+						</li>
+					</ol>
+
+					<div class="note note--secret">
+						<span class="note__title">Protect the secret</span>
+						<p>
+							<code>PHOTON_PROJECT_SECRET</code> lives in your shell secret store. The
+							extension reads it from the environment and hands it to the local broker
+							through the process environment; it is never written to the repository or
+							into the Pi session. Do not paste it into a prompt or a config file to
+							"test" it.
+						</p>
+					</div>
+
+					<p class="fineprint print-url">
+						Source:
+						<a href="../.pi/agent/extensions/afk/README.md">README.md — Setup and Security</a>.
+					</p>
+				</section>
+
+				<!-- ============================================================ -->
+				<section class="section" id="turn-on">
+					<h2>3. Turn it on and check the footer</h2>
+					<p>In the session you are about to walk away from:</p>
+					<pre><code>/afk on</code></pre>
+					<p>
+						Pi confirms with the session key, and the status footer picks up an
+						accent-coloured item:
+					</p>
+					<p class="statusbar"><span class="statusbar__afk">✉ afk 019f94f1</span></p>
+					<p>
+						That footer confirms AFK is enabled in this process. If it is absent, do not
+						assume the handoff is active; check <code>/afk status</code>. Those eight
+						characters are the same key you will type in front of a reply later, so read
+						them once now.
+						If you want the fuller picture — on or off, the key, and whether Photon is
+						<code>connected</code> or <code>reconnecting</code> — ask:
+					</p>
+					<pre><code>/afk status</code></pre>
+					<p class="fineprint print-url">
+						Source:
+						<a href="../.pi/agent/extensions/afk/index.ts"
+							>index.ts — <code>updateStatus</code> and <code>showStatus</code></a
+						>;
+						<a href="../.pi/agent/extensions/afk/protocol.ts"
+							>protocol.ts — <code>shortSessionKey</code></a
+						>.
+					</p>
+				</section>
+
+				<!-- ============================================================ -->
+				<section class="section" id="triggers">
+					<h2>4. The three run-state alerts</h2>
+					<p>
+						AFK does not watch Pi for "anything that looks like a question" or "anything
+						that looks stuck". Three specific subscriptions produce the run-state alerts
+						below. AFK also sends operational texts when you enable it, when an answer is
+						rejected, or when the broker needs routing clarification.
+					</p>
+
+					<h3>A question</h3>
+					<p>
+						The extension listens for the <code>afk:question</code> event. When one
+						arrives, it claims the question and texts it to you — but only if AFK is on,
+						the broker is connected, and no earlier question is still waiting. A question
+						that is not raised through that integration, or that arrives while another one
+						is unanswered, stays on the laptop.
+					</p>
+					<ul class="thread">
+						<li class="thread__msg thread__msg--in">
+							<span class="thread__who">Pi</span>[019f94f1] dotfiles Question: The branch
+							has diverged from main. How should I proceed? 1. Rebase onto main 2. Merge
+							main into the branch 3. Stop and let me look 4. Type your own answer
+						</li>
+					</ul>
+					<p>
+						The choices are numbered, and one extra slot is appended for an answer in your
+						own words. Three choices means the custom slot is <code>4</code>.
+					</p>
+
+					<h3>Blocked</h3>
+					<p>
+						Two sources, and no others. The extension listens for the
+						<code>herdr:blocked</code> event becoming active, and for a
+						<code>goal_report</code> tool result whose status is <code>blocked</code>. A
+						run that is stuck for some other reason does not text you, because nothing
+						reported it as blocked.
+					</p>
+					<ul class="thread">
+						<li class="thread__msg thread__msg--in">
+							<span class="thread__who">Pi</span>[019f94f1] dotfiles Blocked: the test
+							suite needs a decision.
+						</li>
+					</ul>
+
+					<h3>Idle</h3>
+					<p>
+						This one is post-run only. On <code>agent_settled</code>, the extension texts
+						you if a run actually happened since the last notice and the session is now
+						idle. Sitting at an idle prompt without running anything sends nothing, and if
+						the session settled in a blocked state you get no second idle text.
+					</p>
+					<ul class="thread">
+						<li class="thread__msg thread__msg--in">
+							<span class="thread__who">Pi</span>[019f94f1] dotfiles Pi is idle. …the last
+							thing the assistant said, truncated.
+						</li>
+					</ul>
+
+					<p>
+						The difference matters for your reply. Only the first case is a question, and
+						only a question uses the numbered grammar. In the other two, whatever you type
+						becomes an ordinary user message that continues the session.
+					</p>
+					<p class="fineprint print-url">
+						Source:
+						<a href="../.pi/agent/extensions/afk/index.ts"
+							>index.ts — the <code>afk:question</code> and <code>herdr:blocked</code>
+							event handlers, the <code>goal_report</code> branch of
+							<code>tool_result</code>, and <code>onAgentSettled</code></a
+						>.
+					</p>
+				</section>
+
+				<!-- ============================================================ -->
+				<section class="section" id="grammar">
+					<h2>5. How to form the reply</h2>
+
+					<p>Three shapes cover everything you will type.</p>
+
+					<h3>Pick a listed choice: the number alone</h3>
+					<ul class="thread">
+						<li class="thread__msg thread__msg--out"><span class="thread__who">You</span>2</li>
+					</ul>
+					<p>
+						Nothing else. Adding words after a listed number is rejected — you will get
+						<em>Reply with only 2 to select that option.</em> back on your phone, and the
+						question keeps waiting.
+					</p>
+
+					<h3>Answer in your own words: the custom slot plus text</h3>
+					<ul class="thread">
+						<li class="thread__msg thread__msg--out">
+							<span class="thread__who">You</span>4 use the safer approach
+						</li>
+					</ul>
+					<p>
+						The custom slot is always one past the last choice. It is the only number that
+						accepts text after it, and it requires text — a bare <code>4</code> is
+						rejected.
+					</p>
+
+					<h3>Several sessions AFK: key first</h3>
+					<ul class="thread">
+						<li class="thread__msg thread__msg--out">
+							<span class="thread__who">You</span>019f94f1 2
+						</li>
+						<li class="thread__msg thread__msg--out">
+							<span class="thread__who">You</span>019f94f1 use the safer approach
+						</li>
+					</ul>
+					<p>
+						A leading key that names a session which is AFK <em>right now</em> wins over
+						every other rule, which makes a current key the safest prefix you can send.
+						Without a key, a bare number only routes when exactly one session is waiting
+						on a question, and plain text only routes when exactly one session is AFK at
+						all. Otherwise the broker texts back the list of keys and delivers nothing.
+					</p>
+
+					<div class="note note--warn">
+						<span class="note__title">A wrong key is not an error</span>
+						<p>
+							<code>routing.mjs</code> does not validate keys. If the leading token does
+							not match a session that is AFK right now, explicit matching just falls
+							through to the remaining rules. With exactly one session AFK, that means the
+							<em>entire</em> text — stale key included — is handed to that session: as an
+							ordinary user message if nothing is pending, or straight into the answer
+							parser, which rejects it because it does not start with a number. So read the
+							key off the newest text or off <code>/afk status</code>. Never retype one from
+							memory.
+						</p>
+					</div>
+
+					<div class="note note--key">
+						<span class="note__title">The one habit to build</span>
+						<p>
+							Prefix your reply with the key you can currently see. Nine extra characters
+							remove routing ambiguity when more than one session is AFK.
+						</p>
+					</div>
+
+					<p class="fineprint print-url">
+						Source:
+						<a href="../.pi/agent/extensions/afk/protocol.ts"
+							>protocol.ts — <code>parseRemoteQuestionAnswer</code></a
+						>;
+						<a href="../.pi/agent/extensions/afk/routing.mjs"
+							>routing.mjs — <code>chooseTarget</code></a
+						>.
+					</p>
+				</section>
+
+				<!-- ============================================================ -->
+				<section class="section" id="busy">
+					<h2>6. Replying while Pi is still working</h2>
+					<p>
+						If there is no pending question and the session is mid-run, your text is
+						queued as a <strong>follow-up</strong>. It arrives when the current turn ends.
+						It does not interrupt a tool call, and it will not stop a run that is heading
+						somewhere you do not want.
+					</p>
+					<p>
+						So AFK is a good way to steer the <em>next</em> turn and a poor way to slam on
+						the brakes. If you need to stop something, that is a laptop job.
+					</p>
+					<p class="fineprint print-url">
+						Source:
+						<a href="../.pi/agent/extensions/afk/index.ts"
+							>index.ts — <code>handleInbound</code>, <code>deliverAs: "followUp"</code></a
+						>.
+					</p>
+				</section>
+
+				<!-- ============================================================ -->
+				<section class="section" id="practice">
+					<h2>7. Practice: route seven replies</h2>
+					<p>
+						Read each situation and type the exact text you would send from iMessage. The
+						widget does not compare you against an answer key — it runs your reply through
+						a local model of the extension's routing and parsing rules, then tells you
+						where it would have landed.
+					</p>
+					<p>
+						Type from memory. Scrolling back up to copy the syntax feels productive and
+						teaches you almost nothing.
+					</p>
+
+					<div data-afk-practice="lesson-0001"></div>
+					<noscript>
+						<p class="practice__noscript">
+							This exercise needs JavaScript. Without it, practise on paper against the
+							<a href="../reference/afk-quick-reference.html#grammar"
+								>reply grammar table in the quick reference</a
+							>.
+						</p>
+					</noscript>
+				</section>
+
+				<!-- ============================================================ -->
+				<section class="section" id="off">
+					<h2>8. Take the session back</h2>
+					<p>When you sit down again:</p>
+					<pre><code>/afk off</code></pre>
+					<p>
+						The footer item disappears and the texts stop. Any question that was waiting
+						on a text stops waiting. You do not have to remember: shutting the session
+						down unregisters it too, so a closed session cannot be texted. The real cost
+						of leaving it on is the opposite one — a session you thought you were done
+						with keeps texting you, and keeps competing for replies that carry no key.
+					</p>
+				</section>
+
+				<!-- ============================================================ -->
+				<section class="section" id="recovery">
+					<h2>9. When it does not work</h2>
+					<p>Five checks, in the order worth trying.</p>
+					<table class="reftable">
+						<caption>
+							Symptom to first move
+						</caption>
+						<thead>
+							<tr>
+								<th scope="col">Symptom</th>
+								<th scope="col">First move</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th scope="row">
+									<code>/afk on</code> says texts are suppressed
+								</th>
+								<td>
+									You are outside the interactive TUI, or the process was started with
+									<code>--no-afk-texts</code> or <code>PI_AFK_DISABLE=1</code>. Standard
+									non-TUI subagent runs are therefore suppressed.
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<code>/afk on</code> names three variables
+								</th>
+								<td>
+									<code>PHOTON_PROJECT_ID</code>, <code>PHOTON_PROJECT_SECRET</code>, or
+									<code>PI_AFK_PHONE</code> is missing. Export them and restart Pi —
+									exporting after Pi starts does not help.
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<code>/afk status</code> says <code>reconnecting</code>
+								</th>
+								<td>
+									The link to the broker dropped. It retries on its own, and a pending
+									question is re-sent once the connection returns. Wait, then re-check.
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">Enabling fails outright</th>
+								<td>
+									Read the broker log at <code>/tmp/pi-afk-&lt;uid&gt;.log</code>, where
+									<code>&lt;uid&gt;</code> is your numeric user id.
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">Your text bounces back</th>
+								<td>
+									<em>No Pi session currently has /afk enabled</em> means nothing is
+									listening. <em>More than one Pi session is in AFK mode</em> means you
+									omitted the key — the bounce lists the keys, so resend with one in
+									front.
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<p class="fineprint print-url">
+						Source:
+						<a href="../.pi/agent/extensions/afk/client.ts">client.ts</a>,
+						<a href="../.pi/agent/extensions/afk/broker.mjs">broker.mjs</a>,
+						<a href="../.pi/agent/extensions/afk/index.ts">index.ts</a>.
+					</p>
+					<p>
+						Everything below that line is internals — a local broker process, a unix
+						socket, a Photon connection shared between sessions. You do not need it to use
+						AFK well. Ask about it when you are curious, not before.
+					</p>
+				</section>
+
+				<!-- ============================================================ -->
+				<section class="section" id="next">
+					<h2>Read next</h2>
+					<p>
+						<strong>Primary source:</strong>
+						<a href="../.pi/agent/extensions/afk/README.md"
+							>the extension README in this checkout</a
+						>. It is short, it is written for the operator rather than the developer, and
+						it describes the exact version you are running. Read it end to end — it will
+						take three minutes and it is the highest-trust document on this topic.
+					</p>
+					<p>
+						For the transport underneath, the official Photon docs:
+						<a href="https://photon.codes/docs/spectrum-ts/introduction"
+							>Spectrum introduction</a
+						>,
+						<a href="https://photon.codes/docs/spectrum-ts/providers/imessage"
+							>the iMessage provider</a
+						>, and
+						<a href="https://photon.codes/docs/api-reference/introduction"
+							>the API reference</a
+						>
+						for where your project credentials come from.
+					</p>
+					<p>
+						Keep the
+						<a href="../reference/afk-quick-reference.html">AFK quick reference</a> open
+						for your first real handoff, then print it. It is built to be scanned, not
+						read.
+					</p>
+
+					<div class="note">
+						<span class="note__title">Ask your teacher</span>
+						<p>
+							The agent that wrote this lesson is your teacher, and it has read the whole
+							extension. If a rule felt arbitrary, if a practice verdict surprised you, or
+							if you want to rehearse a handoff before you rely on it, just ask. Good
+							questions to open with: <em>why did my reply bounce?</em>,
+							<em>what happens if I close the laptop lid?</em>, or
+							<em>walk me through a real handoff step by step.</em>
+						</p>
+					</div>
+				</section>
+			</main>
+
+			<footer class="pagefoot">
+				<p>
+					Lesson 0001 · <a href="../MISSION.md">Mission</a> ·
+					<a href="../RESOURCES.md">Resources</a> ·
+					<a href="../reference/afk-quick-reference.html">AFK quick reference</a>
+				</p>
+			</footer>
+		</div>
+
+		<script src="../assets/afk-route-practice.js" defer></script>
+	</body>
+</html>
