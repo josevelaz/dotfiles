@@ -1,12 +1,13 @@
+/// <reference path="./jsx.d.ts" />
 import { Plugin, usePlugin } from "@opencode-ai/plugin/tui"
 import { createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js"
-import { displayElapsedMs, formatDuration, formatTokenCount } from "./controller.ts"
+import { displayElapsedMs, formatDuration, formatTokenCount } from "./controller"
 import {
   latestGoalSnapshotRecord,
   statusLabel,
   type GoalState,
   type GoalStatus,
-} from "./state.ts"
+} from "./state"
 
 function themeColor(theme: Record<string, unknown>, fallback: string, ...keys: string[]): string {
   let current: unknown = theme

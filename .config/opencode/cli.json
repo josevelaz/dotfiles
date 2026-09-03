@@ -1,53 +1,30 @@
 {
   "$schema": "https://opencode.ai/v2/cli.json",
   "theme": {
-    "name": "orng",
-    "mode": "system"
-  },
-  "plugins": [
-    "./plugins/goal/tui.tsx",
-    "./herdr-tui-session.js",
-    "@cortexkit/aft-opencode@latest",
-    "@honcho-ai/opencode-honcho"
-  ],
-  "attention": {
-    "enabled": true,
-    "notifications": true,
-    "sound": true,
-    "volume": 0.7,
-    "sounds": {
-      "question": "./notification_sounds/question.wav",
-      "permission": "./notification_sounds/permission.wav",
-      "error": "./notification_sounds/error.wav",
-      "done": "./notification_sounds/complete.wav",
-      "subagent_done": "./notification_sounds/subagent_complete.wav"
-    }
+    "name": "orng"
   },
   "diffs": {
     "wrap": "word",
-    "view": "unified",
-    "single": false
+    "view": "unified"
   },
   "session": {
-    "sidebar": "auto",
+    "sidebar": "hide",
     "scrollbar": true,
     "thinking": "show",
-    "image_preview": false
+    "image_preview": true
   },
   "animations": true,
   "tabs": {
     "enabled": false,
-    "scope": "cwd",
     "layout": "vertical"
   },
-  "scroll": {
-    "acceleration": false
+  "terminal": {
+    "title": true
+  },
+  "attention": {
+    "enabled": true
   },
   "prompt": {
-    "paste": "compact",
-    "image_preview": true
-  },
-  "terminal": {
-    "copy": "select"
+    "editor": false
   }
 }

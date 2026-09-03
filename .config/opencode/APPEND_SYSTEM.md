@@ -32,20 +32,24 @@ Do not claim full ASD-STE100 compliance unless you have verified the current spe
 - Add abstractions, layers, dependencies, or extension points only when a current constraint requires them.
 - Tie each necessary source of complexity to the concrete constraint it resolves.
 
+# Tests
+
+Create or modify tests only when the user explicitly asks for test changes. Do not infer a request for tests from a request to implement, fix, refactor, or validate code. You may run existing tests for validation.
+
 # Commits
 
-Use Conventional Commits.
+Create commits only when the user asks.
 
-Rules:
-
-- Format: `<type>(<scope>): <summary>`
-- Use imperative mood.
-- Keep the summary lowercase and under 72 characters.
-- Make small, focused commits.
-- Do not mix unrelated changes.
-- Use standard types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`, `ci`.
-- Add a body when the reason is not obvious.
+- Inspect `git status --short` and the relevant diffs before staging. Preserve unrelated work.
+- Stage explicit paths. Review the staged diff with `git diff --cached` before committing.
+- Keep each commit focused, coherent, and independently valid. Split unrelated changes into separate commits.
+- Run the repository's relevant validation before committing. Report failures instead of bypassing them.
+- Use Conventional Commits: `<type>(<scope>): <summary>`.
+- Use an imperative, lowercase summary under 72 characters. Use a standard type such as `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`, or `ci`.
+- Add a body when the reason is not clear from the summary. Explain why the change is needed, not a line-by-line account of what changed.
 - Reference issue IDs in the footer when available.
+- Keep secrets and unrequested generated artifacts out of commits.
+- Preserve hooks. Do not use `--no-verify`. Rewrite history, amend commits, or force-push only when the user explicitly asks.
 
 # Herdr
 
@@ -54,4 +58,3 @@ When the user asks you to create a window, tab, or pane, or to launch another Pi
 # GitHub
 
 Use the `gh` CLI when interfacing with GitHub.
-

@@ -29,6 +29,14 @@
         "type": "remote",
         "url": "https://mcp.grep.app"
       },
+      "linear": {
+        "type": "remote",
+        "url": "https://mcp.linear.app/mcp"
+      },
+      "conflux": {
+        "type": "remote",
+        "url": "https://conflux.liatr.io/mcp"
+      },
     },
   },
   // "permission": {
@@ -54,10 +62,61 @@
   //   "~": "ask"
   // },
   "plugins": [
-    "./plugins/goal/index.ts",
-    "/Users/jose/projects/opencode-claude-code-auth/src/index.ts",
-    "@franlol/opencode-md-table-formatter@latest",
-    "@cortexkit/aft-opencode@latest",
-    "@honcho-ai/opencode-honcho",
+    "/Users/jose/projects/opencode-honcho",
+    "-opencode.provider.github.copilot",
   ],
+  "providers": {
+    "github-copilot": {
+      "env": ["OPENCODE_GITHUB_COPILOT"],
+    },
+    "xai": {
+      "models": {
+        "grok-4.6-fast": {
+          "modelID": "grok-4.6",
+          "name": "Grok 4.6 Fast",
+          "settings": {
+            "serviceTier": "priority",
+          },
+          "body": {
+            "service_tier": "priority",
+          },
+          "capabilities": {
+            "tools": true,
+            "input": ["text", "image", "pdf"],
+            "output": ["text"],
+          },
+          "limit": {
+            "context": 500000,
+            "output": 500000,
+          },
+          "variants": [
+            {
+              "id": "low",
+              "settings": {
+                "reasoningEffort": "low",
+              },
+            },
+            {
+              "id": "medium",
+              "settings": {
+                "reasoningEffort": "medium",
+              },
+            },
+            {
+              "id": "high",
+              "settings": {
+                "reasoningEffort": "high",
+              },
+            },
+            {
+              "id": "xhigh",
+              "settings": {
+                "reasoningEffort": "xhigh",
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
 }

@@ -6,10 +6,10 @@ import {
   type GoalSnapshot,
   type GoalState,
   type GoalStatus,
-} from "./state.ts"
+} from "./state"
 
-export { GOAL_STATE_VERSION } from "./state.ts"
-export type { GoalSnapshot, GoalState, GoalStatus } from "./state.ts"
+export { GOAL_STATE_VERSION } from "./state"
+export type { GoalSnapshot, GoalState, GoalStatus } from "./state"
 
 export const DEFAULT_MAX_CONTINUATIONS = 100
 

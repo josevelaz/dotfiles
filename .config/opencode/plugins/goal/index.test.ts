@@ -166,6 +166,20 @@ describe("GoalRuntime commands", () => {
       delivery: "queue",
     })
     expect(app.prompts.at(-1)?.files).toEqual(files)
+    expect(app.prompts.at(-1)?.skills).toBeUndefined()
+  })
+
+  test("omits non-array prompt attachments when starting a goal", async () => {
+    const app = new GoalHarness()
+    await app.start()
+    await app.commands.get("goal")?.execute({
+      sessionID: SESSION,
+      prompt: { text: "Keep going", files: undefined, skills: {} as never },
+      delivery: "queue",
+    })
+    expect(app.prompts.at(-1)).toMatchObject({ text: "Keep going", delivery: "queue" })
+    expect("skills" in (app.prompts.at(-1) ?? {})).toBe(false)
+    expect("files" in (app.prompts.at(-1) ?? {})).toBe(false)
   })
 
   test("supports status, pause, resume with direction, clear, and aliases", async () => {
@@ -241,10 +255,9 @@ describe("GoalRuntime model context and reports", () => {
     const missing = await app.report("achieved", "   ")
     expect(missing?.content).toContain("Evidence is required")
 
-    const stale = await app.tools.get("goal_report")?.execute(
-      { status: "achieved", evidence: "done" },
-      { sessionID: "ses_other" },
-    )
+    const idle = new GoalHarness()
+    await idle.start()
+    const stale = await idle.report("achieved", "done")
     expect(stale?.content).toBe("No active goal can be reported.")
 
     const achieved = await app.report("achieved", "bun test: 42 passed")

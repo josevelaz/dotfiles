@@ -5,19 +5,18 @@ import {
   promptForGoal,
   statusMessage,
   type GoalBudgets,
-} from "./controller.ts"
+} from "./controller"
 import {
   GOAL_SNAPSHOT_KEY,
   GOAL_TOOL_NAME,
   continuationMetadata,
   isUserInboxItem,
   latestGoalSnapshot,
-  snapshotMetadata,
   totalTokens,
   transcriptText,
   type SnapshotSource,
   type TokenUsage,
-} from "./state.ts"
+} from "./state"
 
 const CLEAR_ALIASES = new Set(["clear", "stop", "off", "reset", "none", "cancel"])
 const STATUS_ALIASES = new Set(["check", "status"])
@@ -233,14 +232,14 @@ export class GoalRuntime {
     }
   }
 
-  private enqueue(sessionID: string, operation: () => Promise<unknown>): Promise<void> {
-    const run = async () => {
-      await operation()
-    }
-    const next = (this.chains.get(sessionID) ?? Promise.resolve()).then(run, run)
+  private enqueue<T>(sessionID: string, operation: () => Promise<T>): Promise<T> {
+    const next = (this.chains.get(sessionID) ?? Promise.resolve()).then(operation, operation)
     this.chains.set(
       sessionID,
-      next.catch(() => {}),
+      next.then(
+        () => {},
+        () => {},
+      ),
     )
     return next
   }
@@ -294,7 +293,7 @@ export class GoalRuntime {
   private async cancelContinuation(sessionID: string): Promise<void> {
     const run = this.runs.get(sessionID)
     const inboxID = run?.pendingContinuationID
-    if (inboxID === undefined) return
+    if (run === undefined || inboxID === undefined) return
     run.pendingContinuationID = undefined
     await inboxOf(this.ctx.session)?.cancel({ sessionID, inboxID })
   }
@@ -361,10 +360,8 @@ export class GoalRuntime {
     await this.ctx.session.prompt({
       sessionID: input.sessionID,
       text: raw,
-      files: input.prompt.files,
-      agents: input.prompt.agents,
-      skills: input.prompt.skills,
       delivery: input.delivery,
+      ...promptAttachments(input.prompt),
     })
   }
 
@@ -563,6 +560,18 @@ export class GoalRuntime {
       delivery: "queue",
     })
     this.runOf(sessionID).pendingContinuationID = queued.id
+  }
+}
+
+function promptAttachments(prompt: PromptLike): {
+  files?: ReadonlyArray<unknown>
+  agents?: ReadonlyArray<unknown>
+  skills?: ReadonlyArray<unknown>
+} {
+  return {
+    ...(Array.isArray(prompt.files) ? { files: prompt.files } : {}),
+    ...(Array.isArray(prompt.agents) ? { agents: prompt.agents } : {}),
+    ...(Array.isArray(prompt.skills) ? { skills: prompt.skills } : {}),
   }
 }
 
