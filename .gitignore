@@ -129,3 +129,4 @@
 
 # Bundled Raycast extension builds
 .config/raycast/extensions/picast/*.js
+.config/raycast/extensions/**/assets/.raycast/
