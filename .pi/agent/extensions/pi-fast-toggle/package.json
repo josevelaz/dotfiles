@@ -1,0 +1,60 @@
+{
+  "name": "pi-fast-toggle",
+  "version": "0.1.0",
+  "description": "Toggle native Fast Mode routing for OpenAI Codex subscriptions and API requests in Pi.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Jose Velazquez",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/josevelaz/dotfiles.git",
+    "directory": ".pi/agent/extensions/pi-fast-toggle"
+  },
+  "homepage": "https://github.com/josevelaz/dotfiles/tree/main/.pi/agent/extensions/pi-fast-toggle#readme",
+  "bugs": {
+    "url": "https://github.com/josevelaz/dotfiles/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi-coding-agent",
+    "openai",
+    "codex",
+    "fast-mode",
+    "service-tier"
+  ],
+  "engines": {
+    "node": ">=20.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "index.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": ">=0.80.4"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "0.84.3",
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  },
+  "scripts": {
+    "check": "npm run typecheck && npm test",
+    "test": "tsx --test index.test.ts",
+    "typecheck": "tsc --noEmit",
+    "pack:dry": "npm pack --dry-run",
+    "prepack": "npm run check"
+  },
+  "main": "index.ts",
+  "exports": "./index.ts"
+}

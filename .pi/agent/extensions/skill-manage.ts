@@ -36,6 +36,7 @@ import {
 } from "@earendil-works/pi-tui";
 import { execFile, spawn } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
+import { createRequire } from "node:module";
 import { constants } from "node:fs";
 import {
 	access,
@@ -43,11 +44,14 @@ import {
 	lstat,
 	mkdir,
 	mkdtemp,
+	open,
 	readFile,
+	readdir,
 	readlink,
 	realpath,
 	rename,
 	rm,
+	rmdir,
 	symlink,
 	writeFile,
 } from "node:fs/promises";
@@ -57,6 +61,51 @@ import { promisify } from "node:util";
 import { Type } from "typebox";
 
 const execFileAsync = promisify(execFile);
+const requireFromExtension = createRequire(import.meta.url);
+
+type PosixRenameAtLibrary = {
+	symbols: {
+		renameat: (oldDirFd: number, oldPath: Uint8Array, newDirFd: number, newPath: Uint8Array) => number;
+		unlinkat: (dirFd: number, path: Uint8Array, flags: number) => number;
+	};
+};
+
+let posixRenameAtLibrary: PosixRenameAtLibrary | undefined;
+
+function descriptorRelativeRename(dirFd: number, oldName: string, newName: string): void {
+	if (process.platform === "win32") {
+		throw new Error("Atomic skill writes require descriptor-relative rename support.");
+	}
+	if (!posixRenameAtLibrary) {
+		// Pi loads this extension under Bun. Resolve bun:ffi lazily so static
+		// analysis and non-mutation test imports do not require the native symbol.
+		const { dlopen, FFIType } = requireFromExtension("bun:ffi") as {
+			dlopen: (path: string, symbols: unknown) => PosixRenameAtLibrary;
+			FFIType: { i32: unknown; cstring: unknown };
+		};
+		const libc = process.platform === "darwin" ? "/usr/lib/libSystem.B.dylib" : "libc.so.6";
+		posixRenameAtLibrary = dlopen(libc, {
+			renameat: {
+				args: [FFIType.i32, FFIType.cstring, FFIType.i32, FFIType.cstring],
+				returns: FFIType.i32,
+			},
+			unlinkat: {
+				args: [FFIType.i32, FFIType.cstring, FFIType.i32],
+				returns: FFIType.i32,
+			},
+		});
+	}
+	const oldPath = Buffer.from(`${oldName}\0`);
+	const newPath = Buffer.from(`${newName}\0`);
+	const result = posixRenameAtLibrary.symbols.renameat(dirFd, oldPath, dirFd, newPath);
+	if (result !== 0) throw new Error(`descriptor-relative rename failed for ${oldName}.`);
+}
+
+function descriptorRelativeUnlink(dirFd: number, name: string): void {
+	if (!posixRenameAtLibrary) return;
+	const path = Buffer.from(`${name}\0`);
+	posixRenameAtLibrary.symbols.unlinkat(dirFd, path, 0);
+}
 
 // ---------------------------------------------------------------------------
 // Bounds and vocabulary
@@ -75,6 +124,11 @@ export const MAX_RELATIVE_PATH_DEPTH = 4;
 export const ALLOWED_SUPPORT_DIRS = ["references", "templates", "scripts", "assets"] as const;
 
 export const SKILL_FILE_NAME = "SKILL.md";
+
+/** Interprocess exclusive lock around the queue read-modify-write transaction. */
+export const SKILL_QUEUE_LOCK_WAIT_MS = 3_000;
+export const SKILL_QUEUE_LOCK_RETRY_MS = 25;
+export const SKILL_QUEUE_LOCK_STALE_MS = 30_000;
 
 export type SkillScope = "global" | "project";
 export type SkillAction = "create" | "edit" | "patch" | "delete" | "write_file" | "remove_file";
@@ -583,14 +637,24 @@ export async function removeSkillSymlink(roots: SkillRoots, name: string): Promi
 // Lock file (installed / third-party skills)
 // ---------------------------------------------------------------------------
 
+function parseLockedSkillNames(raw: string): Set<string> | null {
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(raw);
+	} catch {
+		return null;
+	}
+	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+	const skills = (parsed as { skills?: unknown }).skills;
+	if (!skills || typeof skills !== "object" || Array.isArray(skills)) return null;
+	return new Set(Object.keys(skills));
+}
+
 /** Names present in .agents/.skill-lock.json. A missing or invalid file yields an empty set. */
 export async function readLockedSkillNames(lockPath: string): Promise<Set<string>> {
 	try {
 		const raw = await readFile(lockPath, "utf8");
-		const parsed = JSON.parse(raw) as { skills?: Record<string, unknown> };
-		const skills = parsed?.skills;
-		if (!skills || typeof skills !== "object" || Array.isArray(skills)) return new Set();
-		return new Set(Object.keys(skills));
+		return parseLockedSkillNames(raw) ?? new Set();
 	} catch {
 		return new Set();
 	}
@@ -715,15 +779,89 @@ export function scanSkillContent(content: string, filePath: string): string[] {
 // Atomic filesystem writes
 // ---------------------------------------------------------------------------
 
-export async function atomicWriteFile(target: string, content: string): Promise<void> {
+type AtomicWriteOptions = {
+	/** Revalidate the controller-owned mutation boundary at the last responsible moment. */
+	authorize?: () => Promise<void>;
+	/** Test seam invoked after the validated parent descriptor is open. */
+	afterParentOpen?: () => void | Promise<void>;
+};
+
+export async function atomicWriteFile(
+	target: string,
+	content: string,
+	options: AtomicWriteOptions = {},
+): Promise<void> {
 	const dir = dirname(target);
+	await options.authorize?.();
 	await mkdir(dir, { recursive: true });
-	const temp = join(dir, `.skill-manage-${randomUUID()}.tmp`);
+	await options.authorize?.();
+	const parentBefore = await lstat(dir);
+	if (parentBefore.isSymbolicLink() || !parentBefore.isDirectory()) {
+		throw new Error(`Refusing atomic write through unsafe parent ${dir}.`);
+	}
+
+	const tempName = `.skill-manage-${randomUUID()}.tmp`;
+	const temp = join(dir, tempName);
+	let handle: Awaited<ReturnType<typeof open>> | undefined;
+	let parentHandle: Awaited<ReturnType<typeof open>> | undefined;
 	try {
-		await writeFile(temp, content, { encoding: "utf8", mode: 0o644 });
-		await rename(temp, target);
+		await options.authorize?.();
+		handle = await open(temp, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY, 0o644);
+		const opened = await handle.stat();
+		const parentAfterOpen = await lstat(dir);
+		if (
+			parentAfterOpen.isSymbolicLink()
+			|| !parentAfterOpen.isDirectory()
+			|| parentAfterOpen.dev !== parentBefore.dev
+			|| parentAfterOpen.ino !== parentBefore.ino
+		) {
+			throw new Error(`Refusing atomic write because parent ${dir} changed.`);
+		}
+		const tempPathInfo = await lstat(temp);
+		if (tempPathInfo.isSymbolicLink() || tempPathInfo.dev !== opened.dev || tempPathInfo.ino !== opened.ino) {
+			throw new Error(`Refusing atomic write because temporary file ${temp} changed.`);
+		}
+		await handle.writeFile(content, "utf8");
+		await handle.close();
+		handle = undefined;
+
+		await options.authorize?.();
+		const parentBeforeRename = await lstat(dir);
+		if (
+			parentBeforeRename.isSymbolicLink()
+			|| !parentBeforeRename.isDirectory()
+			|| parentBeforeRename.dev !== parentBefore.dev
+			|| parentBeforeRename.ino !== parentBefore.ino
+		) {
+			throw new Error(`Refusing atomic rename because parent ${dir} changed.`);
+		}
+		const tempBeforeRename = await lstat(temp);
+		if (tempBeforeRename.isSymbolicLink() || tempBeforeRename.dev !== opened.dev || tempBeforeRename.ino !== opened.ino) {
+			throw new Error(`Refusing atomic rename because temporary file ${temp} changed.`);
+		}
+		parentHandle = await open(dir, constants.O_RDONLY);
+		const openedParent = await parentHandle.stat();
+		if (
+			!openedParent.isDirectory()
+			|| openedParent.dev !== parentBefore.dev
+			|| openedParent.ino !== parentBefore.ino
+		) {
+			await parentHandle.close();
+			parentHandle = undefined;
+			throw new Error(`Refusing atomic rename because parent ${dir} changed.`);
+		}
+		await options.afterParentOpen?.();
+		descriptorRelativeRename(parentHandle.fd, tempName, basename(target));
+		await parentHandle.close();
+		parentHandle = undefined;
 	} catch (error) {
-		await rm(temp, { force: true }).catch(() => {});
+		await handle?.close().catch(() => undefined);
+		if (parentHandle) {
+			descriptorRelativeUnlink(parentHandle.fd, tempName);
+			await parentHandle.close().catch(() => undefined);
+		} else {
+			await rm(temp, { force: true }).catch(() => {});
+		}
 		throw error;
 	}
 }
@@ -809,8 +947,13 @@ export async function executeCreate(roots: SkillRoots, params: SkillManageInput)
 	const securityFlags = scanSkillContent(content, action.relativeTarget);
 
 	await withFileMutationQueue(action.targetPath, async () => {
+		await assertSafeMutationTarget(roots, action);
 		await mkdir(action.skillDir, { recursive: true });
-		await atomicWriteFile(action.targetPath, content);
+		await assertSafeMutationTarget(roots, action);
+		await atomicWriteFile(action.targetPath, content, {
+			authorize: () => assertSafeMutationTarget(roots, action),
+		});
+		await assertSafeMutationTarget(roots, action);
 		await ensureSkillSymlink(roots, action.skillDir, action.name);
 	});
 
@@ -831,7 +974,11 @@ export async function executeEdit(roots: SkillRoots, params: SkillManageInput): 
 	const securityFlags = scanSkillContent(content, action.relativeTarget);
 
 	await withFileMutationQueue(action.targetPath, async () => {
-		await atomicWriteFile(action.targetPath, content);
+		await assertSafeMutationTarget(roots, action);
+		await atomicWriteFile(action.targetPath, content, {
+			authorize: () => assertSafeMutationTarget(roots, action),
+		});
+		await assertSafeMutationTarget(roots, action);
 		await ensureSkillSymlink(roots, action.skillDir, action.name);
 	});
 
@@ -857,7 +1004,10 @@ export async function executePatch(roots: SkillRoots, params: SkillManageInput):
 	const securityFlags = scanSkillContent(next, action.relativeTarget);
 
 	await withFileMutationQueue(action.targetPath, async () => {
-		await atomicWriteFile(action.targetPath, next);
+		await assertSafeMutationTarget(roots, action);
+		await atomicWriteFile(action.targetPath, next, {
+			authorize: () => assertSafeMutationTarget(roots, action),
+		});
 	});
 
 	return baseResult(action, {
@@ -874,7 +1024,9 @@ export async function executeDelete(roots: SkillRoots, params: SkillManageInput)
 	const previous = await readIfExists(join(action.skillDir, SKILL_FILE_NAME));
 
 	await withFileMutationQueue(action.skillDir, async () => {
+		await assertSafeMutationTarget(roots, action);
 		await rm(action.skillDir, { recursive: true, force: true });
+		await assertAgentsRootAuthorized(roots);
 		await removeSkillSymlink(roots, action.name);
 	});
 
@@ -896,7 +1048,10 @@ export async function executeWriteFile(roots: SkillRoots, params: SkillManageInp
 	const securityFlags = scanSkillContent(content, action.relativeTarget);
 
 	await withFileMutationQueue(action.targetPath, async () => {
-		await atomicWriteFile(action.targetPath, content);
+		await assertSafeMutationTarget(roots, action);
+		await atomicWriteFile(action.targetPath, content, {
+			authorize: () => assertSafeMutationTarget(roots, action),
+		});
 	});
 
 	return baseResult(action, {
@@ -915,6 +1070,7 @@ export async function executeRemoveFile(roots: SkillRoots, params: SkillManageIn
 	}
 
 	await withFileMutationQueue(action.targetPath, async () => {
+		await assertSafeMutationTarget(roots, action);
 		await rm(action.targetPath, { force: true });
 	});
 
@@ -1380,25 +1536,269 @@ async function writeSkillQueue(queue: SkillQueueFile, path: string): Promise<voi
 	await atomicWriteFile(path, `${JSON.stringify(body, null, 2)}\n`);
 }
 
+export function skillQueueLockPath(queuePath: string): string {
+	return `${queuePath}.lock`;
+}
+
+type SkillQueueLockHandle = {
+	path: string;
+	release: () => Promise<void>;
+};
+
+const SKILL_QUEUE_LOCK_OWNER_PREFIX = "owner-";
+const SKILL_QUEUE_LOCK_RECOVERY_FILE = ".recover";
+
+function isLockBusyError(error: unknown): boolean {
+	const code = (error as NodeJS.ErrnoException).code;
+	return code === "EEXIST" || code === "ENOTEMPTY" || code === "ENOTDIR" || code === "EPERM" || code === "EACCES";
+}
+
+function isMissingError(error: unknown): boolean {
+	return (error as NodeJS.ErrnoException).code === "ENOENT";
+}
+
+function isNonEmptyDirectoryError(error: unknown): boolean {
+	const code = (error as NodeJS.ErrnoException).code;
+	return code === "ENOTEMPTY" || code === "EEXIST" || code === "ENOENT";
+}
+
+async function sleepMs(ms: number): Promise<void> {
+	await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function removeQueueLockDirectoryIfEmpty(lockPath: string): Promise<void> {
+	try {
+		await rmdir(lockPath);
+	} catch (error) {
+		if (!isNonEmptyDirectoryError(error)) throw error;
+	}
+}
+
+const LOCK_OWNER_READ_CHUNK_BYTES = 16 * 1024;
+
 /**
- * Reload from disk, apply `mutator`, and atomically rewrite — all inside
- * `withFileMutationQueue` on the queue path so concurrent tool calls in one
- * process serialize.
+ * Read a small lock-owner token without following a symlink and without ever
+ * allocating more than `maxBytes + 1`. A file that grows during the read fails
+ * closed so a swapped owner token can never be trusted.
+ */
+async function readBoundedLockFile(target: string, maxBytes: number, description: string): Promise<string> {
+	const noFollow = typeof constants.O_NOFOLLOW === "number" ? constants.O_NOFOLLOW : 0;
+	let handle: Awaited<ReturnType<typeof open>>;
+	try {
+		handle = await open(target, constants.O_RDONLY | noFollow);
+	} catch (error) {
+		if ((error as NodeJS.ErrnoException).code === "ELOOP") {
+			throw new Error(`${description} refuses symlink targets.`);
+		}
+		throw error;
+	}
+
+	try {
+		const initial = await handle.stat();
+		if (!initial.isFile()) throw new Error(`${description} must be a regular file.`);
+		if (initial.size > maxBytes) throw new Error(`${description} exceeds ${maxBytes} bytes.`);
+
+		const buffer = Buffer.allocUnsafe(maxBytes + 1);
+		let total = 0;
+		while (total < buffer.length) {
+			const length = Math.min(LOCK_OWNER_READ_CHUNK_BYTES, buffer.length - total);
+			const { bytesRead } = await handle.read(buffer, total, length, null);
+			if (bytesRead === 0) break;
+			total += bytesRead;
+		}
+
+		const final = await handle.stat();
+		if (total > maxBytes || final.size > maxBytes) throw new Error(`${description} exceeds ${maxBytes} bytes.`);
+		return buffer.subarray(0, total).toString("utf8");
+	} finally {
+		await handle.close();
+	}
+}
+
+async function queueLockOwnerIsAlive(ownerPath: string): Promise<boolean> {
+	let raw: string;
+	try {
+		raw = await readBoundedLockFile(ownerPath, 128, "skill queue lock owner");
+	} catch {
+		return true;
+	}
+	const pidText = raw.trim();
+	if (!/^[1-9][0-9]*$/.test(pidText)) return true;
+	const pid = Number(pidText);
+	if (!Number.isSafeInteger(pid)) return true;
+	try {
+		process.kill(pid, 0);
+		return true;
+	} catch (error) {
+		return (error as NodeJS.ErrnoException).code !== "ESRCH";
+	}
+}
+
+/**
+ * Recover a stale lock without ever unlinking the active lock path.
  *
- * Residual race (documented, accepted per plan): two separate Pi processes have
- * independent mutation queues, so a cross-process interleaving can still lose a
- * write. Reload-before-write keeps the window to a single atomic rename, and
- * "record already gone" is treated as a benign no-op everywhere.
+ * Directory locks use a fixed recovery marker. While that marker exists, an
+ * owner release cannot remove the directory and a successor cannot install a
+ * new claim. Legacy file locks are atomically moved to a unique quarantine
+ * path and verified by inode before removal.
+ */
+async function recoverStaleQueueLock(
+	lockPath: string,
+	now = Date.now(),
+	staleMs = SKILL_QUEUE_LOCK_STALE_MS,
+): Promise<boolean> {
+	let recoveryHandle: Awaited<ReturnType<typeof open>> | undefined;
+	let ownsRecoveryMarker = false;
+	const recoveryPath = join(lockPath, SKILL_QUEUE_LOCK_RECOVERY_FILE);
+	try {
+		const lockBefore = await lstat(lockPath);
+		if (lockBefore.isSymbolicLink()) return false;
+		if (now - lockBefore.mtimeMs < staleMs) return false;
+
+		if (lockBefore.isFile()) {
+			const quarantinePath = `${lockPath}.recover-${randomUUID()}`;
+			try {
+				await rename(lockPath, quarantinePath);
+				const quarantined = await lstat(quarantinePath);
+				if (quarantined.dev !== lockBefore.dev || quarantined.ino !== lockBefore.ino) return false;
+				await rm(quarantinePath, { force: false });
+				return true;
+			} catch {
+				await rm(quarantinePath, { force: true }).catch(() => undefined);
+				return false;
+			}
+		}
+		if (!lockBefore.isDirectory()) return false;
+
+		const noFollow = typeof constants.O_NOFOLLOW === "number" ? constants.O_NOFOLLOW : 0;
+		recoveryHandle = await open(
+			recoveryPath,
+			constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | noFollow,
+			0o600,
+		);
+		ownsRecoveryMarker = true;
+		await recoveryHandle.writeFile(`${process.pid}\n`, "utf8");
+		await recoveryHandle.close();
+		recoveryHandle = undefined;
+
+		const directoryAfter = await lstat(lockPath);
+		if (directoryAfter.dev !== lockBefore.dev || directoryAfter.ino !== lockBefore.ino) return false;
+		const entries = await readdir(lockPath);
+		const ownerNames = entries.filter((entry) => entry.startsWith(SKILL_QUEUE_LOCK_OWNER_PREFIX));
+		if (ownerNames.length > 1 || entries.some((entry) =>
+			!entry.startsWith(SKILL_QUEUE_LOCK_OWNER_PREFIX) && entry !== SKILL_QUEUE_LOCK_RECOVERY_FILE)) return false;
+		const ownerPath = ownerNames.length === 1 ? join(lockPath, ownerNames[0]!) : undefined;
+		if (ownerPath) {
+			const ownerInfo = await lstat(ownerPath);
+			if (ownerInfo.isSymbolicLink() || !ownerInfo.isFile()) return false;
+			if (now - ownerInfo.mtimeMs < staleMs || await queueLockOwnerIsAlive(ownerPath)) return false;
+			await rm(ownerPath, { force: false });
+		}
+		await rm(recoveryPath, { force: false });
+		ownsRecoveryMarker = false;
+		await rmdir(lockPath);
+		return true;
+	} catch (error) {
+		if (!isLockBusyError(error) && !isMissingError(error)) return false;
+		return false;
+	} finally {
+		await recoveryHandle?.close().catch(() => undefined);
+		if (ownsRecoveryMarker) {
+			await rm(recoveryPath, { force: true }).catch(() => undefined);
+			await removeQueueLockDirectoryIfEmpty(lockPath).catch(() => undefined);
+		}
+	}
+}
+
+/**
+ * Acquire a private directory lock beside the queue file. Each owner claim has
+ * an unguessable filename. Release removes only that filename, so a stale owner
+ * cannot unlink a successor lock. Stale takeover uses an exclusive recovery
+ * marker that prevents a successor from appearing until recovery completes.
+ */
+export async function acquireSkillQueueLock(
+	queuePath: string,
+	options: { waitMs?: number; retryMs?: number; staleMs?: number; now?: () => number } = {},
+): Promise<SkillQueueLockHandle> {
+	const lockPath = skillQueueLockPath(queuePath);
+	const waitMs = options.waitMs ?? SKILL_QUEUE_LOCK_WAIT_MS;
+	const retryMs = options.retryMs ?? SKILL_QUEUE_LOCK_RETRY_MS;
+	const deadline = Date.now() + waitMs;
+	let recoveredStale = false;
+	// The first queue mutation must work before the state directory exists.
+	await mkdir(dirname(lockPath), { recursive: true, mode: 0o700 });
+
+	while (true) {
+		const ownerToken = randomUUID();
+		const ownerPath = join(lockPath, `${SKILL_QUEUE_LOCK_OWNER_PREFIX}${ownerToken}`);
+		let createdDirectory = false;
+		try {
+			await mkdir(lockPath, { mode: 0o700 });
+			createdDirectory = true;
+			// The random owner path is inside the directory this attempt created.
+			// O_EXCL prevents replacement; O_NOFOLLOW with O_CREAT is not portable.
+			const handle = await open(
+				ownerPath,
+				constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY,
+				0o600,
+			);
+			try {
+				await handle.writeFile(`${process.pid}\n`, "utf8");
+			} finally {
+				await handle.close();
+			}
+			let released = false;
+			return {
+				path: lockPath,
+				release: async () => {
+					if (released) return;
+					released = true;
+					// Token-specific unlink is ownership-safe even if lockPath now
+					// belongs to a successor directory.
+					await rm(ownerPath, { force: true });
+					await removeQueueLockDirectoryIfEmpty(lockPath);
+				},
+			};
+		} catch (error) {
+			if (createdDirectory) {
+				await rm(ownerPath, { force: true }).catch(() => undefined);
+				await removeQueueLockDirectoryIfEmpty(lockPath).catch(() => undefined);
+			}
+			if (!isLockBusyError(error)) {
+				throw new Error(`skill queue lock failed: ${errorMessage(error)}`);
+			}
+			if (!recoveredStale) {
+				recoveredStale = true;
+				if (await recoverStaleQueueLock(lockPath, options.now?.() ?? Date.now(), options.staleMs ?? SKILL_QUEUE_LOCK_STALE_MS)) continue;
+			}
+			if (Date.now() >= deadline) {
+				throw new Error(`skill queue lock timed out after ${waitMs}ms`);
+			}
+			await sleepMs(retryMs);
+		}
+	}
+}
+
+/**
+ * Reload from disk, apply `mutator`, and atomically rewrite inside both the
+ * in-process `withFileMutationQueue` and an interprocess exclusive lock.
+ * The lock is always released, including on mutator or write failure.
  */
 export async function mutateSkillQueue<T>(
 	mutator: (queue: LoadedSkillQueue) => T | Promise<T>,
 	path: string = skillQueuePath(),
+	lockOptions?: { waitMs?: number; retryMs?: number; staleMs?: number },
 ): Promise<T> {
 	return withFileMutationQueue(path, async () => {
-		const queue = await loadSkillQueue(path);
-		const outcome = await mutator(queue);
-		await writeSkillQueue(queue, path);
-		return outcome;
+		const lock = await acquireSkillQueueLock(path, lockOptions);
+		try {
+			const queue = await loadSkillQueue(path);
+			const outcome = await mutator(queue);
+			await writeSkillQueue(queue, path);
+			return outcome;
+		} finally {
+			await lock.release();
+		}
 	});
 }
 
@@ -3227,11 +3627,16 @@ export default function skillManage(pi: ExtensionAPI) {
 		parameters: SkillManageParams,
 		async execute(_toolCallId, params: SkillManageInput, _signal, _onUpdate, ctx: ToolContext) {
 			const roots = rootsForToolContext(params, ctx);
-			const outcome = await dispatchSkillAction(roots, params, {
-				sessionId: typeof ctx.sessionId === "string" ? ctx.sessionId : undefined,
-				tool: "skill_manage",
-				cwd: ctx.cwd,
-			});
+			const outcome = await dispatchSkillAction(
+				roots,
+				params,
+				{
+					sessionId: typeof ctx.sessionId === "string" ? ctx.sessionId : undefined,
+					tool: "skill_manage",
+					cwd: ctx.cwd,
+				},
+				skillQueuePath(),
+			);
 
 			if (outcome.staged) {
 				const { record, queueDepth } = outcome;
@@ -3293,7 +3698,8 @@ export default function skillManage(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("skills-review", {
-		description: "Review staged skill changes in a diff modal (a/r/s, A approve-all, R reject-all); 'browse' opens the overlay",
+		description:
+			"Review staged skill changes in a diff modal (a/r/s, A approve-all, R reject-all); 'browse' opens the overlay",
 		handler: async (args, ctx) => {
 			const mode = args.trim().toLowerCase();
 			if (mode === "list") return listQueue(ctx);

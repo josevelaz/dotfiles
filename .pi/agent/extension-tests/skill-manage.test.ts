@@ -5,7 +5,7 @@
  * Editor/overlay tests inject deps and never spawn a real editor.
  */
 import { afterEach, describe, expect, mock, test } from "bun:test";
-import { mkdir, mkdtemp, readdir, readFile, readlink, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, readlink, rename, rm, symlink, utimes, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { basename, dirname, join, relative, resolve } from "node:path";
 
@@ -126,6 +126,9 @@ const {
 	MAX_RELATIVE_PATH_DEPTH,
 	MAX_RELATIVE_PATH_LENGTH,
 	MAX_SKILL_NAME_LENGTH,
+	acquireSkillQueueLock,
+	mutateSkillQueue,
+	skillQueueLockPath,
 	NO_REPLAY_AUTHORIZATION,
 	NO_REVIEW_EDITOR_NOTICE,
 	REVIEW_ARTIFACT_WARNING,
@@ -134,6 +137,7 @@ const {
 	SKILL_QUEUE_VERSION,
 	applySkillsReviewStatus,
 	approveAllPendingChanges,
+	atomicWriteFile,
 	approvePendingChange,
 	assertContentWithinBounds,
 	assertInside,
@@ -535,6 +539,26 @@ describe("skill_manage roots and trust", () => {
 // ---------------------------------------------------------------------------
 
 describe("skill_manage executors", () => {
+	test("atomic write stays bound to the validated parent during final rename", async () => {
+		const base = await makeTempRoot();
+		const parent = join(base, "parent");
+		const replacement = join(base, "replacement");
+		const original = join(base, "parent-original");
+		await mkdir(parent);
+		await mkdir(replacement);
+		await writeFile(join(replacement, "target.txt"), "outside unchanged\n");
+
+		await atomicWriteFile(join(parent, "target.txt"), "inside\n", {
+			afterParentOpen: async () => {
+				await rename(parent, original);
+				await rename(replacement, parent);
+			},
+		});
+
+		expect(await readFile(join(original, "target.txt"), "utf8")).toBe("inside\n");
+		expect(await readFile(join(parent, "target.txt"), "utf8")).toBe("outside unchanged\n");
+	});
+
 	test("create writes SKILL.md, relative agents symlink; collision and overwrite", async () => {
 		const base = await makeTempRoot();
 		const roots = skillRootsForBase(base);
@@ -1528,6 +1552,7 @@ describe("skills review footer", () => {
 		expect(shortcuts.find((s) => s.key === "alt+s")?.description).toMatch(/Browse pending skill proposals/);
 		expect(commands.map((c) => c.name).sort()).toEqual(["skills-approval", "skills-queue", "skills-review"]);
 		expect(commands.find((c) => c.name === "skills-review")?.description).toMatch(/browse/i);
+		expect(commands.find((c) => c.name === "skills-review")?.description ?? "").not.toMatch(/model/i);
 		expect(commands.find((c) => c.name === "skills-queue")?.description).toMatch(/oldest first/i);
 		expect(commands.find((c) => c.name === "skills-approval")?.description).toMatch(/on\|off\|status/);
 	});
@@ -1562,6 +1587,8 @@ describe("skill_manage registration", () => {
 			"Browse pending skill proposals (reloads the staged queue, then opens the overlay)",
 		);
 		expect(commands.find((c) => c.name === "skills-review")?.description).toContain("browse");
+		expect(commands.find((c) => c.name === "skills-review")?.description ?? "").not.toMatch(/model/i);
+		expect(commands.find((c) => c.name === "skills-review-model")).toBeUndefined();
 		expect(commands.find((c) => c.name === "skills-queue")).toBeDefined();
 		expect(commands.find((c) => c.name === "skills-approval")).toBeDefined();
 	});
@@ -2618,5 +2645,112 @@ describe("skill_manage agent tree escapes", () => {
 		);
 		expect(await readdir(captured)).toEqual([]);
 		expect(await readdir(join(roots.skillsRoot, "edit-escape"))).toEqual(["SKILL.md"]);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Skill queue interprocess lock
+// ---------------------------------------------------------------------------
+
+describe("skill queue interprocess lock", () => {
+	test("queue mutations take an exclusive interprocess lock around the full transaction", async () => {
+		const base = await makeTempRoot();
+		const queuePath = join(base, "skill-manage-queue.json");
+		const lockPath = skillQueueLockPath(queuePath);
+		const lock = await acquireSkillQueueLock(queuePath);
+		expect(await pathExists(lockPath)).toBe(true);
+
+		await expect(mutateSkillQueue((queue) => {
+			queue.pending.push({
+				id: "00000000-0000-4000-8000-000000000001",
+				action: "create",
+				name: "blocked",
+				scope: "global",
+				gist: "blocked",
+				origin: { tool: "skill_manage", cwd: base },
+				createdAt: new Date().toISOString(),
+				securityFlags: [],
+				payload: { action: "create", name: "blocked" },
+				skillsRoot: join(base, "skills"),
+				agentsRoot: join(base, ".agents", "skills"),
+				lockPath: join(base, ".agents", ".skill-lock.json"),
+				skillDir: join(base, "skills", "blocked"),
+				targetPath: join(base, "skills", "blocked", "SKILL.md"),
+				relativeTarget: "blocked/SKILL.md",
+				previousContent: null,
+				nextContent: SKILL_BODY,
+				diff: "",
+			});
+			return queue.pending.length;
+		}, queuePath, { waitMs: 80, retryMs: 10 })).rejects.toThrow(/timed out/);
+
+		const successorOwner = join(lockPath, "owner-successor");
+		await writeFile(successorOwner, `${process.pid}\n`, { mode: 0o600 });
+		await lock.release();
+		// A former owner removes only its token; it cannot unlink a successor.
+		expect(await pathExists(lockPath)).toBe(true);
+		expect(await readFile(successorOwner, "utf8")).toBe(`${process.pid}\n`);
+		await rm(successorOwner);
+		await rm(lockPath, { recursive: true });
+
+		const stale = join(base, "stale-queue.json.lock");
+		await writeFile(stale, "dead\n");
+		const aged = new Date(Date.now() - 60_000);
+		await utimes(stale, aged, aged);
+		const recovered = await acquireSkillQueueLock(join(base, "stale-queue.json"), {
+			waitMs: 200,
+			retryMs: 10,
+			staleMs: 1_000,
+		});
+		expect(recovered.path).toBe(stale);
+		await recovered.release();
+
+		const workers = Array.from({ length: 4 }, (_, index) => `
+import { mutateSkillQueue, setSkillQueuePath } from ${JSON.stringify(new URL("../extensions/skill-manage.ts", import.meta.url).href)};
+setSkillQueuePath(${JSON.stringify(queuePath)});
+const name = ${JSON.stringify(`worker-${index}`)};
+const record = {
+	id: crypto.randomUUID(),
+	action: "create",
+	name,
+	scope: "global",
+	gist: name,
+	origin: { tool: "skill_manage", cwd: ${JSON.stringify(base)} },
+	createdAt: new Date(Date.now() + ${index}).toISOString(),
+	securityFlags: [],
+	payload: { action: "create", name },
+	skillsRoot: ${JSON.stringify(join(base, "skills"))},
+	agentsRoot: ${JSON.stringify(join(base, ".agents", "skills"))},
+	lockPath: ${JSON.stringify(join(base, ".agents", ".skill-lock.json"))},
+	skillDir: ${JSON.stringify(join(base, "skills"))} + "/" + name,
+	targetPath: ${JSON.stringify(join(base, "skills"))} + "/" + name + "/SKILL.md",
+	relativeTarget: name + "/SKILL.md",
+	previousContent: null,
+	nextContent: "# " + name + "\\n",
+	diff: "",
+};
+await mutateSkillQueue((queue) => {
+	queue.pending.push(record);
+	return queue.pending.length;
+}, ${JSON.stringify(queuePath)});
+`);
+		const results = await Promise.all(workers.map((source) => {
+			const subprocess = Bun.spawn(["bun", "-e", source], { stdout: "pipe", stderr: "pipe" });
+			return subprocess.exited.then(async (code) => {
+				const stderr = await new Response(subprocess.stderr).text();
+				return { code, stderr };
+			});
+		}));
+		for (const result of results) {
+			expect(result.code, result.stderr).toBe(0);
+		}
+		const pending = await pendingSkillChanges(queuePath);
+		expect(pending.map((record) => record.name).sort()).toEqual([
+			"worker-0",
+			"worker-1",
+			"worker-2",
+			"worker-3",
+		]);
+		expect(await pathExists(lockPath)).toBe(false);
 	});
 });

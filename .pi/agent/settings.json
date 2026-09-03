@@ -1,21 +1,40 @@
 {
-  "lastChangelogVersion": "0.80.3",
+  "lastChangelogVersion": "0.84.4",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.5",
-  "defaultThinkingLevel": "high",
+  "defaultModel": "gpt-5.6-sol",
+  "defaultThinkingLevel": "xhigh",
   "packages": [
     "npm:pi-markdown-preview",
     "npm:pi-vim",
-    "npm:@agney/pi-honcho-memory",
-    "npm:@tavily/pi-extension",
-    "npm:pi-themes-rose-pine"
+    "npm:@ogulcancelik/pi-codex-compaction",
+    "npm:pi-intercom",
+    "npm:@upstash/context7-pi",
+    "npm:pi-clarify",
+    "npm:@ogulcancelik/pi-herdr-worktree-jump",
+    "npm:@cortexkit/aft-pi"
   ],
-  "knowledge-search": {
-    "paths": [
-      "~/obsidian_vaults/notes"
-    ]
-  },
   "hideThinkingBlock": false,
-  "theme": "rose-pine",
-  "doubleEscapeAction": "tree"
+  "theme": "orng",
+  "doubleEscapeAction": "tree",
+  "showCacheMissNotices": true,
+  "warnings": {
+    "anthropicExtraUsage": false
+  },
+  "editorPaddingX": 3,
+  "tuiMode": "fullscreen",
+  "fullscreenScrollbar": "auto",
+  "outputPad": 1,
+  "autocompleteMaxVisible": 20,
+  "terminal": {
+    "showTerminalProgress": false
+  },
+  "enableInstallTelemetry": false,
+  "retry": {
+    "maxRetries": 20,
+    "enabled": true
+  },
+  "fullscreenExitOutput": "resume-hint",
+  "compaction": {
+    "enabled": true
+  }
 }

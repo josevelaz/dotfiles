@@ -2,7 +2,9 @@
  * Pi /learn extension.
  *
  * Turns URLs, local sources, pasted notes, or the current conversation into a
- * reusable Agent Skill, modeled after Hermes' /learn command. The companion
+ * reusable Agent Skill, modeled after Hermes' /learn command. Learning is
+ * always user-initiated: the extension only acts when the user runs /learn and
+ * never reviews a session or authors a skill on its own. The companion
  * skill-manage extension owns the skill_manage tool and write-review flow.
  */
 

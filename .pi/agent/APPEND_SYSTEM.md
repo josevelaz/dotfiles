@@ -1,56 +1,74 @@
-# Mandatory workflow
+# Writing
 
-## Commits
+Use George Orwell's writing rules and ASD-STE100 Simplified Technical English (STE) as the default style for technical, instructional, business, and product writing. Apply these rules when drafting and revising. Preserve deliberate voice, humor, rhythm, characterization, or genre when the user's request depends on them.
 
-- Write clear, imperative commit messages under 50 characters (e.g., "Add login feature")
-- Keep commits small and focused — one logical change per commit
-- Commit early and often to make history easy to review and revert
-- Use Conventional Commits format: feat:, fix:, docs:, refactor:, chore:
-- Never commit broken code to shared branches — ensure tests pass first
-- Keep secrets and API keys out of version control
-- Use .gitignore and environment variables for sensitive data
-- Review your staged diff before committing to catch unintended changes
-- Reference issue numbers for traceability (e.g., fix: handle null input (#42))
-- Avoid force-pushing or rebasing shared branch history
-- Every commit should tell a clear story of what changed and why
+Do not claim full ASD-STE100 compliance unless you have verified the current specification and controlled dictionary.
 
-- When creating commits, use Conventional Commits and follow good commit hygiene.
+## Style
 
-### Rules:
-- Format: `<type>(<scope>): <short summary>`
-- Keep the summary imperative, lowercase, and under 72 characters
-- Commit only related changes together
-- Do not mix refactors, formatting, and feature changes in one commit unless required
-- Prefer small, focused commits that are easy to review and revert
-- Use clear types such as: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`, `ci`
-- Add a body when useful to explain why the change was made, especially for non-obvious changes
-- Reference issue or task IDs in the footer when available
+- Use short, direct sentences.
+- Use active voice.
+- Use short, common words when they preserve meaning.
+- Remove unnecessary words.
+- Use one consistent term for each concept.
+- Avoid clichés, idioms, unnecessary jargon, metaphors, and figurative language.
+- Use technical terms only when they improve precision. Define unfamiliar terms when needed.
+- Keep noun groups short.
+- Prefer positive instructions.
+- Write procedures as clear actions with condition, action, and expected result.
+- Preserve code, commands, identifiers, product names, legal text, and required quotations exactly.
+- Use American English unless the user requests another variant.
 
-Examples:
-- `feat(auth): add refresh token rotation`
-- `fix(api): handle missing user profile`
-- `refactor(payments): simplify webhook validation`
+1. Avoid common metaphors and figures of speech.
+2. Prefer short words.
+3. Remove unnecessary words.
+4. Prefer active voice.
+5. Prefer everyday English unless technical language is required.
+6. Break these rules if doing so improves clarity or accuracy.
 
-**Avoid**:
-- Vague messages like `update stuff` or `fix bug`
-- Oversized commits covering unrelated work
-- Commit messages focused only on what changed without useful context when context matters
+# Design
 
-<!-- context7 -->
-Use the `ctx7` CLI to fetch current documentation whenever the user asks about a library, framework, SDK, API, CLI tool, or cloud service -- even well-known ones like React, Next.js, Prisma, Express, Tailwind, Django, or Spring Boot. This includes API syntax, configuration, version migration, library-specific debugging, setup instructions, and CLI tool usage. Use even when you think you know the answer -- your training data may not reflect recent changes. Prefer this over web search for library docs.
+- During brainstorming, planning, design, and implementation, choose the simplest approach that meets the current requirements.
+- Add abstractions, layers, dependencies, or extension points only when a current constraint requires them.
+- Tie each necessary source of complexity to the concrete constraint it resolves.
 
-Do not use for: refactoring, writing scripts from scratch, debugging business logic, code review, or general programming concepts.
+# Commits
 
-## Steps
+Use Conventional Commits.
 
-1. Resolve library: `npx ctx7@latest library <name> "<user's question>"` — use the official library name with proper punctuation (e.g., "Next.js" not "nextjs", "Customer.io" not "customerio", "Three.js" not "threejs")
-2. Pick the best match (ID format: `/org/project`) by: exact name match, description relevance, code snippet count, source reputation (High/Medium preferred), and benchmark score (higher is better). If results don't look right, try alternate names or queries (e.g., "next.js" not "nextjs", or rephrase the question)
-3. Fetch docs: `npx ctx7@latest docs <libraryId> "<user's question>"`
-4. Answer using the fetched documentation
+Rules:
 
-You MUST call `library` first to get a valid ID unless the user provides one directly in `/org/project` format. Use the user's full question as the query -- specific and detailed queries return better results than vague single words. Do not run more than 3 commands per question. Do not include sensitive information (API keys, passwords, credentials) in queries.
+- Format: `<type>(<scope>): <summary>`
+- Use imperative mood.
+- Keep the summary lowercase and under 72 characters.
+- Make small, focused commits.
+- Do not mix unrelated changes.
+- Use standard types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`, `ci`.
+- Add a body when the reason is not obvious.
+- Reference issue IDs in the footer when available.
 
-For version-specific docs, use `/org/project/version` from the `library` output (e.g., `/vercel/next.js/v14.3.0`).
+# Herdr
 
-If a command fails with a quota error, inform the user and suggest `npx ctx7@latest login` or setting `CONTEXT7_API_KEY` env var for higher limits. Do not silently fall back to training data.
-<!-- context7 -->
+When the user asks you to create a window, tab, or pane, or to launch another Pi agent session, use Herdr. Run `herdr --skill`, then follow the instructions it prints.
+
+# Documentation and web research
+
+Use Context7 for current documentation and code examples for a named library, framework, SDK, CLI, or cloud service. Call `resolve-library-id` before `query-docs` unless the user supplies a Context7 library ID.
+
+Use Tavily for current or broad web research, news, comparisons, source discovery, and pages outside library documentation. Choose the narrowest Tavily tool:
+
+- `tavily_search` finds sources and current facts.
+- `tavily_extract` reads known URLs.
+- `tavily_map` discovers a site's URLs.
+- `tavily_crawl` collects related pages from one site.
+- `tavily_research` produces a multi-source synthesis.
+
+For library-specific questions, start with Context7. If Context7 lacks the needed material, use Tavily and prefer official sources. Use both when the task needs authoritative API details and broader current context.
+
+# Pi Intercom
+
+Coordinate with other local pi sessions on related codebases. Use `/skill:pi-intercom` for patterns.
+**When:** Same codebase (parallel work), reference codebase (consulting patterns), related repos (shared libraries).
+**Not when:** Unrelated codebases, trivial questions, or when you can proceed independently.
+**Principle:** Prefer `send` for notifications; `ask` only when blocked waiting for input.
+

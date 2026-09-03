@@ -373,6 +373,16 @@ describe("registered /learn and skill_manage integration", () => {
 		expect(await pendingSkillChanges(queuePath)).toHaveLength(1);
 	});
 
+	test("registers only the manual skill surface: skill_manage plus /learn and review commands", async () => {
+		const foreground = registerBoth();
+		expect([...foreground.tools.keys()]).toEqual(["skill_manage"]);
+		expect(foreground.commands.has("learn")).toBe(true);
+		expect(foreground.commands.has("skills-review")).toBe(true);
+		expect(foreground.commands.has("skills-queue")).toBe(true);
+		expect(foreground.commands.has("skills-approval")).toBe(true);
+		expect(foreground.commands.has("skills-review-model")).toBe(false);
+	});
+
 	test("rejects locked creates and every SKILL.md casing or nesting for write_file", async () => {
 		const project = await makeProjectRoot();
 		const harness = registerBoth();

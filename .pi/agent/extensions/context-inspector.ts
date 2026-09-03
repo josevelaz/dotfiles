@@ -72,7 +72,7 @@ interface ContextSection {
 
 // ─── Build sections ──────────────────────────────────────────────────
 
-function buildSections(ctx: ExtensionCommandContext): {
+function buildSections(ctx: ExtensionCommandContext, systemPrompt: string): {
 	systemSections: ContextSection[];
 	messageSections: ContextSection[];
 	totalTokens: number;
@@ -84,7 +84,6 @@ function buildSections(ctx: ExtensionCommandContext): {
 	let totalTokens = 0;
 
 	// 1. System prompt breakdown
-	const systemPrompt = ctx.getSystemPrompt();
 	if (systemPrompt) {
 		const promptChars = systemPrompt.length;
 		const promptTokens = estimateTokens(systemPrompt);
@@ -98,12 +97,16 @@ function buildSections(ctx: ExtensionCommandContext): {
 		const subSections: { label: string; text: string }[] = [];
 
 		for (const line of lines) {
-			// Detect major headings as section boundaries
-			if (line.startsWith("# ")) {
+			const isMarkdownHeading = line.startsWith("# ");
+			const isPersistentMemoryHeading = line.trim() === "[Persistent memory]";
+
+			if (isMarkdownHeading || isPersistentMemoryHeading) {
 				if (currentSection.trim()) {
 					subSections.push({ label: currentLabel, text: currentSection });
 				}
-				currentLabel = line.replace(/^#+\s*/, "");
+				currentLabel = isPersistentMemoryHeading
+					? "Persistent memory"
+					: line.replace(/^#+\s*/, "");
 				currentSection = line + "\n";
 			} else {
 				currentSection += line + "\n";
@@ -600,6 +603,20 @@ class ContextInspector {
 // ─── Extension entry point ────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
+	let latestEffectiveSystemPrompt: string | undefined;
+
+	pi.on("agent_start", (_event, ctx) => {
+		latestEffectiveSystemPrompt = ctx.getSystemPrompt();
+	});
+
+	pi.on("session_tree", () => {
+		latestEffectiveSystemPrompt = undefined;
+	});
+
+	pi.on("session_shutdown", () => {
+		latestEffectiveSystemPrompt = undefined;
+	});
+
 	pi.registerCommand("context", {
 		description: "Inspect the model's context window — system prompt, messages, tokens, cache",
 		handler: async (_args, ctx) => {
@@ -608,7 +625,11 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			const { systemSections, messageSections, totalTokens, totalChars } = buildSections(ctx);
+			const systemPrompt = latestEffectiveSystemPrompt ?? ctx.getSystemPrompt();
+			const { systemSections, messageSections, totalTokens, totalChars } = buildSections(
+				ctx,
+				systemPrompt,
+			);
 
 			// Get real context usage if available
 			const rawUsage = ctx.getContextUsage();
