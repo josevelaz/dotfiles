@@ -10,15 +10,30 @@ onboarding = false
 # Built-in themes: catppuccin, terminal, tokyo-night, dracula, nord,
 #                  gruvbox, one-dark, solarized, kanagawa, rose-pine,
 #                  vesper
-name = "rose-pine"
+name = "terminal"
 
 # Override individual color tokens on top of the base theme.
 # Accepts: hex (#rrggbb), named colors, rgb(r,g,b), or panel_bg = "reset"
-# [theme.custom]
-# panel_bg = "reset"
-# accent = "#f5c2e7"
-# red = "#ff6188"
-# green = "#a6e3a1"
+[theme.custom]
+panel_bg = "#0a0a0a"
+sidebar_bg = "#0a0a0a"
+active_row_bg = "#242424"
+selection_bg = "#242424"
+surface0 = "#161616"
+surface1 = "#242424"
+surface_dim = "#161616"
+overlay0 = "#3a3a3a"
+overlay1 = "#5c5c5c"
+text = "#eeeeee"
+subtext0 = "#808080"
+accent = "#EC5B2B"
+mauve = "#EE7948"
+green = "#6ba1e6"
+yellow = "#e5c07b"
+red = "#e06c75"
+blue = "#6ba1e6"
+teal = "#56b6c2"
+peach = "#EE7948"
 
 [terminal]
 # Executable used for new interactive panes.
@@ -127,13 +142,16 @@ description = "workspace picker (fzf)"
 
 [ui]
 # Sidebar width (auto-scaled based on workspace names, this sets the default)
-# sidebar_width = 26
+sidebar_width = 36
 
 # Minimum sidebar width when expanded (columns)
-# sidebar_min_width = 18
+sidebar_min_width = 30
 
 # Maximum sidebar width when expanded (columns)
-# sidebar_max_width = 36
+sidebar_max_width = 80
+
+# Custom agent rows render only in the expanded sidebar.
+sidebar_start_collapsed = false
 
 # Terminal width at or below which Herdr uses the mobile single-column layout.
 # Increase this for foldables, tablets, or wide phone terminals.
@@ -174,9 +192,9 @@ description = "workspace picker (fzf)"
 # accent = "cyan"
 
 # Background notification popup delivery
-agent_panel_scope = "all"
 agent_panel_sort = "spaces"
 show_agent_labels_on_pane_borders = true
+
 [ui.toast]
 # off = disable pop-up notifications
 # herdr = show top-right in-app toasts
@@ -185,7 +203,7 @@ show_agent_labels_on_pane_borders = true
 # delivery = "off"
 
 # Play sounds when agents change state in background workspaces
-delivery = "terminal"
+delivery = "system"
 [ui.sound]
 # enabled = true
 # Optional custom mp3 sound files. Relative paths are resolved from this config file's directory.
@@ -218,7 +236,7 @@ delivery = "terminal"
 # allow_nested = false
 # Experimental local Kitty graphics rendering for attached clients.
 # Requires a Kitty graphics-compatible outer terminal.
-# kitty_graphics = false
+kitty_graphics = true
 # Save recent pane screen history across full server restarts.
 pane_history = true
 # While prefix mode is active, temporarily switch the macOS host input
@@ -241,8 +259,34 @@ pane_history = true
 # Values: block, steady_block (default), underline, steady_underline, bar, steady_bar.
 # cjk_ime_cursor_shape = "steady_block"
 
-switch_ascii_input_source_in_prefix = false
+switch_ascii_input_source_in_prefix = true
 [advanced]
 # Maximum scrollback buffer size in bytes retained per pane terminal.
 # Matches Ghostty's default scrollback-limit behavior.
 # scrollback_limit_bytes = 10000000
+
+# BEGIN jhochenbaum.hunkdiff — managed by `setup-keys`; edit via the plugin, not by hand
+[[keys.command]]
+key = "prefix+shift+h"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.review"
+description = "hunk: review changes"
+
+[[keys.command]]
+key = "prefix+shift+s"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.send-review"
+description = "hunk: send review to agent"
+
+[[keys.command]]
+key = "prefix+shift+c"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.review:commit"
+description = "hunk: review the last commit"
+
+[[keys.command]]
+key = "prefix+shift+a"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.review:staged"
+description = "hunk: review staged changes"
+# END jhochenbaum.hunkdiff

@@ -1,1 +1,309 @@
-[]
+[
+  {
+    "plugin_id": "jhochenbaum.hunkdiff",
+    "name": "hunk",
+    "version": "0.1.0",
+    "min_herdr_version": "0.8.0",
+    "description": "Review agent-authored diffs in hunk, and send your inline comments back to the agent that wrote them.",
+    "manifest_path": "/Users/jose/dotfiles/.config/herdr/plugins/github/jhochenbaum.hunkdiff-a2dc99e853fa/herdr-plugin.toml",
+    "plugin_root": "/Users/jose/dotfiles/.config/herdr/plugins/github/jhochenbaum.hunkdiff-a2dc99e853fa",
+    "enabled": true,
+    "platforms": [
+      "macos",
+      "linux"
+    ],
+    "build": [
+      {
+        "command": [
+          "npm",
+          "ci"
+        ]
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "close-review",
+        "title": "hunk: close the review pane",
+        "contexts": [
+          "pane",
+          "workspace"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "close-review"
+        ]
+      },
+      {
+        "id": "install-pager",
+        "title": "hunk: set up hunk as your VCS pager (git automatically, jj and sl by hand)",
+        "contexts": [
+          "workspace"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "install-pager"
+        ]
+      },
+      {
+        "id": "next-comment",
+        "title": "hunk: go to the next review comment",
+        "contexts": [
+          "pane",
+          "workspace"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "next-comment"
+        ]
+      },
+      {
+        "id": "prev-comment",
+        "title": "hunk: go to the previous review comment",
+        "contexts": [
+          "pane",
+          "workspace"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "prev-comment"
+        ]
+      },
+      {
+        "id": "reload",
+        "title": "hunk: reload the open review",
+        "contexts": [
+          "workspace",
+          "pane"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "reload"
+        ]
+      },
+      {
+        "id": "remove-keys",
+        "title": "hunk: remove default keybindings",
+        "contexts": [
+          "workspace"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "remove-keys"
+        ]
+      },
+      {
+        "id": "review",
+        "title": "hunk: review changes",
+        "contexts": [
+          "workspace",
+          "pane"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "review"
+        ]
+      },
+      {
+        "id": "review:branch",
+        "title": "hunk: review this branch against its base",
+        "contexts": [
+          "workspace",
+          "pane"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "review:branch"
+        ]
+      },
+      {
+        "id": "review:commit",
+        "title": "hunk: review the last commit (or a clicked GitHub commit link)",
+        "contexts": [
+          "workspace"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "review:commit"
+        ]
+      },
+      {
+        "id": "review:staged",
+        "title": "hunk: review staged changes",
+        "contexts": [
+          "workspace"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "review:staged"
+        ]
+      },
+      {
+        "id": "review:stash",
+        "title": "hunk: review the most recent stash entry",
+        "contexts": [
+          "workspace"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "review:stash"
+        ]
+      },
+      {
+        "id": "send-review",
+        "title": "hunk: send review to agent",
+        "contexts": [
+          "pane"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "send-review"
+        ]
+      },
+      {
+        "id": "setup-keys",
+        "title": "hunk: install default keybindings",
+        "contexts": [
+          "workspace"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "setup-keys"
+        ]
+      },
+      {
+        "id": "uninstall-pager",
+        "title": "hunk: stop using hunk as your VCS pager",
+        "contexts": [
+          "workspace"
+        ],
+        "command": [
+          "node",
+          "dist/bin/action.js",
+          "uninstall-pager"
+        ]
+      }
+    ],
+    "events": [
+      {
+        "on": "pane.agent_status_changed",
+        "command": [
+          "sh",
+          "-c",
+          "exec node \"${HERDR_PLUGIN_ROOT:-.}/dist/bin/event.js\""
+        ]
+      },
+      {
+        "on": "pane.closed",
+        "command": [
+          "sh",
+          "-c",
+          "exec node \"${HERDR_PLUGIN_ROOT:-.}/dist/bin/event.js\""
+        ]
+      },
+      {
+        "on": "pane.exited",
+        "command": [
+          "sh",
+          "-c",
+          "exec node \"${HERDR_PLUGIN_ROOT:-.}/dist/bin/event.js\""
+        ]
+      },
+      {
+        "on": "worktree.removed",
+        "command": [
+          "sh",
+          "-c",
+          "exec node \"${HERDR_PLUGIN_ROOT:-.}/dist/bin/event.js\""
+        ]
+      }
+    ],
+    "panes": [
+      {
+        "id": "review",
+        "title": "hunk review",
+        "placement": "split",
+        "command": [
+          "sh",
+          "-c",
+          "exec node \"$HERDR_PLUGIN_ROOT/dist/bin/pane.js\" review"
+        ]
+      },
+      {
+        "id": "review-branch",
+        "title": "hunk review (branch)",
+        "placement": "split",
+        "command": [
+          "sh",
+          "-c",
+          "exec node \"$HERDR_PLUGIN_ROOT/dist/bin/pane.js\" review:branch"
+        ]
+      },
+      {
+        "id": "review-commit",
+        "title": "hunk review (commit)",
+        "placement": "split",
+        "command": [
+          "sh",
+          "-c",
+          "exec node \"$HERDR_PLUGIN_ROOT/dist/bin/pane.js\" review:commit"
+        ]
+      },
+      {
+        "id": "review-staged",
+        "title": "hunk review (staged)",
+        "placement": "split",
+        "command": [
+          "sh",
+          "-c",
+          "exec node \"$HERDR_PLUGIN_ROOT/dist/bin/pane.js\" review:staged"
+        ]
+      },
+      {
+        "id": "review-stash",
+        "title": "hunk review (stash)",
+        "placement": "split",
+        "command": [
+          "sh",
+          "-c",
+          "exec node \"$HERDR_PLUGIN_ROOT/dist/bin/pane.js\" review:stash"
+        ]
+      }
+    ],
+    "link_handlers": [
+      {
+        "id": "github-commit",
+        "title": "hunk: review this GitHub commit",
+        "pattern": "^https://github\\.com/[^/]+/[^/]+/commit/[0-9a-fA-F]{7,40}/?$",
+        "action": "review:commit"
+      }
+    ],
+    "source": {
+      "kind": "github",
+      "owner": "jhochenbaum",
+      "repo": "herdr-hunk-diff",
+      "resolved_commit": "6810ab31b34ec28eb302603846bc4339e7063655",
+      "managed_path": "/Users/jose/.config/herdr/plugins/github/jhochenbaum.hunkdiff-a2dc99e853fa",
+      "installed_unix_ms": 1786977722915
+    }
+  }
+]
