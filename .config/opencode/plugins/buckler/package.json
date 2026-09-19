@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "description": "OpenCode plugin that gates write/edit with TypeSafe Jev against a markdown style guide",
   "license": "MIT",
-  "files": ["index.ts", "README.md"],
+  "files": ["index.ts", "loader.ts", "README.md"],
   "type": "module",
   "exports": "./index.ts",
   "scripts": {
-    "typecheck": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler index.ts"
+    "typecheck": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler index.ts loader.ts"
   },
   "dependencies": {
     "@opencode/plugin": "2.0.3",
