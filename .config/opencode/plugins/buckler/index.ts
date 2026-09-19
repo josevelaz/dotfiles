@@ -1,4 +1,5 @@
 import { Plugin } from "@opencode/plugin"
+import { gateBucklerState } from "./gate"
 import { loadBucklerState } from "./loader"
 
 export default Plugin.define({
@@ -15,8 +16,7 @@ export default Plugin.define({
         input: event.input,
       })
       if (!state) return
-      // Consumed by the follow-up gating step. Retained without logging.
-      void state
+      await gateBucklerState(state)
     })
   },
 })
