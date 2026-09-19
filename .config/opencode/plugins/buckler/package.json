@@ -1,0 +1,19 @@
+{
+  "name": "opencode-buckler",
+  "version": "0.1.0",
+  "description": "OpenCode plugin that gates write/edit with TypeSafe Jev against a markdown style guide",
+  "license": "MIT",
+  "files": ["index.ts", "README.md"],
+  "type": "module",
+  "exports": "./index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler index.ts"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.0.3",
+    "@typesafe-ai/sdk": "^0.6.0"
+  },
+  "devDependencies": {
+    "typescript": "5.8.2"
+  }
+}
