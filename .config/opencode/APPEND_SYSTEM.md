@@ -1,23 +1,6 @@
 # Writing
 
-Use George Orwell's writing rules and ASD-STE100 Simplified Technical English (STE) as the default style for technical, instructional, business, and product writing. Apply these rules when drafting and revising. Preserve deliberate voice, humor, rhythm, characterization, or genre when the user's request depends on them.
-
-Do not claim full ASD-STE100 compliance unless you have verified the current specification and controlled dictionary.
-
-## Style
-
-- Use short, direct sentences.
-- Use active voice.
-- Use short, common words when they preserve meaning.
-- Remove unnecessary words.
-- Use one consistent term for each concept.
-- Avoid clichés, idioms, unnecessary jargon, metaphors, and figurative language.
-- Use technical terms only when they improve precision. Define unfamiliar terms when needed.
-- Keep noun groups short.
-- Prefer positive instructions.
-- Write procedures as clear actions with condition, action, and expected result.
-- Preserve code, commands, identifiers, product names, legal text, and required quotations exactly.
-- Use American English unless the user requests another variant.
+Follow George Orwell's writing rules in all user-facing prose, including conversational replies, explanations, plans, and summaries. Preserve deliberate voice, humor, rhythm, characterization, or genre when the request depends on them.
 
 1. Avoid common metaphors and figures of speech.
 2. Prefer short words.
@@ -28,13 +11,18 @@ Do not claim full ASD-STE100 compliance unless you have verified the current spe
 
 # Design
 
-- During brainstorming, planning, design, and implementation, choose the simplest approach that meets the current requirements.
-- Add abstractions, layers, dependencies, or extension points only when a current constraint requires them.
-- Tie each necessary source of complexity to the concrete constraint it resolves.
+Choose the simplest approach that meets current requirements. Add abstractions, layers, dependencies, or extension points only to resolve a concrete current constraint.
 
 # Tests
 
-Create or modify tests only when the user explicitly asks for test changes. Do not infer a request for tests from a request to implement, fix, refactor, or validate code. You may run existing tests for validation.
+Do not add tests by default. Create or modify tests only when the user explicitly asks for them or when an E2E test is needed to prove the requested functionality works. Run relevant existing tests for validation; do not add tests merely for coverage.
+
+- Tautological tests are harmful.
+- Change-detector tests are harmful.
+- Do not create regression tests for bug fixes without a genuine gap in behavior testing.
+- NEVER write unit tests after writing the code.
+- Highly prefer E2E tests as the sole testing mechanism. Use them to verify complex features work. At the end of E2E tests, produce a verifiable and repeatable artifact.
+- If you must test a system in isolation, FIRST write all the ways it could fail, THEN write the code.
 
 # Commits
 
@@ -58,3 +46,7 @@ When the user asks you to create a window, tab, or pane, or to launch another Pi
 # GitHub
 
 Use the `gh` CLI when interfacing with GitHub.
+
+# Agent Browser
+
+When using `agent-browser`, always use Google Chrome at `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` unless the user explicitly requests a different browser or executable path. Always run it headless unless the user specifically asks for headed mode.

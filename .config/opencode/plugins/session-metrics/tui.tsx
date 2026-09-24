@@ -2,7 +2,7 @@
 import { open, stat } from "node:fs/promises"
 import { homedir } from "node:os"
 import { join } from "node:path"
-import { Plugin, usePlugin } from "@opencode-ai/plugin/tui"
+import { Plugin, usePlugin } from "@opencode/plugin/tui"
 import { createMemo, onMount, Show } from "solid-js"
 import {
   formatCacheHitPercentage,

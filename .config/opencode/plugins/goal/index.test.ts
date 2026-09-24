@@ -46,12 +46,23 @@ class GoalHarness {
   }> = []
   readonly cancelled: string[] = []
   readonly messages: SnapshotSource[] = []
+  readonly store = new Map<string, unknown>()
   tokens = usage(0)
   contextHook: ContextHook | undefined
   inboxSeq = 0
   lastPromptID = ""
 
   readonly userInbox = new Set<string>()
+
+  readonly storage = {
+    get: async (key: string) => this.store.get(key) as never,
+    set: async (key: string, value: unknown) => {
+      this.store.set(key, value)
+    },
+    remove: async (key: string) => {
+      this.store.delete(key)
+    },
+  }
 
   readonly ctx = {
     command: {
@@ -104,16 +115,25 @@ class GoalHarness {
     event: {
       subscribe: async function* () {},
     },
+    storage: undefined as unknown as GoalHarness["storage"],
   }
 
   readonly runtime: GoalRuntime
 
   constructor(options?: { budgets?: { maxContinuations: number } }) {
+    this.ctx.storage = this.storage
     this.runtime = new GoalRuntime(this.ctx as unknown as GoalPluginContext, options)
   }
 
   async start(): Promise<void> {
     await this.runtime.start()
+  }
+
+  disableInbox(): void {
+    // Simulate the production plugin host, which does not expose
+    // session.inbox to plugins, so remote cancel is unavailable.
+    const session = this.ctx.session as unknown as { inbox?: unknown }
+    session.inbox = undefined
   }
 
   async command(text: string, delivery: "steer" | "queue" = "queue"): Promise<void> {
@@ -246,6 +266,27 @@ describe("GoalRuntime model context and reports", () => {
     expect(active.system[0]?.text).toContain("Reach 90% coverage")
     expect(active.system[0]?.text).toContain("completion audit")
     expect(active.tools.goal_report).toBeDefined()
+  })
+
+  test("keeps exactly one goal block as the last system entry", async () => {
+    const app = new GoalHarness()
+    await app.start()
+    await app.command("Stay last")
+    const event = {
+      sessionID: SESSION,
+      system: [
+        { type: "text", text: "Built-in instructions" },
+        { type: "text", text: "## Active Goal\n\nstale block" },
+        { type: "text", text: "Another plugin's addition" },
+      ] as Array<{ type: string; text: string }>,
+      tools: { goal_report: { description: "x" } },
+    }
+    await app.contextHook?.(event)
+    const goalBlocks = event.system.filter((part) => part.text.startsWith("## Active Goal"))
+    expect(goalBlocks).toHaveLength(1)
+    expect(goalBlocks[0]?.text).toContain("Stay last")
+    expect(event.system.at(-1)?.text).toContain("Stay last")
+    expect(event.system[0]?.text).toBe("Built-in instructions")
   })
 
   test("achieved and blocked reports require evidence and stop continuation", async () => {
@@ -454,5 +495,144 @@ describe("GoalRuntime restore and fork", () => {
     expect(parseGoalSnapshot(app.synthetics.at(-1)?.metadata?.[GOAL_SNAPSHOT_KEY])).toMatchObject({
       objective: "Parent goal",
     })
+  })
+
+  test("restores the goal in the context hook after a restart", async () => {
+    const app = new GoalHarness()
+    await app.start()
+    await app.command("Survive restarts")
+
+    // Simulate a server restart: a fresh runtime with empty in-memory caches
+    // but the same durable transcript and storage.
+    const rebooted = new GoalHarness()
+    rebooted.messages.push(...app.messages)
+    for (const [key, value] of app.store) rebooted.store.set(key, value)
+    await rebooted.start()
+
+    const event = {
+      sessionID: SESSION,
+      system: [] as Array<{ type: string; text: string }>,
+      tools: { goal_report: { description: "x" } },
+    }
+    await rebooted.contextHook?.(event)
+    expect(event.system[0]?.text).toContain("Survive restarts")
+    expect(event.tools.goal_report).toBeDefined()
+  })
+
+  test("falls back to storage when the transcript window has no snapshot", async () => {
+    const app = new GoalHarness()
+    await app.start()
+    await app.command("Stored goal survives compaction")
+
+    // Simulate compaction evicting the snapshot messages from the context window.
+    const rebooted = new GoalHarness()
+    for (const [key, value] of app.store) rebooted.store.set(key, value)
+    await rebooted.start()
+
+    await rebooted.command("check")
+    expect(rebooted.synthetics.at(-1)?.text).toContain("Objective: Stored goal survives compaction")
+  })
+
+  test("a cleared goal stays cleared and never resurrects from storage", async () => {
+    const app = new GoalHarness()
+    await app.start()
+    await app.command("Temporary goal")
+    await app.command("clear")
+    expect(app.latestState()).toBeNull()
+
+    const rebooted = new GoalHarness()
+    rebooted.messages.push(...app.messages)
+    for (const [key, value] of app.store) rebooted.store.set(key, value)
+    await rebooted.start()
+
+    await rebooted.command("check")
+    expect(rebooted.synthetics.at(-1)?.text).toContain("No goal is set")
+  })
+
+  test("concurrent cold-cache restores share one controller", async () => {
+    const app = new GoalHarness()
+    await app.start()
+    await app.command("Shared restore")
+
+    const rebooted = new GoalHarness()
+    rebooted.messages.push(...app.messages)
+    for (const [key, value] of app.store) rebooted.store.set(key, value)
+    await rebooted.start()
+
+    // Race the context hook against a status command on a cold cache.
+    const event = {
+      sessionID: SESSION,
+      system: [] as Array<{ type: string; text: string }>,
+      tools: { goal_report: { description: "x" } },
+    }
+    await Promise.all([rebooted.contextHook?.(event), rebooted.command("check")])
+    expect(event.system[0]?.text).toContain("Shared restore")
+    expect(rebooted.synthetics.at(-1)?.text).toContain("Objective: Shared restore")
+  })
+
+  test("resume works after a restart from the transcript snapshot", async () => {
+    const app = new GoalHarness()
+    await app.start()
+    await app.command("Restarted resume")
+    await app.command("pause")
+
+    const rebooted = new GoalHarness()
+    rebooted.messages.push(...app.messages)
+    for (const [key, value] of app.store) rebooted.store.set(key, value)
+    await rebooted.start()
+
+    await rebooted.command("resume keep going")
+    expect(rebooted.synthetics.at(-1)?.text).toBe("Goal resumed")
+    expect(rebooted.prompts.at(-1)?.text).toContain("[GOAL CONTINUATION]")
+    expect(rebooted.prompts.at(-1)?.text).toContain("keep going")
+  })
+
+  test("resume works after a restart from storage when the transcript is evicted", async () => {
+    const app = new GoalHarness()
+    await app.start()
+    await app.command("Evicted resume")
+    await app.command("pause")
+
+    // Simulate restart plus compaction evicting every snapshot message.
+    const rebooted = new GoalHarness()
+    for (const [key, value] of app.store) rebooted.store.set(key, value)
+    await rebooted.start()
+
+    await rebooted.command("resume")
+    expect(rebooted.synthetics.at(-1)?.text).toBe("Goal resumed")
+    expect(rebooted.prompts.at(-1)?.text).toContain("[GOAL CONTINUATION]")
+  })
+
+  test("continuation prompt stays lean and carries user direction", async () => {
+    const app = new GoalHarness()
+    await app.start()
+    await app.command("Ship the lean nudge")
+    await app.command("pause")
+    await app.command("resume focus on tests")
+
+    const queued = app.prompts.at(-1)
+    expect(queued?.text).toContain("[GOAL CONTINUATION]")
+    expect(queued?.text).toContain("focus on tests")
+    expect(queued?.text).not.toContain("Ship the lean nudge")
+  })
+
+  test("resume does not queue a duplicate while a previous continuation is still live", async () => {
+    const app = new GoalHarness()
+    app.disableInbox()
+    await app.start()
+    await app.command("Single flight")
+    await app.emit("session.execution.started")
+    await app.emit("session.tool.called")
+    await app.emit("session.execution.succeeded")
+    const continuations = () =>
+      app.prompts.filter((prompt) => prompt.text.includes("[GOAL CONTINUATION]"))
+    expect(continuations()).toHaveLength(1)
+
+    // Remote cancel is unavailable, so the queued continuation is still live
+    // server-side. Pause and resume must not queue a second one on top.
+    await app.command("pause")
+    await app.command("resume")
+    expect(continuations()).toHaveLength(1)
+    expect(app.synthetics.at(-1)?.text).toBe("Goal resumed")
   })
 })

@@ -1,0 +1,17 @@
+{
+  "name": "opencode-muse-subscription",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler index.ts"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.0.4",
+    "effect": "4.0.0-rc.112"
+  },
+  "devDependencies": {
+    "typescript": "5.8.2"
+  }
+}

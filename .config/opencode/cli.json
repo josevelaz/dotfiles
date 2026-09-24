@@ -8,23 +8,28 @@
     "view": "unified"
   },
   "session": {
-    "sidebar": "hide",
+    "sidebar": "auto",
     "scrollbar": true,
     "thinking": "show",
-    "image_preview": true
+    "permissions": "autoaccept",
+    "grouping": "auto",
+    "markdown": "rendered"
   },
   "animations": true,
   "tabs": {
-    "enabled": false,
-    "layout": "vertical"
+    "enabled": false
   },
-  "terminal": {
-    "title": true
+  "plugins": [
+    "./herdr-opencode"
+  ],
+  "prompt": {
+    "image_preview": true
   },
   "attention": {
-    "enabled": true
+    "notifications": true,
+    "sound": true
   },
-  "prompt": {
-    "editor": false
+  "terminal": {
+    "copy": "select"
   }
 }

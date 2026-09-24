@@ -32,91 +32,288 @@
       "linear": {
         "type": "remote",
         "url": "https://mcp.linear.app/mcp"
-      },
-      "conflux": {
-        "type": "remote",
-        "url": "https://conflux.liatr.io/mcp"
-      },
-    },
+      }
+    }
   },
-  // "permission": {
-  //   "aft_*": "allow",
-  //   "external_directory": {
-  //     "/Users/jose/dotfiles/.local/share/cortexkit/**": "allow",
-  //     "/Users/jose/dotfiles/.local/share/opencode/worktree/**": "allow",
-  //     "/dev/**": "allow",
-  //     "/tmp/**": "allow",
-  //     "~/.local/share/opencode/self-improve/**": "ask"
-  //   },
-  //   "glob": "allow",
-  //   "grep": "allow",
-  //   "list": "allow",
-  //   "lsp": "allow",
-  //   "question": "allow",
-  //   "read": "allow",
-  //   "skill_manage": "allow",
-  //   "skill_pending_apply": "ask",
-  //   "skill_pending_diff": "allow",
-  //   "skill_pending_list": "allow",
-  //   "skill_pending_reject": "allow",
-  //   "~": "ask"
-  // },
-  "plugins": [
-    "/Users/jose/projects/opencode-honcho",
-    "-opencode.provider.github.copilot",
-  ],
   "providers": {
-    "github-copilot": {
-      "env": ["OPENCODE_GITHUB_COPILOT"],
-    },
-    "xai": {
+    "muse-subscription": {
+      "name": "Muse Subscription",
+      "package": "@opencode/ai/providers/meta/responses",
+      "settings": {
+        "baseURL": "https://api.meta.ai/v1"
+      },
+      "headers": {
+        "x-api-version": "1.0.0",
+        "x-client-id": "tbh:exec"
+      },
+      "body": {
+        "store": false
+      },
       "models": {
-        "grok-4.6-fast": {
-          "modelID": "grok-4.6",
-          "name": "Grok 4.6 Fast",
-          "settings": {
-            "serviceTier": "priority",
-          },
-          "body": {
-            "service_tier": "priority",
-          },
+        "muse-spark-1.3": {
+          "name": "Muse Spark 1.3 (Subscription)",
+          "family": "muse",
           "capabilities": {
             "tools": true,
-            "input": ["text", "image", "pdf"],
-            "output": ["text"],
+            "input": [
+              "text",
+              "image",
+              "pdf",
+              "video",
+              "audio"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cache": {
+              "read": 0,
+              "write": 0
+            }
           },
           "limit": {
-            "context": 500000,
-            "output": 500000,
+            "context": 1048576,
+            "output": 131072
           },
           "variants": [
+            {
+              "id": "minimal",
+              "settings": {
+                "reasoningEffort": "minimal",
+                "reasoningSummary": "auto",
+                "include": [
+                  "reasoning.encrypted_content"
+                ]
+              }
+            },
             {
               "id": "low",
               "settings": {
                 "reasoningEffort": "low",
-              },
+                "reasoningSummary": "auto",
+                "include": [
+                  "reasoning.encrypted_content"
+                ]
+              }
             },
             {
               "id": "medium",
               "settings": {
                 "reasoningEffort": "medium",
-              },
+                "reasoningSummary": "auto",
+                "include": [
+                  "reasoning.encrypted_content"
+                ]
+              }
             },
             {
               "id": "high",
               "settings": {
                 "reasoningEffort": "high",
-              },
+                "reasoningSummary": "auto",
+                "include": [
+                  "reasoning.encrypted_content"
+                ]
+              }
             },
             {
               "id": "xhigh",
               "settings": {
                 "reasoningEffort": "xhigh",
-              },
+                "reasoningSummary": "auto",
+                "include": [
+                  "reasoning.encrypted_content"
+                ]
+              }
             },
-          ],
+            {
+              "id": "max",
+              "settings": {
+                "reasoningEffort": "max",
+                "reasoningSummary": "auto",
+                "include": [
+                  "reasoning.encrypted_content"
+                ]
+              }
+            }
+          ]
         },
-      },
+        "muse-spark-1.3-contributor": {
+          "name": "Muse Spark 1.3 Contributor (Subscription)",
+          "family": "muse",
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image",
+              "pdf",
+              "video",
+              "audio"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cache": {
+              "read": 0,
+              "write": 0
+            }
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 131072
+          },
+          "variants": [
+            {
+              "id": "minimal",
+              "settings": {
+                "reasoningEffort": "minimal",
+                "reasoningSummary": "auto",
+                "include": [
+                  "reasoning.encrypted_content"
+                ]
+              }
+            },
+            {
+              "id": "low",
+              "settings": {
+                "reasoningEffort": "low",
+                "reasoningSummary": "auto",
+                "include": [
+                  "reasoning.encrypted_content"
+                ]
+              }
+            },
+            {
+              "id": "medium",
+              "settings": {
+                "reasoningEffort": "medium",
+                "reasoningSummary": "auto",
+                "include": [
+                  "reasoning.encrypted_content"
+                ]
+              }
+            },
+            {
+              "id": "high",
+              "settings": {
+                "reasoningEffort": "high",
+                "reasoningSummary": "auto",
+                "include": [
+                  "reasoning.encrypted_content"
+                ]
+              }
+            },
+            {
+              "id": "xhigh",
+              "settings": {
+                "reasoningEffort": "xhigh",
+                "reasoningSummary": "auto",
+                "include": [
+                  "reasoning.encrypted_content"
+                ]
+              }
+            }
+          ]
+        },
+        "muse-spark-1.2": {
+          "name": "Muse Spark 1.2 (Subscription)",
+          "family": "muse",
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image",
+              "pdf",
+              "video",
+              "audio"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cache": {
+              "read": 0,
+              "write": 0
+            }
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 131072
+          }
+        },
+        "muse-spark-1.2-contributor": {
+          "name": "Muse Spark 1.2 Contributor (Subscription)",
+          "family": "muse",
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image",
+              "pdf",
+              "video",
+              "audio"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cache": {
+              "read": 0,
+              "write": 0
+            }
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 131072
+          }
+        },
+        "muse-spark-1.1": {
+          "name": "Muse Spark 1.1 (Subscription)",
+          "family": "muse",
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image",
+              "pdf",
+              "video"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cache": {
+              "read": 0,
+              "write": 0
+            }
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 131072
+          }
+        }
+      }
     },
-  },
+    "openai": {
+      "compaction": {
+        "mode": "provider"
+      }
+    },
+  }
 }

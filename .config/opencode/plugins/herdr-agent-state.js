@@ -2,11 +2,9 @@
 // managed by herdr; reinstalling or updating the integration overwrites this file.
 // add custom hooks/plugins beside this file instead of editing it.
 // HERDR_INTEGRATION_ID=opencode
-// HERDR_INTEGRATION_VERSION=10
+// HERDR_INTEGRATION_VERSION=12
 
 import net from "node:net";
-
-import { Plugin } from "@opencode-ai/plugin";
 
 const SOURCE = "herdr:opencode";
 const AGENT = "opencode";
@@ -15,14 +13,14 @@ let requestChain = Promise.resolve();
 let reportedRootSessionID;
 
 // Track child sessions so their events cannot replace the pane's root session.
-// Their user prompts still project state without attaching the child session id.
-const childSessions = new Set();
+// User prompts carry the root id to preserve its identity and cross-talk guard.
+const childSessions = new Map();
 const CHILD_EVENT_STATES = new Map([
   ["permission.asked", "blocked"],
-  ["form.created", "blocked"],
+  ["question.asked", "blocked"],
   ["permission.replied", "working"],
-  ["form.replied", "working"],
-  ["form.cancelled", "working"],
+  ["question.replied", "working"],
+  ["question.rejected", "working"],
 ]);
 
 function nextReportSeq() {
@@ -30,10 +28,9 @@ function nextReportSeq() {
   return reportSeq;
 }
 
-function sessionIDFromData(data) {
-  const sessionID = data?.sessionID ?? data?.form?.sessionID;
-  return typeof sessionID === "string" && sessionID
-    ? sessionID
+function sessionIDFromProperties(properties) {
+  return typeof properties?.sessionID === "string" && properties.sessionID
+    ? properties.sessionID
     : undefined;
 }
 
@@ -121,79 +118,93 @@ function reportState(state, sessionID) {
   return request("pane.report_agent", params);
 }
 
-export const HerdrAgentStatePlugin = Plugin.define({
-  id: "herdr.opencode.agent-state",
-  setup(ctx) {
-    if (
-      process.env.HERDR_ENV !== "1" ||
-      !process.env.HERDR_SOCKET_PATH ||
-      !process.env.HERDR_PANE_ID
-    ) {
-      return;
-    }
+export const HerdrAgentStatePlugin = async () => {
+  if (
+    process.env.HERDR_ENV !== "1" ||
+    !process.env.HERDR_SOCKET_PATH ||
+    !process.env.HERDR_PANE_ID
+  ) {
+    return {};
+  }
 
-    const controller = new AbortController();
-    void (async () => {
-      for await (const event of ctx.event.subscribe({ signal: controller.signal })) {
-      const type = event?.type;
-        const data = event?.data ?? {};
-        const sessionID = sessionIDFromData(data);
-
-        if (type === "session.created" && sessionID && data.parentID) {
-          childSessions.add(sessionID);
-        }
-        if (sessionID && childSessions.has(sessionID)) {
-          const state = CHILD_EVENT_STATES.get(type);
-          if (state) {
-            await reportState(state);
-          }
-          continue;
-        }
-
-        switch (type) {
-          case "session.created":
-            // Creation is server-global, so an attached client may own it. The
-            // TUI plugin separately reports the root selected in this pane.
-            reportedRootSessionID = sessionID;
-            break;
-          case "session.status": {
-            const state = stateFromSessionStatus(data.status);
-            if (state) {
-              await reportState(state, sessionID);
-            } else {
-              await reportSession(sessionID);
-            }
-            break;
-          }
-          case "session.execution.started":
-          case "session.tool.called":
-          case "permission.replied":
-          case "form.replied":
-          case "form.cancelled":
-          case "session.compaction.started":
-          case "session.compaction.ended":
-            await reportState("working", sessionID);
-            break;
-          case "permission.asked":
-          case "form.created":
-          case "session.execution.failed":
-          case "session.compaction.failed":
-            await reportState("blocked", sessionID);
-            break;
-          case "session.idle":
-          case "session.execution.interrupted":
-            await reportState("idle", sessionID);
-            break;
-          case "session.deleted":
-            break;
-          default:
-            break;
-        }
+  return {
+    "chat.message": async ({ sessionID }) => {
+      if (sessionID && childSessions.has(sessionID)) {
+        return;
       }
-    })().catch(() => {});
+      await reportState("working", sessionID);
+    },
+    event: async ({ event }) => {
+      const type = event?.type;
+      const properties = event?.properties ?? {};
+      const sessionID = sessionIDFromProperties(properties);
 
-    return () => controller.abort();
-  },
-});
+      const info = properties.info;
+      if (info?.id && info.parentID) {
+        childSessions.set(info.id, info.parentID);
+      }
+      if (sessionID && childSessions.has(sessionID)) {
+        const state = CHILD_EVENT_STATES.get(type);
+        if (state) {
+          let rootSessionID = sessionID;
+          while (childSessions.has(rootSessionID)) {
+            rootSessionID = childSessions.get(rootSessionID);
+          }
+          await reportState(state, rootSessionID);
+        }
+        return;
+      }
 
-export default HerdrAgentStatePlugin;
+      switch (type) {
+        case "session.created":
+          // Creation is server-global, so an attached client may own it. The
+          // TUI plugin separately reports the root selected in this pane.
+          reportedRootSessionID = sessionID;
+          break;
+        case "session.updated":
+          if (sessionID && sessionID !== reportedRootSessionID) {
+            await reportSession(sessionID);
+          }
+          break;
+        case "session.status": {
+          const state = stateFromSessionStatus(properties.status);
+          if (state) {
+            await reportState(state, sessionID);
+          } else {
+            await reportSession(sessionID);
+          }
+          break;
+        }
+        case "tool.execute.before":
+        case "tool.execute.after":
+        case "permission.replied":
+        case "question.replied":
+        case "question.rejected":
+        case "session.compacted":
+          await reportState("working", sessionID);
+          break;
+        case "permission.asked":
+        case "question.asked":
+        case "session.error":
+          await reportState("blocked", sessionID);
+          break;
+        case "session.idle":
+          await reportState("idle", sessionID);
+          break;
+        case "session.deleted":
+          break;
+        default:
+          break;
+      }
+    },
+  };
+};
+
+// V1 (1.18.29+) calls server(). V2 calls setup() instead. Its shared server
+// cannot attribute sessions using its process environment: the pane-local TUI
+// owns both selection and lifecycle reporting there, including remote servers.
+export default {
+  id: "herdr.opencode",
+  server: HerdrAgentStatePlugin,
+  setup() {},
+};

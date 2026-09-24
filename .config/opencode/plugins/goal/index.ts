@@ -1,5 +1,6 @@
 import { Plugin, type Plugin as PluginContract } from "@opencode-ai/plugin"
 import {
+  GOAL_PROMPT_HEADING,
   GoalController,
   continuationMessage,
   promptForGoal,
@@ -12,8 +13,10 @@ import {
   continuationMetadata,
   isUserInboxItem,
   latestGoalSnapshot,
+  parseGoalSnapshot,
   totalTokens,
   transcriptText,
+  type GoalState,
   type SnapshotSource,
   type TokenUsage,
 } from "./state"
@@ -53,6 +56,7 @@ interface SessionApi {
   get(input: { sessionID: string }): Promise<SessionTokens>
   context(input: { sessionID: string }): Promise<readonly SnapshotSource[]>
   prompt(input: {
+    id?: string
     sessionID: string
     text: string
     files?: ReadonlyArray<unknown>
@@ -60,17 +64,27 @@ interface SessionApi {
     skills?: ReadonlyArray<unknown>
     metadata?: Record<string, unknown>
     delivery?: "steer" | "queue"
+    resume?: boolean
   }): Promise<{ id: string }>
   synthetic(input: {
+    id?: string
     sessionID: string
     text: string
     metadata?: Record<string, unknown>
+    delivery?: "steer" | "queue"
+    resume?: boolean
   }): Promise<{ id: string }>
   hook(
     name: "context",
     callback: (event: SessionContextEvent) => Promise<void> | void,
   ): Promise<{ dispose(): Promise<void> } | void> | { dispose(): Promise<void> } | void
   inbox?: InboxCancel
+}
+
+interface StorageApi {
+  get(key: string): Promise<unknown>
+  set(key: string, value: unknown): Promise<void>
+  remove(key: string): Promise<void>
 }
 
 interface SessionContextEvent {
@@ -104,6 +118,7 @@ export interface GoalPluginContext {
     transform(callback: (draft: ToolDraft) => void): Promise<unknown>
   }
   session: SessionApi
+  storage?: StorageApi
   event: {
     subscribe(options?: { signal?: AbortSignal }): AsyncIterable<{ type: string; data?: Record<string, unknown> }>
   }
@@ -123,10 +138,6 @@ interface SessionRun {
   userInboxIDs: Set<string>
 }
 
-function inboxOf(session: SessionApi): InboxCancel | undefined {
-  return session.inbox
-}
-
 function textOf(value: unknown): string {
   return typeof value === "string" ? value : ""
 }
@@ -136,12 +147,76 @@ function eventSessionID(event: { data?: Record<string, unknown> }): string | und
   return typeof sessionID === "string" ? sessionID : undefined
 }
 
+function shortHash(input: string): string {
+  let hash = 5381
+  for (let index = 0; index < input.length; index += 1) {
+    hash = ((hash << 5) + hash + input.charCodeAt(index)) | 0
+  }
+  return (hash >>> 0).toString(36)
+}
+
+function continuationID(sessionID: string, controller: GoalController, direction?: string): string {
+  const current = controller.current
+  const continuations = current?.continuations ?? 0
+  const turns = current?.turns ?? 0
+  const startedAt = current?.startedAt ?? 0
+  const revision = current?.revision ?? 0
+  const objectiveHash = current === undefined ? "none" : shortHash(current.objective)
+  const dirHash = direction === undefined ? "auto" : shortHash(direction)
+  return `msg_goal-continuation-${sessionID}-s${startedAt}-r${revision}-t${turns}-c${continuations}-o${objectiveHash}-${dirHash}`
+}
+
+function snapshotID(sessionID: string, text: string, controller: GoalController): string {
+  const current = controller.current
+  if (current === undefined) {
+    return `msg_goal-snapshot-${sessionID}-cleared-${shortHash(text)}-${Date.now().toString(36)}`
+  }
+  const stable = JSON.stringify({
+    objective: current.objective,
+    startedAt: current.startedAt,
+    status: current.status,
+    turns: current.turns,
+    tokens: current.tokens,
+    continuations: current.continuations,
+    tokenBaseline: current.tokenBaseline,
+    revision: current.revision ?? 0,
+    reason: current.reason ?? null,
+    evidence: current.evidence ?? null,
+    text,
+  })
+  return `msg_goal-snapshot-${sessionID}-${current.turns}-${current.continuations}-${current.status}-${shortHash(stable)}`
+}
+
+function isConflictError(error: unknown): boolean {
+  if (error === null || typeof error !== "object") return false
+  const candidate = error as {
+    _tag?: unknown
+    name?: unknown
+    message?: unknown
+    code?: unknown
+    status?: unknown
+    statusCode?: unknown
+  }
+  if (candidate._tag === "ConflictError" || candidate.name === "ConflictError") return true
+  if (candidate.code === 409 || candidate.status === 409 || candidate.statusCode === 409) return true
+  const message = typeof candidate.message === "string" ? candidate.message : ""
+  return message.toLowerCase().includes("conflict")
+}
+
+// Module-level single-flight for the event subscription. If the host runs
+// plugin setup more than once in this process without disposing (command and
+// context-hook registrations cannot be unregistered), every live listener
+// would handle every event and queue duplicate continuations. Only the newest
+// runtime owns the event flow; each runtime keeps its own state maps.
+let liveListenerAbort: AbortController | undefined
+
 export class GoalRuntime {
   private readonly controllers = new Map<string, GoalController>()
   private readonly runs = new Map<string, SessionRun>()
   private readonly chains = new Map<string, Promise<void>>()
   private readonly clock: () => number
   private readonly budgets?: GoalBudgets
+  private readonly inflight = new Map<string, Promise<GoalController>>()
 
   constructor(
     private readonly ctx: GoalPluginContext,
@@ -188,10 +263,28 @@ export class GoalRuntime {
       })
     })
 
-    await this.ctx.session.hook("context", (event) => {
-      const controller = this.controllers.get(event.sessionID)
+    await this.ctx.session.hook("context", async (event) => {
+      let controller: GoalController | undefined
+      try {
+        // Restore from the durable transcript snapshot (with storage fallback)
+        // so the goal survives server restarts. The in-memory cache alone is
+        // empty after boot, which previously hid the goal and goal_report.
+        // session.context reads persisted messages and does not re-enter this hook.
+        controller = await this.controllerOf(event.sessionID)
+      } catch {
+        controller = this.controllers.get(event.sessionID)
+      }
       const objective = controller?.current?.objective
-      if (controller?.isActive && objective !== undefined) {
+      if (controller?.isActive === true && objective !== undefined) {
+        // The goal block must be the last part of the system prompt: later
+        // hooks and built-ins append after earlier entries, and the tail of
+        // the system prompt is what survives compaction pressure. Strip any
+        // stale goal block already present, then append fresh so exactly one
+        // goal block exists and it is final.
+        for (let index = event.system.length - 1; index >= 0; index -= 1) {
+          const part = event.system[index]
+          if (part !== undefined && isGoalPromptPart(part)) event.system.splice(index, 1)
+        }
         event.system.push({ type: "text", text: promptForGoal(objective) })
         return
       }
@@ -199,12 +292,16 @@ export class GoalRuntime {
     })
 
     const abort = new AbortController()
+    liveListenerAbort?.abort()
+    liveListenerAbort = abort
     void this.listen(abort.signal)
     return () => {
       abort.abort()
+      if (liveListenerAbort === abort) liveListenerAbort = undefined
       this.controllers.clear()
       this.runs.clear()
       this.chains.clear()
+      this.inflight.clear()
     }
   }
 
@@ -225,7 +322,15 @@ export class GoalRuntime {
   private async listen(signal: AbortSignal): Promise<void> {
     try {
       for await (const event of this.ctx.event.subscribe({ signal })) {
-        await this.handleEvent(event)
+        if (signal.aborted) return
+        try {
+          await this.handleEvent(event)
+        } catch {
+          if (signal.aborted) return
+          // One bad event must not silently kill the subscription for every
+          // later event. Per-session serialization is preserved by enqueue.
+        }
+        if (signal.aborted) return
       }
     } catch {
       if (signal.aborted) return
@@ -248,6 +353,7 @@ export class GoalRuntime {
     this.controllers.delete(sessionID)
     this.runs.delete(sessionID)
     this.chains.delete(sessionID)
+    void this.ctx.storage?.remove(goalStorageKey(sessionID)).catch(() => {})
   }
 
   private runOf(sessionID: string): SessionRun {
@@ -267,11 +373,58 @@ export class GoalRuntime {
   private async controllerOf(sessionID: string): Promise<GoalController> {
     const cached = this.controllers.get(sessionID)
     if (cached !== undefined) return cached
-    const controller = new GoalController(this.clock, this.budgets)
-    const messages = await this.ctx.session.context({ sessionID })
-    controller.restore(latestGoalSnapshot(messages) ?? null)
-    this.controllers.set(sessionID, controller)
-    return controller
+    // Deduplicate concurrent cold-cache restores (e.g. the context hook and a
+    // /goal command racing after a restart) so one instance wins and later
+    // mutations cannot be clobbered by a stale loser. Deliberately outside
+    // enqueue: the hook must never block on the session queue.
+    const ongoing = this.inflight.get(sessionID)
+    if (ongoing !== undefined) return ongoing
+    const restore = (async () => {
+      const controller = new GoalController(this.clock, this.budgets)
+      const messages = await this.ctx.session.context({ sessionID })
+      const transcript = latestGoalSnapshot(messages)
+      if (transcript !== undefined) {
+        // Either a GoalState or an explicit null (cleared goal). A deliberate
+        // clear must win over any stored snapshot.
+        controller.restore(transcript)
+      } else {
+        // No snapshot message in the transcript window (e.g. evicted by
+        // compaction or truncation). Fall back to plugin storage. Transcript
+        // snapshots always win when present, so a clear is never resurrected
+        // while its tombstone remains in context; storage writes are
+        // best-effort, so a failed write followed by tombstone eviction
+        // remains a known residual risk.
+        const stored = await this.readStoredSnapshot(sessionID)
+        controller.restore(stored ?? null)
+      }
+      this.controllers.set(sessionID, controller)
+      return controller
+    })()
+    this.inflight.set(sessionID, restore)
+    try {
+      return await restore
+    } finally {
+      if (this.inflight.get(sessionID) === restore) this.inflight.delete(sessionID)
+    }
+  }
+
+  private async readStoredSnapshot(sessionID: string): Promise<GoalState | null | undefined> {
+    try {
+      const stored = await this.ctx.storage?.get(goalStorageKey(sessionID))
+      if (stored === undefined) return undefined
+      return parseGoalSnapshot(stored)
+    } catch {
+      return undefined
+    }
+  }
+
+  private async writeStorage(sessionID: string, controller: GoalController): Promise<void> {
+    try {
+      await this.ctx.storage?.set(goalStorageKey(sessionID), controller.serialize())
+    } catch {
+      // Storage is a best-effort fallback; the synthetic transcript snapshot
+      // remains the primary durable record.
+    }
   }
 
   private async persist(
@@ -279,23 +432,44 @@ export class GoalRuntime {
     text: string,
     controller: GoalController,
   ): Promise<void> {
-    await this.ctx.session.synthetic({
-      sessionID,
-      text,
-      metadata: { [GOAL_SNAPSHOT_KEY]: controller.serialize() },
-    })
+    const id = snapshotID(sessionID, text, controller)
+    try {
+      await this.ctx.session.synthetic({
+        id,
+        sessionID,
+        text,
+        metadata: { [GOAL_SNAPSHOT_KEY]: controller.serialize() },
+        resume: false,
+      })
+    } catch (error) {
+      if (!isConflictError(error)) throw error
+    }
+    await this.writeStorage(sessionID, controller)
   }
 
   private async statusOnly(sessionID: string, text: string): Promise<void> {
-    await this.ctx.session.synthetic({ sessionID, text })
+    await this.ctx.session.synthetic({ sessionID, text, resume: false })
   }
 
-  private async cancelContinuation(sessionID: string): Promise<void> {
+  private async cancelContinuation(sessionID: string): Promise<boolean> {
     const run = this.runs.get(sessionID)
     const inboxID = run?.pendingContinuationID
-    if (run === undefined || inboxID === undefined) return
+    if (run === undefined || inboxID === undefined) return true
+    const inbox = this.ctx.session.inbox
+    if (inbox === undefined) {
+      // No inbox cancel API is exposed to plugins, so the queued item is
+      // still live server-side. Keep tracking it so the single-flight guards
+      // hold; its delivery or cancellation event will resolve tracking.
+      // Clearing here would let the next turn queue a duplicate.
+      return false
+    }
+    try {
+      await inbox.cancel({ sessionID, inboxID })
+    } catch {
+      return false
+    }
     run.pendingContinuationID = undefined
-    await inboxOf(this.ctx.session)?.cancel({ sessionID, inboxID })
+    return true
   }
 
   private async handleCommand(input: CommandInvocation): Promise<void> {
@@ -404,6 +578,7 @@ export class GoalRuntime {
       const controller = new GoalController(this.clock, this.budgets)
       controller.restore(inherited)
       this.controllers.set(sessionID, controller)
+      await this.writeStorage(sessionID, controller)
       return
     }
 
@@ -433,7 +608,7 @@ export class GoalRuntime {
         this.onInboxSettled(sessionID, textOf(event.data?.inboxID), false)
         return
       case "session.execution.started":
-        this.onExecutionStarted(sessionID)
+        await this.onExecutionStarted(sessionID)
         return
       case "session.tool.called":
         this.runOf(sessionID).hadToolCall = true
@@ -474,11 +649,20 @@ export class GoalRuntime {
     if (delivered) run.isContinuation = true
   }
 
-  private onExecutionStarted(sessionID: string): void {
+  private async onExecutionStarted(sessionID: string): Promise<void> {
     const run = this.runOf(sessionID)
-    const controller = this.controllers.get(sessionID)
+    let active = this.controllers.get(sessionID)?.isActive === true
+    if (!active) {
+      // After a server restart the in-memory cache is empty; restore from the
+      // durable snapshot so wasActive reflects the real goal state.
+      try {
+        active = (await this.controllerOf(sessionID)).isActive
+      } catch {
+        active = false
+      }
+    }
     run.hadToolCall = false
-    run.wasActive = controller?.isActive === true
+    run.wasActive = active
     run.handledSuccess = false
     if (run.pendingContinuationID === undefined) return
     run.isContinuation = true
@@ -548,19 +732,37 @@ export class GoalRuntime {
     controller: GoalController,
     direction?: string,
   ): Promise<void> {
-    const objective = controller.current?.objective
-    if (!controller.isActive || objective === undefined) return
+    if (!controller.isActive) return
     if (this.runOf(sessionID).userInboxIDs.size > 0) return
     if (this.runOf(sessionID).pendingContinuationID !== undefined) return
 
-    const queued = await this.ctx.session.prompt({
-      sessionID,
-      text: continuationMessage(objective, direction),
-      metadata: { [GOAL_SNAPSHOT_KEY]: continuationMetadata() },
-      delivery: "queue",
-    })
-    this.runOf(sessionID).pendingContinuationID = queued.id
+    const id = continuationID(sessionID, controller, direction)
+    let queued: { id?: string } | undefined
+    try {
+      queued = await this.ctx.session.prompt({
+        id,
+        sessionID,
+        text: continuationMessage(direction),
+        metadata: { [GOAL_SNAPSHOT_KEY]: continuationMetadata() },
+        delivery: "queue",
+      })
+    } catch (error) {
+      if (isConflictError(error)) {
+        this.runOf(sessionID).pendingContinuationID = id
+        return
+      }
+      throw error
+    }
+    this.runOf(sessionID).pendingContinuationID = queued?.id || id
   }
+}
+
+function goalStorageKey(sessionID: string): string {
+  return `goal/${sessionID}`
+}
+
+function isGoalPromptPart(part: { type: string; text: string }): boolean {
+  return part.type === "text" && part.text.startsWith(`${GOAL_PROMPT_HEADING}\n`)
 }
 
 function promptAttachments(prompt: PromptLike): {

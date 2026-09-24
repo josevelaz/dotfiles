@@ -1,5 +1,5 @@
 /// <reference path="./jsx.d.ts" />
-import { Plugin, usePlugin } from "@opencode-ai/plugin/tui"
+import { Plugin, usePlugin } from "@opencode/plugin/tui"
 import { createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js"
 import { displayElapsedMs, formatDuration, formatTokenCount } from "./controller"
 import {

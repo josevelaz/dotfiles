@@ -50,6 +50,7 @@ export class GoalController {
       tokens: 0,
       continuations: 0,
       tokenBaseline: Math.max(0, Math.floor(tokenBaseline)),
+      revision: 1,
     }
     return this.state
   }
@@ -71,6 +72,7 @@ export class GoalController {
     this.finishActivePeriod()
     this.state.status = "paused"
     this.state.reason = reason
+    this.state.revision = (this.state.revision ?? 0) + 1
     return true
   }
 
@@ -80,6 +82,7 @@ export class GoalController {
     this.state.status = "active"
     this.state.reason = undefined
     this.state.activeSince = this.now()
+    this.state.revision = (this.state.revision ?? 0) + 1
     return true
   }
 
@@ -89,6 +92,7 @@ export class GoalController {
     this.state.status = "achieved"
     this.state.evidence = evidence.trim()
     this.state.reason = undefined
+    this.state.revision = (this.state.revision ?? 0) + 1
     return true
   }
 
@@ -97,6 +101,7 @@ export class GoalController {
     this.finishActivePeriod()
     this.state.status = "blocked"
     this.state.reason = reason.trim()
+    this.state.revision = (this.state.revision ?? 0) + 1
     return true
   }
 
@@ -105,6 +110,7 @@ export class GoalController {
     this.finishActivePeriod()
     this.state.status = "budget-limited"
     this.state.reason = reason
+    this.state.revision = (this.state.revision ?? 0) + 1
     return true
   }
 
@@ -119,11 +125,13 @@ export class GoalController {
     if (this.state === undefined) return
     this.state.turns += 1
     this.state.tokens = Math.max(0, Math.floor(sessionTokens) - this.state.tokenBaseline)
+    this.state.revision = (this.state.revision ?? 0) + 1
   }
 
   recordContinuation(): void {
     if (!this.isActive || this.state === undefined) return
     this.state.continuations += 1
+    this.state.revision = (this.state.revision ?? 0) + 1
   }
 
   budgetReason(): string | undefined {
@@ -177,9 +185,11 @@ export function formatTokenCount(tokens: number): string {
   return `${(tokens / 1_000_000).toFixed(tokens < 10_000_000 ? 1 : 0)}m`
 }
 
+export const GOAL_PROMPT_HEADING = "## Active Goal"
+
 export function promptForGoal(objective: string): string {
   return [
-    "## Active Goal",
+    GOAL_PROMPT_HEADING,
     "",
     "You are pursuing this session-level completion condition:",
     "",
@@ -191,15 +201,11 @@ export function promptForGoal(objective: string): string {
   ].join("\n")
 }
 
-export function continuationMessage(objective: string, direction?: string): string {
+export function continuationMessage(direction?: string): string {
   const extra =
     direction === undefined ? "" : `\n\nUser direction for this continuation:\n\n${direction}`
   return `[GOAL CONTINUATION]
-Continue pursuing the active goal:
-
-${objective}${extra}
-
-Take the next substantive action. Treat the user's direction as tactical guidance without replacing the goal. Audit concrete evidence before completion. Call ${GOAL_TOOL_NAME} with status "achieved" only when the full condition is met, or status "blocked" when no useful action remains without user input. Do not merely restate progress or describe future steps.`
+Take the next substantive action toward the active goal in the system prompt. Do not restate progress or describe future steps.${extra}`
 }
 
 export function statusMessage(state: Readonly<GoalState>, elapsed: number): string {

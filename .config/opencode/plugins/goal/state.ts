@@ -15,6 +15,7 @@ export interface GoalState {
   tokens: number
   continuations: number
   tokenBaseline: number
+  revision?: number
   evidence?: string
   reason?: string
 }
@@ -75,6 +76,7 @@ export function parseGoalState(value: unknown): GoalState | undefined {
   if (!isFiniteNonNegative(candidate.continuations)) return undefined
   if (!isFiniteNonNegative(candidate.tokenBaseline)) return undefined
   if (candidate.activeSince !== undefined && !isFiniteNonNegative(candidate.activeSince)) return undefined
+  if (candidate.revision !== undefined && !isFiniteNonNegative(candidate.revision)) return undefined
   if (candidate.evidence !== undefined && typeof candidate.evidence !== "string") return undefined
   if (candidate.reason !== undefined && typeof candidate.reason !== "string") return undefined
 
@@ -89,6 +91,7 @@ export function parseGoalState(value: unknown): GoalState | undefined {
     tokens: Math.floor(candidate.tokens),
     continuations: Math.floor(candidate.continuations),
     tokenBaseline: Math.floor(candidate.tokenBaseline),
+    revision: candidate.revision === undefined ? 0 : Math.floor(candidate.revision),
     evidence: candidate.evidence,
     reason: candidate.reason,
   }
