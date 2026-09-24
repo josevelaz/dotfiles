@@ -1,0 +1,3 @@
+interface:
+  display_name: "Pi-hole"
+  short_description: "Diagnose Pi-hole over Tailscale SSH"

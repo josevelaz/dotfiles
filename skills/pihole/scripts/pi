@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+if [ "$#" -ne 1 ]; then
+  echo "usage: pi '<remote-command>'" >&2
+  exit 2
+fi
+exec tailscale ssh root@pi -- /bin/sh -c "$1"

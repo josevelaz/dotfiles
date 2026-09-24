@@ -10,12 +10,13 @@
 		<string>/Users/jose/dotfiles/.local/bin/sync-skills</string>
 	</array>
 
-	<!-- Watch both skill roots and the skills.sh lock file. -->
+	<!-- Watch both skill roots, the skills.sh lock file, and the Cursor links. -->
 	<key>WatchPaths</key>
 	<array>
 		<string>/Users/jose/dotfiles/skills</string>
 		<string>/Users/jose/dotfiles/.agents/skills</string>
 		<string>/Users/jose/dotfiles/.agents/.skill-lock.json</string>
+		<string>/Users/jose/.cursor/skills</string>
 	</array>
 
 	<!-- Also run once when the agent loads, to catch anything created

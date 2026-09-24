@@ -3,7 +3,8 @@
 
 Skills installed through skills.sh live in .agents/skills and appear in
 .agents/.skill-lock.json. Custom skills live in skills and are exposed through
-relative symlinks in .agents/skills.
+relative symlinks in .agents/skills. A small set of those custom skills is also
+linked into ~/.cursor/skills.
 """
 
 from __future__ import annotations
@@ -17,6 +18,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SKILLS_DIR = REPO_ROOT / "skills"
 AGENTS_SKILLS_DIR = REPO_ROOT / ".agents" / "skills"
 LOCK_PATH = REPO_ROOT / ".agents" / ".skill-lock.json"
+CURSOR_SKILLS_DIR = Path.home() / ".cursor" / "skills"
+CURSOR_SYNC_SKILLS = ("agents-md", "setup-project")
 
 
 def path_exists(path: Path) -> bool:
@@ -113,6 +116,31 @@ def move_custom_skill(name: str) -> bool:
     return True
 
 
+def link_cursor_skill(name: str) -> bool:
+    source = SKILLS_DIR / name
+    if not source.is_dir() or source.is_symlink():
+        raise RuntimeError(
+            f"cursor skill {name} has no physical skills/{name} source"
+        )
+
+    CURSOR_SKILLS_DIR.mkdir(parents=True, exist_ok=True)
+    link_path = CURSOR_SKILLS_DIR / name
+    expected_target = Path(os.path.relpath(source, CURSOR_SKILLS_DIR))
+
+    if link_path.is_symlink():
+        if Path(os.readlink(link_path)) == expected_target:
+            return False
+        link_path.unlink()
+    elif link_path.exists():
+        raise RuntimeError(
+            f"refusing to replace physical ~/.cursor/skills/{name} with a symlink"
+        )
+
+    link_path.symlink_to(expected_target)
+    print(f"sync-skills: linked ~/.cursor/skills/{name} -> skills/{name}")
+    return True
+
+
 def main() -> None:
     SKILLS_DIR.mkdir(parents=True, exist_ok=True)
     AGENTS_SKILLS_DIR.mkdir(parents=True, exist_ok=True)
@@ -144,6 +172,9 @@ def main() -> None:
             print(f"sync-skills: skipping non-directory skills/{path.name}")
             continue
         changed = link_custom_skill(path.name) or changed
+
+    for name in CURSOR_SYNC_SKILLS:
+        changed = link_cursor_skill(name) or changed
 
     if not changed:
         print("sync-skills: nothing to do")
