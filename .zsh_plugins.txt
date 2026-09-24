@@ -1,3 +1,5 @@
+jeffreytse/zsh-vi-mode
+
 marlonrichert/zsh-autocomplete
 
 zsh-users/zsh-completions

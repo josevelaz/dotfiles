@@ -1,5 +1,6 @@
 {
   "search_index": true,
   "semantic_search": true,
+  "bash": false,
   "$schema": "https://raw.githubusercontent.com/cortexkit/aft/main/assets/aft.schema.json"
 }

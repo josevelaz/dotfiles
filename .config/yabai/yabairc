@@ -55,6 +55,7 @@ yabai -m rule --add app="^CleanShot X$" manage=off
 yabai -m rule --add app="^Ghostty$" space=1
 yabai -m rule --add app="^Obsidian$" space=3
 yabai -m rule --add app="^Todoist$" space=3
+yabai -m rule --add app="^UnrealEditor$" space=3
 # yabai -m rule --add app="^DataGrip$" space=4
 yabai -m rule --add app="^Slack$" space=5
 yabai -m rule --add app="^(Zoom|zoom\.us)$" subrole="^AXStandardWindow$" space=8

@@ -47,7 +47,7 @@ sbar.add("bracket", "status.menu_extras", {
   "Control Center,bb3cc23c-6950-4e96-8b40-850e09f46934",
   "status.alias_gap.onepassword",
   "Control Center,codexbar-codex",
-  "Control Center,codexbar-claude",
+  "Control Center,codexbar-grok",
   "status.alias_gap.codex",
   "Control Center,Fantastical",
 }, {

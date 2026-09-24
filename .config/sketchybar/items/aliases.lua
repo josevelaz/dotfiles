@@ -27,19 +27,13 @@ local codexbarcodex = sbar.add("alias", "Control Center,codexbar-codex", {
   padding_right = 0,
   background = alias_background,
 })
-local codexbarcursor = sbar.add("alias", "Control Center,codexbar-cursor", {
+local codexbaropencodego = sbar.add("alias", "Control Center,codexbar-opencodego", {
   position = "right",
   padding_left = -18,
   padding_right = 0,
   background = alias_background,
 })
--- local codexbargrok = sbar.add("alias", "Control Center,codexbar-grok", {
---   position = "right",
---   padding_left = -18,
---   padding_right = 0,
---   background = alias_background,
--- })
-local codexbarclaude = sbar.add("alias", "Control Center,codexbar-claude", {
+local codexbargrok = sbar.add("alias", "Control Center,codexbar-grok", {
   position = "right",
   padding_left = -18,
   padding_right = 0,
@@ -57,6 +51,6 @@ local fantastical = sbar.add("alias", "Control Center,Fantastical", {
 
 onepassword:set({ padding_left = -18, padding_right = 0, background = alias_background })
 codexbarcodex:set({ padding_left = -18, padding_right = 0, background = alias_background })
-codexbarcursor:set({ padding_left = -18, padding_right = 0, background = alias_background })
-codexbarclaude:set({ padding_left = -18, padding_right = 0, background = alias_background })
+codexbaropencodego:set({ padding_left = -18, padding_right = 0, background = alias_background })
+codexbargrok:set({ padding_left = -18, padding_right = 0, background = alias_background })
 fantastical:set({ padding_left = 0, padding_right = 0, background = alias_background })

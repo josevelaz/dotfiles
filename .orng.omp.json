@@ -53,6 +53,14 @@
           "powerline_symbol": "\ue0b4",
           "template": " {{ .HEAD }}",
           "type": "git"
+        },
+        {
+          "background": "p:orange",
+          "foreground": "p:text",
+          "powerline_symbol": "\ue0b4",
+          "style": "powerline",
+          "template": " {{ .Mode }} ",
+          "type": "vimode"
         }
       ],
       "type": "prompt"

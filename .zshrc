@@ -1,5 +1,7 @@
 export OP_DEFAULT_ENVIRONMENT="43rm5gh7jf5dndejrsm5s5tcmm"
 export TERM="xterm-ghostty"
+export OPENCODE_HOST="http://127.0.0.1:49374"
+export OPENCODE_SKIP_START=true
 
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
@@ -146,11 +148,15 @@ openv() {
 
 openv "$OP_DEFAULT_ENVIRONMENT"
 
-bindkey -v
-
 # =========== ANTIDOTE ================
 # Load antidote zsh plugin manager.
 # Tries: Homebrew (Apple Silicon), Homebrew (Intel), manual install at ~/.antidote
+export EDITOR=$(which nvim)
+# Initialize vi mode while sourcing, before autocomplete adds its keybindings.
+ZVM_INIT_MODE=sourcing
+zvm_config() {
+  ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
+}
 _antidote_path=""
 if [[ -f /opt/homebrew/opt/antidote/share/antidote/antidote.zsh ]]; then
   _antidote_path="/opt/homebrew/opt/antidote/share/antidote/antidote.zsh"
@@ -173,15 +179,12 @@ export PATH="$PATH:$HOME/.local/bin"
 
 # =========== OH MY POSH ================
 if command -v oh-my-posh &>/dev/null && [[ "$TERM_PROGRAM" != "Apple_Terminal" ]]; then
-  eval "$(oh-my-posh init zsh --config ~/.orng.omp.json)"
+  eval "$(oh-my-posh init zsh --config ~/.orng.omp.json --print)"
 fi
 # =========== END OH MY POSH ================
 
-export EDITOR=$(which nvim)
-
 alias vim="nvim"
 alias nvime="NVIM_APPNAME=nvim-experimental nvim"
-alias opencode="opencode2"
 
 # FZF styling
 export FZF_DEFAULT_OPTS="
@@ -211,6 +214,10 @@ export OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT=300000
 # Volta (Node version manager)
 export VOLTA_HOME="$HOME/.volta"
 [[ -d "$VOLTA_HOME/bin" ]] && export PATH="$VOLTA_HOME/bin:$PATH"
+
+# pnpm global executables
+export PNPM_HOME="$HOME/.local/share/pnpm"
+[[ ":$PATH:" != *":$PNPM_HOME/bin:"* ]] && export PATH="$PNPM_HOME/bin:$PATH"
 
 # Java 17 (Homebrew OpenJDK)
 [ -f "$HOME/.java-env" ] && . "$HOME/.java-env"
@@ -346,13 +353,6 @@ add-zsh-hook precmd _herdr_tab_precmd
 add-zsh-hook chpwd _herdr_tab_precmd
 # =========== END HERDR TAB HOOKS ================
 
-# pnpm
-export PNPM_HOME="/home/ubuntu/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
 
 alias tms="tmux-sessionizer"
 
