@@ -1,0 +1,28 @@
+{
+  "name": "jose-skills",
+  "version": "1.0.0",
+  "description": "Jose's personal agent skills: AGENTS.md refactoring, release-line setup, Mailpit QA, Pi-hole diagnosis, TypeScript project setup, and tldraw tooling.",
+  "author": {
+    "name": "Jose Velazquez"
+  },
+  "homepage": "https://github.com/josevelaz/dotfiles/tree/master/skills",
+  "repository": "https://github.com/josevelaz/dotfiles",
+  "keywords": [
+    "skills",
+    "agents-md",
+    "release",
+    "mailpit",
+    "pihole",
+    "tldraw",
+    "typescript"
+  ],
+  "skills": [
+    "agents-md",
+    "install-release-line",
+    "mailpit",
+    "pihole",
+    "setup-project",
+    "tldraw-offline",
+    "tldraw-plan-visualizer"
+  ]
+}

@@ -1,5 +1,6 @@
 .stow-local-ignore
 skills/*
+.cursor-plugin
 .git
 .gitignore
 tests/*

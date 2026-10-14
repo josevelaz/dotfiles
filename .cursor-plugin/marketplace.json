@@ -1,0 +1,18 @@
+{
+  "name": "jose-dotfiles",
+  "owner": {
+    "name": "Jose Velazquez"
+  },
+  "metadata": {
+    "description": "Plugins from Jose's dotfiles repository."
+  },
+  "plugins": [
+    {
+      "name": "jose-skills",
+      "source": "skills",
+      "description": "Jose's personal agent skills.",
+      "category": "productivity",
+      "tags": ["skills"]
+    }
+  ]
+}
