@@ -1,7 +1,7 @@
 {
   "name": "jose-skills",
   "version": "1.0.0",
-  "description": "Jose's personal agent skills: AGENTS.md refactoring, release-line setup, Mailpit QA, Pi-hole diagnosis, TypeScript project setup, and tldraw tooling.",
+  "description": "Jose's personal agent skills: AGENTS.md refactoring, release-line setup, Mailpit QA, Pi-hole diagnosis, TypeScript project setup, tldraw tooling, and product demo videos.",
   "author": {
     "name": "Jose Velazquez"
   },
@@ -14,13 +14,17 @@
     "mailpit",
     "pihole",
     "tldraw",
-    "typescript"
+    "typescript",
+    "video",
+    "remotion",
+    "playwright"
   ],
   "skills": [
     "agents-md",
     "install-release-line",
     "mailpit",
     "pihole",
+    "product-demo-video",
     "setup-project",
     "tldraw-offline",
     "tldraw-plan-visualizer"
