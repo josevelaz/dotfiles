@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Mechanical checks for a demo loop. View every image it writes before calling the video done.
 # Usage: verify.sh demo.mp4 demo.webm demo-poster.jpg [outdir]
-# Env: WIDTHS="620 340" (real display widths), MAX_MB=8, FORBIDDEN='regex' (OCR scan, needs tesseract)
+# Env: WIDTHS="620 340" (real display widths), MAX_MB=8, FORBIDDEN='regex' (OCR scan, needs tesseract),
+#      PUSHES="66 201 ..." (push start frames, incl. the loop push and caption slides), PUSH_FRAMES=18,
+#      HOLDS='10.5 25.0' (zoom-hold times for the legibility sheets)
 set -euo pipefail
 mp4=${1:?mp4}; webm=${2:?webm}; poster=${3:?poster}; out=${4:-verify}
-WIDTHS=${WIDTHS:-"620 340"}; MAX_MB=${MAX_MB:-8}
+WIDTHS=${WIDTHS:-"620 340"}; MAX_MB=${MAX_MB:-8}; PUSHES=${PUSHES:-}; PUSH_FRAMES=${PUSH_FRAMES:-18}
 mkdir -p "$out"
 
 echo "== ffprobe"
@@ -29,27 +31,62 @@ fps=$(ffprobe -v error -select_streams v -show_entries stream=r_frame_rate -of c
 nf=$(ffprobe -v error -count_frames -select_streams v -show_entries stream=nb_read_frames -of csv=p=0 "$mp4")
 echo "frames=$nf fps=$fps"
 
+# strip OUT A B: every frame A..B (may run past either end of the file: wraps, as the loop plays),
+# frame numbers burned in, tiled 7 per row
+strip() {
+  local dst=$1 a=$2 b=$3 tmp r lo hi k=0 ranges; tmp=$(mktemp -d)
+  if [ "$a" -lt 0 ]; then ranges="$((a + nf)):$((nf - 1)) 0:$b"
+  elif [ "$b" -ge "$nf" ]; then ranges="$a:$((nf - 1)) 0:$((b - nf))"
+  else ranges="$a:$b"; fi
+  for r in $ranges; do
+    lo=${r%:*}; hi=${r#*:}
+    # setpts after drawtext: contiguous timestamps, so no frames are duplicated into the gap
+    ffmpeg -nostdin -v error -y -i "$mp4" -start_number "$k" -frames:v $((hi - lo + 1)) \
+      -vf "select='between(n\,$lo\,$hi)',scale=480:-1,drawtext=text='f%{eif\:round(t*$fps)\:d}':x=8:y=8:fontsize=22:fontcolor=yellow:box=1:boxcolor=black,setpts=N/FRAME_RATE/TB" \
+      "$tmp/%04d.png"
+    k=$((k + hi - lo + 1))
+  done
+  ffmpeg -nostdin -v error -y -pattern_type glob -i "$tmp/*.png" -vf "tile=7x$(( (k + 6) / 7 )):padding=4" -frames:v 1 "$dst"
+  rm -rf "$tmp"
+}
+
 echo "== poster vs frame 0, last frame vs frame 0 (SSIM)"
+echo "   with a push loop the last frame is the push's final moving frame: loop SSIM ~0.93-0.95 is expected; judge loop_wrap.jpg"
 ffmpeg -v error -y -i "$mp4" -frames:v 1 "$out/first.png"
 ffmpeg -v error -y -i "$mp4" -vf "select=eq(n\,$((nf - 1)))" -frames:v 1 "$out/last.png"
 ffmpeg -v info -i "$poster" -i "$out/first.png" -lavfi ssim -f null - 2>&1 | grep -o 'All:[0-9.]*' | sed 's/^/poster /' || echo 'FAIL no SSIM for poster'
 ffmpeg -v info -i "$out/last.png" -i "$out/first.png" -lavfi ssim -f null - 2>&1 | grep -o 'All:[0-9.]*' | sed 's/^/loop /' || echo 'FAIL no SSIM for loop'
 ffmpeg -v error -y -i "$out/last.png" -i "$out/first.png" -filter_complex "[0][1]hstack,scale=1280:-1" "$out/loop_last_vs_first.jpg"
+echo "loop-wrap strip: last 20 frames, then frames 0-9 -> $out/loop_wrap.jpg"
+strip "$out/loop_wrap.jpg" -20 9
 
 echo "== contact sheet, one frame per second"
 cols=6; rows=$(( (nf / $fps + cols) / cols ))
 ffmpeg -v error -y -i "$mp4" -vf "fps=1,scale=480:-1,drawtext=text='%{pts\:hms}':x=8:y=8:fontsize=22:fontcolor=yellow:box=1:boxcolor=black,tile=${cols}x${rows}" \
   -frames:v 1 "$out/sheet_persec.jpg"
 
-echo "== likely cuts (scene score > 0.25): inspect each at frame level; 0.8 s zooms can look like cuts at 1 fps"
+echo "== likely cuts (scene score > 0.25): inspect each CUT at frame level; 0.8 s zooms can look like cuts at 1 fps"
+echo "   detections inside a PUSHES window are marked 'push (expected)'; a well-blurred push usually isn't detected at all"
 # showinfo's n: counts only selected frames, so map pts_time back to the source frame number.
 { ffmpeg -v info -i "$mp4" -vf "select='gt(scene,0.25)',showinfo" -f null - 2>&1 || true; } \
   | grep -o 'pts_time:[0-9.]*' | awk -F: -v fps="$fps" '{printf "frame=%d t=%.3f\n", $2 * fps + 0.5, $2}' > "$out/cuts.txt" || true
-[ -s "$out/cuts.txt" ] && cat "$out/cuts.txt" || echo "(no cuts detected)"
-while read -r fr _; do
+# a detection inside a push window (PUSHES) is the push itself, not a cut
+in_push() { local p; for p in $PUSHES; do [ "$1" -ge "$p" ] && [ "$1" -le $((p + PUSH_FRAMES)) ] && return 0; done; return 1; }
+[ -s "$out/cuts.txt" ] || echo "(no cuts detected)"
+while read -r fr t; do
   n=${fr#frame=}; [ -z "$n" ] && continue
+  if in_push "$n"; then echo "$fr $t push (expected)"; continue; fi
+  echo "$fr $t CUT"
   ffmpeg -nostdin -v error -y -i "$mp4" -vf "select='between(n\,$((n - 3))\,$((n + 3)))',scale=480:-1,tile=7x1" -frames:v 1 "$out/cut_$(printf %04d "$n").jpg"
 done < "$out/cuts.txt"
+
+if [ -n "$PUSHES" ]; then
+  echo "== push strips: every frame from 3 before to 3 after each push (check blur axis, ghosting, gap frames, fades)"
+  for p in $PUSHES; do
+    strip "$out/push_$(printf %04d "$p").jpg" $((p - 3)) $((p + PUSH_FRAMES + 3))
+    echo "$out/push_$(printf %04d "$p").jpg"
+  done
+fi
 
 echo "== legibility downscales (one frame every 3 s; add zoom-hold times with HOLDS='10.5 25.0')"
 times="$(seq 0 3 $(( nf / $fps - 1 ))) ${HOLDS:-}"
