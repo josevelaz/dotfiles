@@ -16,9 +16,9 @@ Helpers in this folder:
 | `reference/BRIEF-TEMPLATE.md` | Brief skeleton: placement, story, rules, verification |
 | `scripts/capture-lib.mjs` | Playwright helpers: open, clean, audit, frame recorder, typing, eased scroll |
 | `scripts/capture-example.mjs` | One scene captured end to end with those helpers |
-| `scripts/Demo.tsx` | Reference Remotion composition: window, camera zooms, cursor, captions, dips, loop |
+| `scripts/Demo.tsx` | Reference Remotion composition: window, camera zooms, cursor, captions, `PushTransition`, loop |
 | `scripts/encode.sh` | Two-pass H.264 + VP9 encode and frame-0 poster |
-| `scripts/verify.sh` | ffprobe, faststart, contact sheets, legibility downscales, loop SSIM, cut check |
+| `scripts/verify.sh` | ffprobe, faststart, contact sheets, legibility downscales, loop SSIM, cut check, push and loop-wrap strips |
 
 ## 1. Write the brief from the placement
 
@@ -94,14 +94,27 @@ frame number: no CSS animation, no randomness, no state across frames.
   One move at a time; never pan or zoom directly between two spots.
 - **Cursor.** A designed arrow with eased moves of at most 0.6 s that arrive
   just before each click, a slight press, and a soft accent-colour ring.
-- **Transitions.** A dip through the background (0.2 s out, ~0.1 s dark,
-  0.3 s in) between sections, and hard cuts on clicks and page navigation.
-  No crossfades: they put two layers of UI text on screen at once.
+- **Transitions.** One uniform transition for every scene change and the
+  loop: a directional push (`PushTransition`). The outgoing screen
+  translates off along one axis while the incoming one enters edge to edge
+  from the opposite side. Use one axis and direction for the whole video, and
+  push the whole screen (background, window, cursor, caption) as a unit. Add
+  real axis-aligned motion blur tied to velocity: temporal sub-frame
+  accumulation plus an axis-only `feGaussianBlur`. It is heavy mid-move and
+  zero at rest, so the first and last frames of the push match the held
+  frames. Use a strong ease (expo or quint in-out) over 0.5-0.7 s (18 frames
+  at 30 fps). Never fade, dip or crossfade; those read as basic. No hard cuts
+  between scenes. Hard cuts only for natural UI changes inside a scene
+  (clicks, page navigation, replies landing).
 - **Captions.** Four to six small pills of 2-5 words, one accent word,
   overlaying the app without shrinking it. No caption-beside-snippet layouts.
-  Move a pill if it covers the text being shown.
-- **Loop.** End card, dip out, then the opening scene rises in over the last
-  ~13 frames and lands on the frame-0 composition.
+  Move a pill if it covers the text being shown. Captions and the cursor ride
+  the push. A caption that enters or leaves mid-scene uses the same push on
+  its own.
+- **Loop.** The last push takes the end card out with the opening scene as
+  the incoming screen, and ends exactly at `durationInFrames`. Frame 0 is the
+  settled opening state (the poster), and the wrap happens on the push's
+  final step.
 - **Story.** Hook on the hero feature's payoff, give context (public site,
   dashboard), run the hero flow for real, show supporting pages, then the end
   card.
@@ -115,30 +128,42 @@ frame number: no CSS animation, no randomness, no state across frames.
 - VP9, yuv420p, no audio, two-pass (~1450k, maxrate 2900k).
 - A poster JPEG of frame 0.
 
-Lower the bitrate if a file is over ~8 MB. Check text crispness on frames
-extracted from the encoded files, not just the master.
+Lower the bitrate if a file is over ~8 MB. The motion blur costs bitrate, so
+the two-pass targets may need to come down ~5%. Check text crispness on
+frames extracted from the encoded files, not just the master.
 
 ## 6. Verify
 
-`scripts/verify.sh out/demo.mp4 out/demo.webm out/demo-poster.jpg` writes into
-`verify/`. Then view the images yourself:
+`PUSHES="66 201 ..." scripts/verify.sh out/demo.mp4 out/demo.webm out/demo-poster.jpg`
+writes into `verify/`. `PUSHES` lists every push start frame, including the
+loop push and caption slides. Then view the images yourself:
 
 1. ffprobe: size, codecs, pixel format, fps, duration, no audio stream, `moov`
    before `mdat`, both files under ~8 MB, poster equal to frame 0.
 2. A contact sheet of one frame per second, plus frames on both sides of every
-   cut and mid-dip. Look for doubled text, stray overlays, raw ids, warnings,
+   detected cut. Look for doubled text, stray overlays, raw ids, warnings,
    and clipped captions.
-3. Legibility: downscale one frame per scene, including every zoom hold, to the
+3. Every push strip (`push_<frame>.jpg`), frame by frame. The blur runs only
+   along the push axis. It is heavy mid-move and zero at rest, with the end
+   frames identical to the holds. Check for no ghosting or doubled UI, no gap
+   frame, and no fade.
+4. Legibility: downscale one frame per scene, including every zoom hold, to the
    real widths (620 and 340 px). Captions and the focused detail must read at
    620; the gist must read at 340.
-4. Loop: the last frame next to frame 0, and SSIM between them (aim >= 0.98).
-5. The forbidden-string audit log is clean for every state used.
-6. A video-review pass of the whole piece, for example a model that can watch
+5. Loop: `loop_wrap.jpg` (the last ~20 frames, then frames 0-9) must read as
+   one push landing on a held frame 0. The last frame is mid-move, so its
+   SSIM against frame 0 is lower (~0.93); that is expected.
+6. The forbidden-string audit log is clean for every state used.
+7. A video-review pass of the whole piece, for example a model that can watch
    video, against the brief.
 
 Sampling at 1 fps can make a 0.8 s zoom look like a hard cut. Check any
-suspected cut at frame level (`verify.sh` prints scene-change scores; inspect
-those frames) before "fixing" it.
+suspected cut at frame level (`verify.sh` prints scene-change scores and marks
+those inside a push as expected; inspect the rest) before "fixing" it.
+
+Open issue: each screen's own background margins show as a dark smear between
+the windows mid-push. If that reads as a gap, push only the content inside a
+fixed window, but then the hook and end card must match that framing.
 
 ## Building it with an agent
 
