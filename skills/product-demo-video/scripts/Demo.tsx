@@ -142,6 +142,7 @@ const TIMELINE: Scene[] = [
     zooms: [{ a: 9.75, b: 14.6, ...Z_PANEL }],
     cur: { show: [7.35, 18.0], keys: [[7.35, 760, 610], [9.35, 1366, 854], [10.4, 1182, 790], [15.9, 128, 314]], clicks: [9.5, 10.5, 16.0] } },
   // ...supporting pages, a second hero beat, then the end card...
+  // Fill scenes up to END_CARD.a: any gap left here renders as bare background.
 ];
 const CAPS: Cap[] = [
   { a: -1, b: 2.05, text: "Ask your app anything.", acc: "anything.", left: 96 },

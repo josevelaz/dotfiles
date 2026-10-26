@@ -9,17 +9,16 @@ mkdir -p "$(dirname "$out")"; tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 
 # H.264 High, yuv420p, faststart, no audio
 for pass in 1 2; do
-  dst=/dev/null; [ $pass = 2 ] && dst="$out.mp4"
+  if [ $pass = 1 ]; then dst=(-f null -); else dst=(-movflags +faststart -f mp4 "$out.mp4"); fi
   ffmpeg -v error -y -i "$in" -an -c:v libx264 -preset slow -profile:v high -pix_fmt yuv420p \
-    -b:v ${mp4}k -maxrate $((mp4 * 2))k -bufsize $((mp4 * 4))k -pass $pass -passlogfile "$tmp/x264" \
-    -movflags +faststart -f mp4 "$dst"
+    -b:v ${mp4}k -maxrate $((mp4 * 2))k -bufsize $((mp4 * 4))k -pass $pass -passlogfile "$tmp/x264" "${dst[@]}"
 done
 
 # VP9, yuv420p, no audio
 for pass in 1 2; do
-  dst=/dev/null; [ $pass = 2 ] && dst="$out.webm"
+  if [ $pass = 1 ]; then dst=(-f null -); else dst=(-f webm "$out.webm"); fi
   ffmpeg -v error -y -i "$in" -an -c:v libvpx-vp9 -pix_fmt yuv420p -b:v ${webm}k -maxrate $((webm * 2))k \
-    -row-mt 1 -cpu-used 1 -pass $pass -passlogfile "$tmp/vp9" -f webm "$dst"
+    -row-mt 1 -cpu-used 1 -pass $pass -passlogfile "$tmp/vp9" "${dst[@]}"
 done
 
 # Poster = frame 0 of the master

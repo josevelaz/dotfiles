@@ -111,7 +111,7 @@ frame number: no CSS animation, no randomness, no state across frames.
 `scripts/encode.sh master.mp4 out/demo` renders from a high-quality master
 (`npx remotion render <Comp> master.mp4 --crf=10`) to:
 
-- H.264 High, yuv420p, `+faststart`, no audio, two-pass (~1550k, maxrate 3200k).
+- H.264 High, yuv420p, `+faststart`, no audio, two-pass (~1550k, maxrate 2x).
 - VP9, yuv420p, no audio, two-pass (~1450k, maxrate 2900k).
 - A poster JPEG of frame 0.
 

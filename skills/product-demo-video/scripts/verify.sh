@@ -11,8 +11,8 @@ echo "== ffprobe"
 for f in "$mp4" "$webm"; do
   ffprobe -v error -show_entries stream=codec_type,codec_name,profile,pix_fmt,width,height,r_frame_rate \
     -show_entries format=duration,size,bit_rate -of compact "$f"
-  [ -n "$(ffprobe -v error -select_streams a -show_entries stream=index -of csv=p=0 "$f")" ] && echo "FAIL audio stream in $f"
-  size=$(stat -c %s "$f"); [ "$size" -gt $((MAX_MB * 1000000)) ] && echo "FAIL $f is $size bytes"
+  if [ -n "$(ffprobe -v error -select_streams a -show_entries stream=index -of csv=p=0 "$f")" ]; then echo "FAIL audio stream in $f"; fi
+  size=$(wc -c < "$f" | tr -d ' '); if [ "$size" -gt $((MAX_MB * 1000000)) ]; then echo "FAIL $f is $size bytes"; fi
 done
 python3 - "$mp4" <<'PY'
 import struct, sys
@@ -32,8 +32,8 @@ echo "frames=$nf fps=$fps"
 echo "== poster vs frame 0, last frame vs frame 0 (SSIM)"
 ffmpeg -v error -y -i "$mp4" -frames:v 1 "$out/first.png"
 ffmpeg -v error -y -i "$mp4" -vf "select=eq(n\,$((nf - 1)))" -frames:v 1 "$out/last.png"
-ffmpeg -v info -i "$poster" -i "$out/first.png" -lavfi ssim -f null - 2>&1 | grep -o 'All:[0-9.]*' | sed 's/^/poster /'
-ffmpeg -v info -i "$out/last.png" -i "$out/first.png" -lavfi ssim -f null - 2>&1 | grep -o 'All:[0-9.]*' | sed 's/^/loop /'
+ffmpeg -v info -i "$poster" -i "$out/first.png" -lavfi ssim -f null - 2>&1 | grep -o 'All:[0-9.]*' | sed 's/^/poster /' || echo 'FAIL no SSIM for poster'
+ffmpeg -v info -i "$out/last.png" -i "$out/first.png" -lavfi ssim -f null - 2>&1 | grep -o 'All:[0-9.]*' | sed 's/^/loop /' || echo 'FAIL no SSIM for loop'
 ffmpeg -v error -y -i "$out/last.png" -i "$out/first.png" -filter_complex "[0][1]hstack,scale=1280:-1" "$out/loop_last_vs_first.jpg"
 
 echo "== contact sheet, one frame per second"
@@ -42,10 +42,13 @@ ffmpeg -v error -y -i "$mp4" -vf "fps=1,scale=480:-1,drawtext=text='%{pts\:hms}'
   -frames:v 1 "$out/sheet_persec.jpg"
 
 echo "== likely cuts (scene score > 0.25): inspect each at frame level; 0.8 s zooms can look like cuts at 1 fps"
-ffmpeg -v info -i "$mp4" -vf "select='gt(scene,0.25)',showinfo" -f null - 2>&1 | grep -o 'n:[ ]*[0-9]*.*pts_time:[0-9.]*' | awk '{print $1, $2, $NF}' | tee "$out/cuts.txt"
-while read -r _ n _; do
-  n=${n#n:}; [ -z "$n" ] && continue
-  ffmpeg -v error -y -i "$mp4" -vf "select='between(n\,$((n - 3))\,$((n + 3)))',scale=480:-1,tile=7x1" -frames:v 1 "$out/cut_$n.jpg"
+# showinfo's n: counts only selected frames, so map pts_time back to the source frame number.
+{ ffmpeg -v info -i "$mp4" -vf "select='gt(scene,0.25)',showinfo" -f null - 2>&1 || true; } \
+  | grep -o 'pts_time:[0-9.]*' | awk -F: -v fps="$fps" '{printf "frame=%d t=%.3f\n", $2 * fps + 0.5, $2}' > "$out/cuts.txt" || true
+[ -s "$out/cuts.txt" ] && cat "$out/cuts.txt" || echo "(no cuts detected)"
+while read -r fr _; do
+  n=${fr#frame=}; [ -z "$n" ] && continue
+  ffmpeg -nostdin -v error -y -i "$mp4" -vf "select='between(n\,$((n - 3))\,$((n + 3)))',scale=480:-1,tile=7x1" -frames:v 1 "$out/cut_$(printf %04d "$n").jpg"
 done < "$out/cuts.txt"
 
 echo "== legibility downscales (one frame every 3 s; add zoom-hold times with HOLDS='10.5 25.0')"

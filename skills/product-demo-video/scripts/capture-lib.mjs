@@ -14,7 +14,8 @@ import path from 'node:path';
 
 export const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:3000';
 export const OUT = process.env.CAPTURE_DIR ?? './capture';
-export const FORBIDDEN = new RegExp(process.env.FORBIDDEN ?? 'seed-|lorem ipsum|TODO|undefined|NaN', 'gi');
+// Case-sensitive with word boundaries so words like "finance" or "maintenance" don't hit NaN.
+export const FORBIDDEN = new RegExp(process.env.FORBIDDEN ?? '\\bseed-\\w+|\\b[Ll]orem ipsum\\b|\\bTODO\\b|\\bundefined\\b|\\bNaN\\b', 'g');
 
 export async function open({ width = 1440, height = 900, signedIn = true } = {}) {
   const browser = await chromium.launch({

@@ -27,7 +27,7 @@ Fill every field before recording. Delete hints in angle brackets.
 - Full app screens inside a designed browser frame on the brand background.
 - Capture 1440x900 at device scale factor 2; carets, toasts, dev overlays hidden by injected CSS.
 - Static camera. Eased zooms (~0.8 s, 1.4-1.6x), one at a time, no pans.
-- Transitions: hard cut or quick dip to dark, only on a click. No crossfades.
+- Transitions: short dip through the background between sections; hard cuts only on clicks and page navigation. No crossfades.
 - Few captions, short pills. Readable at the mobile width.
 - Last frame matches the first frame so the loop is seamless.
 
