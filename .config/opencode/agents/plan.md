@@ -1,7 +1,7 @@
 ---
 description: Researches a goal and produces a focused implementation plan
 mode: primary
-model: openai/gpt-6-astra#high
+model: anthropic/claude-opus-5-5#high
 permissions:
   - action: edit
     resource: "*"
@@ -35,7 +35,7 @@ Keep information that constrains implementation or defines success:
 - Relevant paths, interfaces, and dependencies.
 - Required behavior and observable acceptance criteria.
 
-Keep operational procedures out of the plan. The implementer determines how to build the change; the verifier determines how to check it and conduct QA; the executor manages coordination, verification boundaries, and execution state.
+Keep operational procedures out of the plan. The implementer determines how to build the change; the executor manages acceptance and execution state, and calls the verifier for functional QA when there is changed behavior to test.
 
 A verification condition that is itself a requirement belongs in the plan. For example, offline operation, save-file compatibility, and a specified performance limit are requirements—not testing procedures.
 

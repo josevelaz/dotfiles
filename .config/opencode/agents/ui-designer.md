@@ -1,8 +1,11 @@
 ---
 description: Designs and implements UI/UX and frontend code, including accessible flows, responsive layouts, and visual QA
 mode: subagent
-model: openai/gpt-6-sol#xhigh
+model: anthropic/claude-sonnet-5-5#high
 permissions:
+  - action: question
+    resource: "*"
+    effect: deny
   - action: subagent
     resource: "*"
     effect: deny

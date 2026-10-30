@@ -1,8 +1,11 @@
 ---
 description: Reviews correctness, requirements, regressions, and strict code quality
+model: xai/grok-4.7#high
 mode: subagent
-model: openai/gpt-6-sol#high
 permissions:
+  - action: question
+    resource: "*"
+    effect: deny
   - action: edit
     resource: "*"
     effect: deny

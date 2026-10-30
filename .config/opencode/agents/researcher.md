@@ -1,8 +1,11 @@
 ---
 description: Researches technical questions across code, documentation, and the web using primary sources
 mode: subagent
-model: openai/gpt-6-luna-fast#max
+model: muse-subscription/muse-spark-1.3#high
 permissions:
+  - action: question
+    resource: "*"
+    effect: deny
   - action: edit
     resource: "*"
     effect: deny

@@ -32,7 +32,21 @@
       "linear": {
         "type": "remote",
         "url": "https://mcp.linear.app/mcp"
+      },
+      "rea": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "rea-agents@6.8.0",
+          "mcp"
+        ],
+        "disabled": false,
+        "environment": {
+          "HOPPER_LAUNCHER_PATH": "/Users/jose/Applications/Hopper Disassembler.app/Contents/MacOS/hopper"
+        }
       }
+      
     }
   },
   "providers": {
@@ -311,9 +325,17 @@
       }
     },
     "openai": {
-      "compaction": {
-        "mode": "provider"
+      "settings": {
+        "compaction": {
+          "type": "native"
+        }
       }
-    },
-  }
+    }
+  },
+  "plugins": [
+    "/Users/jose/.local/share/opencode-plugins/opencode-anthropic-auth-pr282/dist",
+    "/Users/jose/projects/opengo/examples/extensions/review"
+  ],
+  "shell": "/bin/zsh",
+  "default_agent": "build"
 }

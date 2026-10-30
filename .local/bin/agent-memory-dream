@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export PATH="/Users/jose/.opencode/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+MODEL_PROVIDER="openai"
+MODEL_ID="gpt-6.1-sol"
+MEMORY_DIR="${AGENT_MEMORY_DIR:-$HOME/agent-memory}"
+STATE_DIR="$HOME/.local/state/agent-memory-dream"
+STATE_FILE="$STATE_DIR/last-success-ms"
+MAX_SESSIONS=30
+LOG="$HOME/Library/Logs/agent-memory-dream.log"
+
+notify_failure() {
+	osascript -e 'on run argv' \
+		-e 'display notification (item 1 of argv) with title "Agent memory dream failed"' \
+		-e 'end run' -- "See $LOG" >/dev/null 2>&1 || true
+}
+trap 'echo "failed at line $LINENO"; notify_failure' ERR
+
+response=$(mktemp)
+trap 'rm -f "$response"' EXIT
+
+api() {
+	opencode api "$@" >"$response"
+	cat "$response"
+}
+
+echo "=== agent-memory-dream: $(date) ==="
+
+mkdir -p "$STATE_DIR"
+started_ms=$(($(date +%s) * 1000))
+since_ms=$(cat "$STATE_FILE" 2>/dev/null || echo $((started_ms - 86400000)))
+
+sessions=$(api get "/api/session?parentID=null&order=desc&limit=200" |
+	jq -r --argjson since "$since_ms" --argjson max "$MAX_SESSIONS" '
+		[.data[]
+			| select(.time.updated > $since)
+			| select((.metadata // {}).agentMemoryDream != true)]
+		| .[:$max][]
+		| "- \(.id) | \(.title // "untitled") | \(.location.directory)"')
+
+if [[ -z "$sessions" ]]; then
+	echo "No sessions since $(date -r $((since_ms / 1000)))."
+	echo "$started_ms" >"$STATE_FILE"
+	exit 0
+fi
+
+echo "--- sessions to review"
+echo "$sessions"
+
+body=$(jq -n \
+	--arg title "Nightly memory dream $(date +%F)" \
+	--arg dir "$MEMORY_DIR" \
+	--arg provider "$MODEL_PROVIDER" \
+	--arg model "$MODEL_ID" \
+	'{title: $title, agent: "build", model: {providerID: $provider, id: $model},
+	  location: {directory: $dir}, metadata: {agentMemoryDream: true}}')
+session_id=$(api post /api/session --data "$body" | jq -er '.data.id')
+echo "--- dream session $session_id"
+
+api post "/api/session/$session_id/command" \
+	--data "$(jq -n --arg text "$sessions" '{name: "dream", text: $text}')" >/dev/null
+api post "/api/experimental/session/$session_id/wait" --data '{}' >/dev/null
+
+messages=$(api get "/api/session/$session_id/message")
+outcome=$(jq -r '[.data[] | select(.type == "idle")][0].outcome // "unknown"' <<<"$messages")
+echo "--- outcome: $outcome"
+jq -r '[.data[] | select(.type == "assistant")][0].content[]? | select(.type == "text") | .text' <<<"$messages"
+
+if [[ "$outcome" != "succeeded" ]]; then
+	notify_failure
+	exit 1
+fi
+
+echo "$started_ms" >"$STATE_FILE"
+git -C "$MEMORY_DIR" status -sb

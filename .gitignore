@@ -183,3 +183,7 @@ mutagen.yml.lock
 .local/bin/origin
 .local/bin/trustybar
 .local/include/
+
+# Raycast store extensions are app-installed bundles; only picast is ours.
+.config/raycast/extensions/*
+!.config/raycast/extensions/picast/

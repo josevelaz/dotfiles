@@ -1,7 +1,5 @@
 export OP_DEFAULT_ENVIRONMENT="43rm5gh7jf5dndejrsm5s5tcmm"
 export TERM="xterm-ghostty"
-export OPENCODE_HOST="http://127.0.0.1:49374"
-export OPENCODE_SKIP_START=true
 
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
@@ -386,3 +384,20 @@ export PATH="$HOME/.grok/bin:$PATH"
 fpath=(~/.grok/completions/zsh $fpath)
 autoload -Uz compinit && compinit -C
 # <<< grok installer <<<
+
+# OpenChamber Desktop probes this shell with `env -0`. Point only that probe
+# at the shared OpenCode service; do not export its password to normal shells.
+if [[ "$ZSH_EXECUTION_STRING" == "env -0" &&
+      "$(ps -p "$PPID" -o comm= 2>/dev/null)" == "/Applications/OpenChamber.app/Contents/MacOS/OpenChamber" ]]; then
+  _oc_host="$(opencode service status 2>/dev/null)"
+  if [[ "$_oc_host" == http://127.0.0.1:<-> ]]; then
+    _oc_password="$(python3 -c 'import json, pathlib; print(json.loads((pathlib.Path.home() / ".config/opencode/service.json").read_text())["password"])' 2>/dev/null)"
+    if [[ -n "$_oc_password" ]]; then
+      export OPENCODE_HOST="$_oc_host"
+      export OPENCODE_SKIP_START=true
+      export OPENCODE_SERVER_USERNAME=opencode
+      export OPENCODE_SERVER_PASSWORD="$_oc_password"
+    fi
+  fi
+  unset _oc_host _oc_password
+fi

@@ -1,0 +1,22 @@
+{
+  "name": "local-agent-memory-repo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./tui": "./tui.tsx",
+    "./rpc": "./rpc.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler --lib ES2022,DOM --types node index.ts"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.0.23",
+    "zod": "4.3.5"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.11",
+    "typescript": "5.8.2"
+  }
+}

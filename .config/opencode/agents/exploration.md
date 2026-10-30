@@ -1,8 +1,11 @@
 ---
 description: Explores codebases and the web to answer focused research questions
 mode: subagent
-model: openai/gpt-6-luna#xhigh
+model: muse-subscription/muse-spark-1.3#medium
 permissions:
+  - action: question
+    resource: "*"
+    effect: deny
   - action: edit
     resource: "*"
     effect: deny

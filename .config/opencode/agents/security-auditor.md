@@ -1,8 +1,11 @@
 ---
 description: Audits security and specification compliance with an approve or block verdict
 mode: subagent
-model: openai/gpt-6-astra#high
+model: anthropic/claude-opus-5-5#high
 permissions:
+  - action: question
+    resource: "*"
+    effect: deny
   - action: edit
     resource: "*"
     effect: deny

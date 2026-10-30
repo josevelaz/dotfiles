@@ -13,6 +13,10 @@ Follow George Orwell's writing rules in all user-facing prose, including convers
 
 Choose the simplest approach that meets current requirements. Add abstractions, layers, dependencies, or extension points only to resolve a concrete current constraint.
 
+# Code Style - Comments
+
+NEVER write code comments. This bans all `//`, `#`, `/* */`, `<!-- -->`, JSDoc, docstrings, and commented-out code. Write clear names and plain code instead. If code needs an explanation, rewrite the code. Delete comments in code you touch.
+
 # Tests
 
 Do not add tests by default. Create or modify tests only when the user explicitly asks for them or when an E2E test is needed to prove the requested functionality works. Run relevant existing tests for validation; do not add tests merely for coverage.

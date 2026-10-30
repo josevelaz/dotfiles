@@ -12,24 +12,23 @@
     "scrollbar": true,
     "thinking": "show",
     "permissions": "autoaccept",
-    "grouping": "auto",
-    "markdown": "rendered"
+    "image_preview": true
   },
   "animations": true,
   "tabs": {
-    "enabled": false
-  },
-  "plugins": [
-    "./herdr-opencode"
-  ],
-  "prompt": {
-    "image_preview": true
+    "mode": "off"
   },
   "attention": {
     "notifications": true,
     "sound": true
   },
-  "terminal": {
-    "copy": "select"
-  }
+  "plugins": [
+    "./herdr-opencode",
+    {
+      "package": "./project-notes",
+      "options": {
+        "vim": false
+      }
+    }
+  ]
 }

@@ -65,7 +65,7 @@ sbar.add("bracket", "status.menu_extras", {
   },
 })
 
-sbar.add("bracket", "status.media", { "music-artwork", "music" }, {
+sbar.add("bracket", "status.media", { "music-artwork", "music", "music-play" }, {
   padding_left = group_margin.padding_left,
   padding_right = group_margin.padding_right,
   background = {

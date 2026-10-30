@@ -1,10 +1,19 @@
 #!/bin/bash
 
-ITEM_NAME="${NAME:-music}"
+# Always target the main item, even when invoked from a sibling control's click_script.
+ITEM_NAME="music"
+CONTROLS="music-play"
+
+hide_controls() {
+	for item in $CONTROLS; do
+		sketchybar --set "$item" drawing=off
+	done
+}
 
 if [ "$(osascript -e 'application "YouTube Music" is running' 2>/dev/null)" != "true" ]; then
-	sketchybar --set "$ITEM_NAME" drawing=off label=""
+	sketchybar --set "$ITEM_NAME" drawing=off label="" popup.drawing=off
 	sketchybar --set "$ITEM_NAME"-artwork drawing=off background.image=""
+	hide_controls
 	exit 0
 fi
 
@@ -13,6 +22,7 @@ SONG_INFO=$(curl -s 0.0.0.0:26538/api/v1/song-info)
 if [ -z "$SONG_INFO" ] || [ "$SONG_INFO" = "null" ]; then
 	sketchybar --set "$ITEM_NAME" drawing=on label="Opening YouTube Music..."
 	sketchybar --set "$ITEM_NAME"-artwork drawing=off background.image=""
+	hide_controls
 	exit 0
 fi
 
@@ -26,6 +36,13 @@ if [ -n "$ARTWORK" ] && [ "$ARTWORK" != "null" ]; then
 fi
 
 sketchybar --set "$ITEM_NAME" label="$CURRENT_SONG" drawing=on
+
+if [ "$PAUSED" = "true" ]; then
+	PLAY_ICON="󰐊"
+else
+	PLAY_ICON="󰏤"
+fi
+sketchybar --set music-play icon="$PLAY_ICON" drawing=on
 
 if [ -n "$ARTWORK_LOCATION" ] && [ -f "$ARTWORK_LOCATION" ]; then
 	sketchybar --set "$ITEM_NAME"-artwork drawing=on background.drawing=on background.image="$ARTWORK_LOCATION"

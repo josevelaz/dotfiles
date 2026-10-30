@@ -403,6 +403,7 @@ sbar.exec(YABAI_BIN .. " -m query --spaces", function(space_info)
 		sbar.exec("sketchybar --move front_app after space." .. last_space_id .. ".spacer")
 		sbar.exec("sketchybar --move music-artwork after front_app")
 		sbar.exec("sketchybar --move music after music-artwork")
+		sbar.exec("sketchybar --move music-play after music")
 	end
 
 	refresh_all_spaces()
