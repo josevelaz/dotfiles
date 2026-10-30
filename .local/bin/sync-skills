@@ -3,8 +3,8 @@
 
 Skills installed through skills.sh live in .agents/skills and appear in
 .agents/.skill-lock.json. Custom skills live in skills and are exposed through
-relative symlinks in .agents/skills. A small set of those custom skills is also
-linked into ~/.cursor/skills.
+relative symlinks in .agents/skills. Every skill in .agents/skills is then
+linked into each installed harness that does not read ~/.agents/skills itself.
 """
 
 from __future__ import annotations
@@ -18,8 +18,37 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SKILLS_DIR = REPO_ROOT / "skills"
 AGENTS_SKILLS_DIR = REPO_ROOT / ".agents" / "skills"
 LOCK_PATH = REPO_ROOT / ".agents" / ".skill-lock.json"
-CURSOR_SKILLS_DIR = Path.home() / ".cursor" / "skills"
-CURSOR_SYNC_SKILLS = ("agents-md", "setup-project")
+HOME_AGENTS_SKILLS_DIR = Path.home() / ".agents" / "skills"
+
+# Harnesses that only read their own skill directory. Each is synced only when
+# its config root (the parent of the skills directory) exists.
+LINKED_HARNESS_SKILLS_DIRS = tuple(
+    Path.home() / path
+    for path in (
+        ".claude/skills",
+        ".factory/skills",
+        ".kiro/skills",
+        ".qwen/skills",
+        ".gemini/skills",
+        ".codeium/windsurf/skills",
+        ".config/crush/skills",
+        ".config/goose/skills",
+        ".config/devin/skills",
+    )
+)
+
+# Harnesses that already read ~/.agents/skills. Linking into them would load
+# every skill twice, so they only get stale links pruned.
+NATIVE_HARNESS_SKILLS_DIRS = tuple(
+    Path.home() / path
+    for path in (
+        ".codex/skills",
+        ".cursor/skills",
+        ".grok/skills",
+        ".pi/agent/skills",
+        ".config/opencode/skills",
+    )
+)
 
 
 def path_exists(path: Path) -> bool:
@@ -116,29 +145,74 @@ def move_custom_skill(name: str) -> bool:
     return True
 
 
-def link_cursor_skill(name: str) -> bool:
-    source = SKILLS_DIR / name
-    if not source.is_dir() or source.is_symlink():
-        raise RuntimeError(
-            f"cursor skill {name} has no physical skills/{name} source"
-        )
+def harness_skill_names() -> list[str]:
+    return sorted(
+        path.name
+        for path in AGENTS_SKILLS_DIR.iterdir()
+        if not path.name.startswith(".") and (path / "SKILL.md").is_file()
+    )
 
-    CURSOR_SKILLS_DIR.mkdir(parents=True, exist_ok=True)
-    link_path = CURSOR_SKILLS_DIR / name
-    expected_target = Path(os.path.relpath(source, CURSOR_SKILLS_DIR))
+
+def is_managed_link(path: Path) -> bool:
+    if not path.is_symlink():
+        return False
+    target = os.readlink(path)
+    return ".agents/skills/" in target or "dotfiles/skills/" in target
+
+
+def prune_harness_links(skills_dir: Path, keep: set[str]) -> bool:
+    changed = False
+    for path in sorted(skills_dir.iterdir()):
+        if not is_managed_link(path):
+            continue
+        if path.exists() and path.name in keep:
+            continue
+        path.unlink()
+        print(f"sync-skills: removed stale link {skills_dir}/{path.name}")
+        changed = True
+    return changed
+
+
+def link_harness_skill(skills_dir: Path, name: str) -> bool:
+    link_path = skills_dir / name
+    expected_target = Path(
+        os.path.relpath(HOME_AGENTS_SKILLS_DIR / name, skills_dir.resolve())
+    )
 
     if link_path.is_symlink():
         if Path(os.readlink(link_path)) == expected_target:
             return False
+        if not is_managed_link(link_path):
+            print(f"sync-skills: skipping foreign link {link_path}")
+            return False
         link_path.unlink()
     elif link_path.exists():
-        raise RuntimeError(
-            f"refusing to replace physical ~/.cursor/skills/{name} with a symlink"
-        )
+        print(f"sync-skills: skipping physical {link_path}")
+        return False
 
     link_path.symlink_to(expected_target)
-    print(f"sync-skills: linked ~/.cursor/skills/{name} -> skills/{name}")
+    print(f"sync-skills: linked {link_path} -> .agents/skills/{name}")
     return True
+
+
+def sync_harnesses() -> bool:
+    names = harness_skill_names()
+    changed = False
+
+    for skills_dir in LINKED_HARNESS_SKILLS_DIRS:
+        if not skills_dir.parent.is_dir():
+            continue
+        skills_dir.mkdir(exist_ok=True)
+        changed = prune_harness_links(skills_dir, set(names)) or changed
+        for name in names:
+            changed = link_harness_skill(skills_dir, name) or changed
+
+    for skills_dir in NATIVE_HARNESS_SKILLS_DIRS:
+        if skills_dir.is_dir():
+            # Keep working links; only drop ones whose skill is gone.
+            changed = prune_harness_links(skills_dir, set(names)) or changed
+
+    return changed
 
 
 def main() -> None:
@@ -173,8 +247,7 @@ def main() -> None:
             continue
         changed = link_custom_skill(path.name) or changed
 
-    for name in CURSOR_SYNC_SKILLS:
-        changed = link_cursor_skill(name) or changed
+    changed = sync_harnesses() or changed
 
     if not changed:
         print("sync-skills: nothing to do")

@@ -10,7 +10,8 @@
 		<string>/Users/jose/dotfiles/.local/bin/sync-skills</string>
 	</array>
 
-	<!-- Watch both skill roots, the skills.sh lock file, and the Cursor links. -->
+	<!-- Watch both skill roots and the skills.sh lock file; the script fans
+	     skills out to every harness skill directory. -->
 	<key>WatchPaths</key>
 	<array>
 		<string>/Users/jose/dotfiles/skills</string>
