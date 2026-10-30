@@ -145,3 +145,41 @@
 **/node_modules/
 mutagen.yml.lock
 .config/turborepo/telemetry.json
+
+# Key material and credentials, anywhere in the tree. Never commit these.
+**/*.p12
+**/*.pfx
+**/*.key
+**/*.pem
+**/*.csr
+**/*.password
+**/.env
+**/.env.*
+**/auth.json
+**/*.auth.json
+.config/yapr-release/
+
+# App data: auth, pairing, sessions, caches, telemetry and models
+.config/openchamber/
+.config/origin-cli/
+.config/scrawl/
+.config/vercel-plugin/
+.config/muse/*
+!.config/muse/settings.json
+.config/herdr/herdr.sock*
+.config/herdr/session-snapshots/
+.config/omniwm/*.default-*
+.config/opencode/opencode.jsonc.*.backup*
+.config/opencode/opengo/
+.config/opengo-browser/
+.config/opencode/opengo-browser/
+.config/opencode/plugins/opengo.js
+**/.opencode/plans/
+
+# App-installed binaries, launchers and their state
+.local/bin/.muse-*
+.local/bin/muse
+.local/bin/muse-bin-*
+.local/bin/origin
+.local/bin/trustybar
+.local/include/
