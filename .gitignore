@@ -187,3 +187,9 @@ mutagen.yml.lock
 # Raycast store extensions are app-installed bundles; only picast is ours.
 .config/raycast/extensions/*
 !.config/raycast/extensions/picast/
+
+# Secrets, large binaries, app state, and config backups
+.config/herder-build/webhook.env
+.local/bin/browse
+.config/configstore/
+.config/opencode/*.bak-*
