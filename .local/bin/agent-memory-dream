@@ -4,11 +4,14 @@ set -euo pipefail
 
 export PATH="/Users/jose/.opencode/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-MODEL_PROVIDER="openai"
-MODEL_ID="gpt-6.1-sol"
+MODEL_PROVIDER="claude-agent"
+MODEL_ID="opus"
+MODEL_VARIANT="high"
+AGENT="memory-dream"
 MEMORY_DIR="${AGENT_MEMORY_DIR:-$HOME/agent-memory}"
 STATE_DIR="$HOME/.local/state/agent-memory-dream"
 STATE_FILE="$STATE_DIR/last-success-ms"
+SESSION_FILE="$STATE_DIR/session-id"
 MAX_SESSIONS=30
 LOG="$HOME/Library/Logs/agent-memory-dream.log"
 
@@ -33,32 +36,48 @@ mkdir -p "$STATE_DIR"
 started_ms=$(($(date +%s) * 1000))
 since_ms=$(cat "$STATE_FILE" 2>/dev/null || echo $((started_ms - 86400000)))
 
-sessions=$(api get "/api/session?parentID=null&order=desc&limit=200" |
-	jq -r --argjson since "$since_ms" --argjson max "$MAX_SESSIONS" '
+selected=$(api get "/api/session?parentID=null&order=desc&limit=200" |
+	jq -c --argjson since "$since_ms" --argjson max "$MAX_SESSIONS" '
 		[.data[]
 			| select(.time.updated > $since)
 			| select((.metadata // {}).agentMemoryDream != true)]
-		| .[:$max][]
-		| "- \(.id) | \(.title // "untitled") | \(.location.directory)"')
+		| sort_by(.time.updated)
+		| {backlog: (length > $max), sessions: .[:$max]}')
 
-if [[ -z "$sessions" ]]; then
+if [[ $(jq '.sessions | length' <<<"$selected") -eq 0 ]]; then
 	echo "No sessions since $(date -r $((since_ms / 1000)))."
 	echo "$started_ms" >"$STATE_FILE"
 	exit 0
 fi
 
+sessions=$(jq -r '.sessions[] | "- \(.id) | \(.title // "untitled") | \(.location.directory)"' <<<"$selected")
+if [[ $(jq '.backlog' <<<"$selected") == "true" ]]; then
+	next_since_ms=$(jq '.sessions[-1].time.updated' <<<"$selected")
+else
+	next_since_ms=$started_ms
+fi
+
 echo "--- sessions to review"
 echo "$sessions"
 
-body=$(jq -n \
-	--arg title "Nightly memory dream $(date +%F)" \
-	--arg dir "$MEMORY_DIR" \
-	--arg provider "$MODEL_PROVIDER" \
-	--arg model "$MODEL_ID" \
-	'{title: $title, agent: "build", model: {providerID: $provider, id: $model},
-	  location: {directory: $dir}, metadata: {agentMemoryDream: true}}')
-session_id=$(api post /api/session --data "$body" | jq -er '.data.id')
-echo "--- dream session $session_id"
+model=$(jq -nc --arg provider "$MODEL_PROVIDER" --arg model "$MODEL_ID" --arg variant "$MODEL_VARIANT" \
+	'{providerID: $provider, id: $model, variant: $variant}')
+session_id=$(cat "$SESSION_FILE" 2>/dev/null || true)
+if [[ -n "$session_id" ]] && opencode api get "/api/session/$session_id" >/dev/null 2>&1; then
+	api post "/api/session/$session_id/agent" --data "$(jq -nc --arg agent "$AGENT" '{agent: $agent}')" >/dev/null
+	api post "/api/session/$session_id/model" --data "$(jq -nc --argjson model "$model" '{model: $model}')" >/dev/null
+	echo "--- dream session $session_id (reused)"
+else
+	body=$(jq -n \
+		--arg dir "$MEMORY_DIR" \
+		--arg agent "$AGENT" \
+		--argjson model "$model" \
+		'{title: "Nightly memory dream", agent: $agent, model: $model,
+		  location: {directory: $dir}, metadata: {agentMemoryDream: true}}')
+	session_id=$(api post /api/session --data "$body" | jq -er '.data.id')
+	echo "$session_id" >"$SESSION_FILE"
+	echo "--- dream session $session_id (new)"
+fi
 
 api post "/api/session/$session_id/command" \
 	--data "$(jq -n --arg text "$sessions" '{name: "dream", text: $text}')" >/dev/null
@@ -74,5 +93,12 @@ if [[ "$outcome" != "succeeded" ]]; then
 	exit 1
 fi
 
-echo "$started_ms" >"$STATE_FILE"
+echo "$next_since_ms" >"$STATE_FILE"
 git -C "$MEMORY_DIR" status -sb
+
+if opencode api post "/api/session/$session_id/compact" --data '{}' >/dev/null &&
+	opencode api post "/api/experimental/session/$session_id/wait" --data '{}' >/dev/null; then
+	echo "--- compacted dream session"
+else
+	echo "--- compaction failed; the next run reuses the session uncompacted"
+fi

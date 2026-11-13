@@ -7,8 +7,9 @@ OpenCode loads it from the global plugins directory.
 ## What it does
 
 - Adds each repo's `MEMORY.md` and the spec's rules to every model call.
-- Adds tools: `memory_read`, `memory_search`, `memory_write`, `memory_edit`,
-  and `memory_delete`. Each write makes one commit.
+- Adds Code Mode tools in the `memory` namespace: `tools.memory.read`,
+  `search`, `write`, `edit`, and `delete`. Agents call them inside `execute`,
+  so one call can batch many reads. Each write makes one commit.
 - Adds `/dream`, which lints the repos and asks the agent to add missing
   entries, merge duplicates, drop stale ones, and fix links.
 - Creates `~/agent-memory` with a starter `MEMORY.md` if the folder is missing
@@ -51,20 +52,48 @@ A launchd job, `com.jose.dotfiles.agent-memory-dream`, runs
 `~/dotfiles/.local/bin/agent-memory-dream` at 03:00. If the Mac is asleep, it
 runs when the Mac wakes. The script:
 
-1. Lists root sessions updated since the last successful run (the last 24
-   hours on the first run), up to 30.
-2. Creates a session in `~/agent-memory` with `openai/gpt-6.1-sol` and the
-   session metadata `agentMemoryDream: true`, then runs `/dream` with the
-   session list.
+1. Lists root sessions from every directory updated since the last successful
+   run (the last 24 hours on the first run), oldest first, up to 30.
+2. Runs `/dream` with the session list in one long-lived dream session, whose
+   ID is in `~/.local/state/agent-memory-dream/session-id`. It sets the
+   session's agent to `memory-dream` and its model to `claude-agent/opus` with
+   the `high` variant on each run. If the session is gone, it creates a new one in `~/agent-memory`
+   with the session metadata `agentMemoryDream: true` and saves its ID.
 3. Waits for it to finish, logs the summary to
-   `~/Library/Logs/agent-memory-dream.log`, and records the run time in
-   `~/.local/state/agent-memory-dream/last-success-ms`. A failure shows a
-   notification and leaves the time unchanged, so the next run covers the
+   `~/Library/Logs/agent-memory-dream.log`, and records a mark in
+   `~/.local/state/agent-memory-dream/last-success-ms`: the run time, or the
+   last reviewed session's update time when more than 30 sessions were
+   waiting, so the rest are reviewed the next night. A failure shows a
+   notification and leaves the mark unchanged, so the next run covers the
    same sessions.
+4. After a successful run, compacts the dream session so it stays small
+   between nights. A failed compaction is logged but does not fail the run.
 
-In a dream session, the plugin removes every tool except the `memory_*` tools
-and adds `memory_session_transcript`, which reads a session's user and
-assistant text. Other sessions don't get that tool.
+The `memory-dream` agent, defined in `opencode.jsonc`, denies every permission
+except `execute`, `memory`, and `read` inside
+`~/.local/share/opencode/tool-output/`, where OpenCode saves tool output it
+cuts off. The plugin also drops every direct tool except `execute` and `read`
+in dream sessions.
+
+OpenCode cuts off tool results over 51,200 bytes by default. Dream sessions run
+in `~/agent-memory`, so `~/agent-memory/.opencode/opencode.jsonc` raises the
+limit to 250,000 bytes for sessions in that folder only:
+
+```jsonc
+{ "tool_output": { "max_bytes": 250000, "max_lines": 10000 } }
+```
+
+The memory repo's `.git/info/exclude` lists `.opencode/`, so the file stays out
+of git and the repo stays clean. On a new machine, create both by hand. The
+nightly prompt tells the agent to keep each `execute` result under 200,000
+bytes.
+
+`tools.memory.session_transcript` works only in dream sessions. It reads a
+session's title, directory, user and assistant text, tool call inputs, and
+shell commands. It leaves out tool and shell output.
+
+After you change the plugin, run `opencode reload` so the background service,
+which the nightly job uses, loads the new code.
 
 Run it now with:
 
