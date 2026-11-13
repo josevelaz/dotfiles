@@ -43,14 +43,14 @@ Create commits only when the user asks.
 - Keep secrets and unrequested generated artifacts out of commits.
 - Preserve hooks. Do not use `--no-verify`. Rewrite history, amend commits, or force-push only when the user explicitly asks.
 
-# Herdr
+# Executor
 
-When the user asks you to create a window, tab, or pane, or to launch another Pi agent session, use Herdr. Run `herdr --skill`, then follow the instructions it prints.
+Executor works like Code Mode. Its apps expose tools under `tools.<app-slug>.<tool>`, and you reach them through `search`, `describe`, `call`, and `execute`, not as direct tool calls.
 
-# GitHub
-
-Use the `gh` CLI when interfacing with GitHub.
-
-# Agent Browser
-
-When using `agent-browser`, always use Google Chrome at `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` unless the user explicitly requests a different browser or executable path. Always run it headless unless the user specifically asks for headed mode.
+- Check Executor before saying a service or integration is unavailable.
+- Find tools with `search`, then read exact signatures with `describe`. Never guess tool paths or argument names.
+- Use `call` for one call or a few independent calls. Pass an array to run them concurrently.
+- Use `execute` with a JavaScript program when one result feeds the next call, or when a large result needs filtering. Inside the program, the same paths are async functions. Await every call and return only the data you need.
+- When a call pauses for approval or input, show the request to the user and resume it. Never repeat the call or rerun the program.
+- Credentials go only through Executor's connection links. Never ask for secrets in chat or put them in code.
+- If no app provides what you need, search the catalog and install or import one. Build a new app only when nothing fits; read the `app-authoring` skill first.

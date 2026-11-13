@@ -1,15 +1,42 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "warming": true,
+  "skills": [
+    "~/.config/opencode/pstack/skills"
+  ],
   "agents": {
     "explore": {
-      "disabled": true
+      "model": "claude-agent/haiku"
     },
     "general": {
       "disabled": true
     },
     "scout": {
       "disabled": true
+    },
+    "herder-implementer": {
+      "description": "Implements exactly one Herder ticket slice in a given worktree: server, data, logic and UI/UX.",
+      "mode": "subagent",
+      "model": "claude-agent/auto",
+      "system": "You implement exactly one Herder ticket slice in the worktree you are given, and nothing else.\n\nRules:\n- Follow the repo's AGENTS.md and its coding conventions.\n- Stay inside the given worktree and the ticket's scope.\n- Commit through the git hooks. Never use --no-verify, never force-push, never rebase pushed work.\n- Do not add new unit or integration tests.\n- When done, report the files you changed, the commits you made, and any decisions or assumptions you made.\n\nUI/UX work (Jose, Nov 10 2026: the herder-designer agent was removed; you build the UI too). When the slice adds or changes UI:\n- shadcn/ui FIRST (Jose, Nov 9 2026): build every UI with shadcn/ui components (the repo's components.json and src components/ui). Add missing ones with the shadcn CLI (pnpm dlx shadcn@latest add <item>). Only write a custom component when no shadcn component or composition of them covers the need, and report why.\n- Style everything with Trailhead, the Herder design system. Read docs/design-system/README.md and design-system.md in the Herder repo before any UI work, and use the exact tokens in docs/design-system/tokens.json (manifest.json lists everything). Map them onto shadcn through the repo's theme CSS variables, never ad-hoc values. If the repo theme is missing a token you need, add it to the theme from tokens.json and report it. Never introduce ad-hoc colors, fonts or one-off styles.\n- Design mobile (390x844) and desktop (1440x900) properly, with accessible labels, focus states, and empty/loading/error states.\n- Also report the shadcn components used or added, and any custom component and why."
+    },
+    "herder-tester": {
+      "description": "Drives the running app by hand with the browse MCP and reports pass/fail per acceptance criterion with screenshot and video proof. Never edits code.",
+      "mode": "subagent",
+      "model": "claude-agent/auto",
+      "system": "You are the Herder browser QA tester. You verify; you never edit code.\n\nRules:\n- Drive the running local app by hand with the `browse` MCP tools against each acceptance criterion. There is no scripted browser harness (verify-herder was removed, Jose, Nov 10 2026): never write or run browser test scripts or journeys.\n- Check every acceptance criterion you are given and report pass or fail per AC, with evidence: screenshot file paths and the steps you took.\n- Use Mailpit to read email codes.\n- Do not edit code or files in the repo. If something fails, report it with evidence and stop. PROOF (Jose, Nov 9 2026): For every acceptance criterion, capture visual proof at both mobile (390x844) and desktop (1440x900) viewports. Before each pass, use browse `execute` with `await page.setViewportSize({ width, height })`. Save one screenshot per AC per viewport under `~/.cache/herder-build/proof/<issue-key-lowercase>/` (e.g. `ac1-mobile.png`, `ac1-desktop.png`) via `page.screenshot({ path })` or `screenshotWithLabels({ path })` (absolute paths under that proof dir; OPENCODE_BROWSER_FILE_ROOTS includes it). Also record one short video per viewport that walks the ticket's main journey: call the browse MCP `recording` tool with action `start` (prefer mode `cdp`, `outputPath` ending in `.mp4` under the same proof dir, e.g. `journey-mobile.mp4` / `journey-desktop.mp4`), run the journey, then `recording` action `stop`. Do not read browser profiles, cookies, or saved sessions. Do not upload to Google Drive. Return every screenshot and video absolute path in the test report, keyed by AC and viewport. A report missing screenshots or videos for either viewport is incomplete — mark the run failed. LOGIN THROTTLE (Jose, Nov 9 2026): Clear the login rate limit yourself instead of sleeping or waiting out the 10-minute login-code window. You may delete only `auth_throttle` rows whose key matches `ip:127.0.0.1:%`, and only on the ticket's own Neon branch `ticket-<issue>` or on dev (project calm-dawn-32120207, branch br-nameless-credit-b8xhp96i). Never prod or main, never any other branch, table, or rows. Log every clear (time, branch, rows deleted) in `~/.cache/herder-build/throttle-clears.log`. Use the database connection the process already gets through its process-only env override, or the repo's Neon helpers (`scripts/lib/neon-api.ts` + `herder-neon.ts`). Prefer `~/.cache/herder-orchestrator/clear-login-throttle.sh <issue>` when a ticket Neon branch is in use — it is already scoped and writes the log. Never edit Doppler or print secrets.",
+      "permissions": [
+        {
+          "action": "browse_*",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
     },
     "memory-dream": {
       "description": "Nightly memory dream: reads past sessions and tidies agent memory through Code Mode. Can use only the memory tools.",
@@ -42,6 +69,30 @@
           "effect": "allow"
         }
       ]
+    },
+    "herder-reviewer": {
+      "description": "Read-only code reviewer (Opus 5.5): reviews one Herder ticket's diff against its ACs and reports findings. Never edits.",
+      "mode": "subagent",
+      "model": "claude-agent/opus",
+      "variant": "high",
+      "system": "You are the Herder code reviewer. You review; you never edit code, commit, push, or change Linear, GitHub or databases.\n\nRules:\n- You are given a worktree path, a git range (base..head) and the ticket's acceptance criteria. Read the diff (git diff/log/show, reading files) and the repo's AGENTS.md conventions.\n- Check: correctness against every AC; business/tenant scoping and RLS; permissions and role checks; migrations (safe, reversible, no destructive changes to existing data); error handling at boundaries; code quality and maintainability.\n- Do not run validate, browsers, dev servers or migrations. Read-only git and file commands only.\n- Report findings as a numbered list: severity (blocker/major/minor/nit), file:line, the problem, and a concrete suggested fix. End with an overall verdict: approve, or changes required. Never print secrets or .env contents.",
+      "permissions": [
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "browse_*",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "task",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
     }
   },
   "instructions": [
@@ -49,22 +100,6 @@
   ],
   "mcp": {
     "servers": {
-      "context7": {
-        "headers": {
-          "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
-        },
-        "type": "remote",
-        "oauth": false,
-        "url": "https://mcp.context7.com/mcp"
-      },
-      "grep": {
-        "type": "remote",
-        "url": "https://mcp.grep.app"
-      },
-      "linear": {
-        "type": "remote",
-        "url": "https://mcp.linear.app/mcp"
-      },
       "rea": {
         "type": "local",
         "command": [
@@ -77,285 +112,25 @@
         "environment": {
           "HOPPER_LAUNCHER_PATH": "/Users/jose/Applications/Hopper Disassembler.app/Contents/MacOS/hopper"
         }
+      },
+      "executor": {
+        "type": "remote",
+        "url": "https://mcp.executor.sh/mcp"
+      },
+      "browse": {
+        "type": "local",
+        "command": [
+          "/Users/jose/.local/bin/browse",
+          "mcp"
+        ],
+        "environment": {
+          "OPENCODE_BROWSER_RUNTIME": "auto-update",
+          "OPENCODE_BROWSER_FILE_ROOTS": "/Users/jose/.cache/herder-build/proof"
+        }
       }
-      
     }
   },
   "providers": {
-    "muse-subscription": {
-      "name": "Muse Subscription",
-      "package": "@opencode/ai/providers/meta/responses",
-      "settings": {
-        "baseURL": "https://api.meta.ai/v1"
-      },
-      "headers": {
-        "x-api-version": "1.0.0",
-        "x-client-id": "tbh:exec"
-      },
-      "body": {
-        "store": false
-      },
-      "models": {
-        "muse-spark-1.3": {
-          "name": "Muse Spark 1.3 (Subscription)",
-          "family": "muse",
-          "capabilities": {
-            "tools": true,
-            "input": [
-              "text",
-              "image",
-              "pdf",
-              "video",
-              "audio"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "cost": {
-            "input": 0,
-            "output": 0,
-            "cache": {
-              "read": 0,
-              "write": 0
-            }
-          },
-          "limit": {
-            "context": 1048576,
-            "output": 131072
-          },
-          "variants": [
-            {
-              "id": "minimal",
-              "settings": {
-                "reasoningEffort": "minimal",
-                "reasoningSummary": "auto",
-                "include": [
-                  "reasoning.encrypted_content"
-                ]
-              }
-            },
-            {
-              "id": "low",
-              "settings": {
-                "reasoningEffort": "low",
-                "reasoningSummary": "auto",
-                "include": [
-                  "reasoning.encrypted_content"
-                ]
-              }
-            },
-            {
-              "id": "medium",
-              "settings": {
-                "reasoningEffort": "medium",
-                "reasoningSummary": "auto",
-                "include": [
-                  "reasoning.encrypted_content"
-                ]
-              }
-            },
-            {
-              "id": "high",
-              "settings": {
-                "reasoningEffort": "high",
-                "reasoningSummary": "auto",
-                "include": [
-                  "reasoning.encrypted_content"
-                ]
-              }
-            },
-            {
-              "id": "xhigh",
-              "settings": {
-                "reasoningEffort": "xhigh",
-                "reasoningSummary": "auto",
-                "include": [
-                  "reasoning.encrypted_content"
-                ]
-              }
-            },
-            {
-              "id": "max",
-              "settings": {
-                "reasoningEffort": "max",
-                "reasoningSummary": "auto",
-                "include": [
-                  "reasoning.encrypted_content"
-                ]
-              }
-            }
-          ]
-        },
-        "muse-spark-1.3-contributor": {
-          "name": "Muse Spark 1.3 Contributor (Subscription)",
-          "family": "muse",
-          "capabilities": {
-            "tools": true,
-            "input": [
-              "text",
-              "image",
-              "pdf",
-              "video",
-              "audio"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "cost": {
-            "input": 0,
-            "output": 0,
-            "cache": {
-              "read": 0,
-              "write": 0
-            }
-          },
-          "limit": {
-            "context": 1048576,
-            "output": 131072
-          },
-          "variants": [
-            {
-              "id": "minimal",
-              "settings": {
-                "reasoningEffort": "minimal",
-                "reasoningSummary": "auto",
-                "include": [
-                  "reasoning.encrypted_content"
-                ]
-              }
-            },
-            {
-              "id": "low",
-              "settings": {
-                "reasoningEffort": "low",
-                "reasoningSummary": "auto",
-                "include": [
-                  "reasoning.encrypted_content"
-                ]
-              }
-            },
-            {
-              "id": "medium",
-              "settings": {
-                "reasoningEffort": "medium",
-                "reasoningSummary": "auto",
-                "include": [
-                  "reasoning.encrypted_content"
-                ]
-              }
-            },
-            {
-              "id": "high",
-              "settings": {
-                "reasoningEffort": "high",
-                "reasoningSummary": "auto",
-                "include": [
-                  "reasoning.encrypted_content"
-                ]
-              }
-            },
-            {
-              "id": "xhigh",
-              "settings": {
-                "reasoningEffort": "xhigh",
-                "reasoningSummary": "auto",
-                "include": [
-                  "reasoning.encrypted_content"
-                ]
-              }
-            }
-          ]
-        },
-        "muse-spark-1.2": {
-          "name": "Muse Spark 1.2 (Subscription)",
-          "family": "muse",
-          "capabilities": {
-            "tools": true,
-            "input": [
-              "text",
-              "image",
-              "pdf",
-              "video",
-              "audio"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "cost": {
-            "input": 0,
-            "output": 0,
-            "cache": {
-              "read": 0,
-              "write": 0
-            }
-          },
-          "limit": {
-            "context": 1048576,
-            "output": 131072
-          }
-        },
-        "muse-spark-1.2-contributor": {
-          "name": "Muse Spark 1.2 Contributor (Subscription)",
-          "family": "muse",
-          "capabilities": {
-            "tools": true,
-            "input": [
-              "text",
-              "image",
-              "pdf",
-              "video",
-              "audio"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "cost": {
-            "input": 0,
-            "output": 0,
-            "cache": {
-              "read": 0,
-              "write": 0
-            }
-          },
-          "limit": {
-            "context": 1048576,
-            "output": 131072
-          }
-        },
-        "muse-spark-1.1": {
-          "name": "Muse Spark 1.1 (Subscription)",
-          "family": "muse",
-          "capabilities": {
-            "tools": true,
-            "input": [
-              "text",
-              "image",
-              "pdf",
-              "video"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "cost": {
-            "input": 0,
-            "output": 0,
-            "cache": {
-              "read": 0,
-              "write": 0
-            }
-          },
-          "limit": {
-            "context": 1048576,
-            "output": 131072
-          }
-        }
-      }
-    },
     "openai": {
       "settings": {
         "compaction": {
@@ -364,10 +139,17 @@
       }
     }
   },
-  "plugins": [
-    "/Users/jose/.local/share/opencode-plugins/opencode-anthropic-auth-pr282/dist",
-    "/Users/jose/projects/opengo/examples/extensions/review"
-  ],
+  "experimental": {
+    "background_compaction": true
+  },
   "shell": "/bin/zsh",
-  "default_agent": "build"
+  "default_agent": "build",
+  "plugins": [
+    "opencode-mobile-notifications"
+  ]
 }
+
+
+
+
+

@@ -1,6 +1,10 @@
-import { describe, expect, test } from "bun:test"
+import { describe, expect, mock, test } from "bun:test"
 
-import { appendSystemPrompt } from "./index"
+mock.module("@opencode/plugin", () => ({
+  Plugin: { define: (plugin: unknown) => plugin },
+}))
+
+const { appendSystemPrompt } = await import("./index")
 
 describe("appendSystemPrompt", () => {
   test("appends non-empty text without changing it", () => {

@@ -1,0 +1,754 @@
+{
+  "manifestVersion": 3,
+  "name": "Trailhead — Herder Design System",
+  "namespace": "Herder",
+  "files": [
+    "assets/Icons/README.md",
+    "components/Avatar/README.md",
+    "components/BookServiceScreen/README.md",
+    "components/BookedScreen/README.md",
+    "components/BookingPicker/README.md",
+    "components/Button/README.md",
+    "components/CalendarScreen/README.md",
+    "components/Card/README.md",
+    "components/Checkout/README.md",
+    "components/ClientHomeScreen/README.md",
+    "components/ClientProfile/README.md",
+    "components/ClientsScreen/README.md",
+    "components/DateTimePicker/README.md",
+    "components/EmptyState/README.md",
+    "components/HomeworkCard/README.md",
+    "components/Icons/README.md",
+    "components/InboxScreen/README.md",
+    "components/Input/README.md",
+    "components/Invoice/README.md",
+    "components/ListRow/README.md",
+    "components/MoneyScreen/README.md",
+    "components/PayScreen/README.md",
+    "components/PenMarks/README.md",
+    "components/Segmented/README.md",
+    "components/Select/README.md",
+    "components/SessionNote/README.md",
+    "components/Sheet/README.md",
+    "components/SignedScreen/README.md",
+    "components/SmsThread/README.md",
+    "components/Stamp/README.md",
+    "components/StickyNote/README.md",
+    "components/Tabs/README.md",
+    "components/Toast/README.md",
+    "components/TodayScreen/README.md",
+    "components/WaiverSigning/README.md",
+    "components/bundle.css",
+    "components/bundle.js",
+    "fonts/Fraunces-Variable-Italic.woff2",
+    "fonts/Fraunces-Variable.woff2",
+    "fonts/NunitoSans-Variable-Italic.woff2",
+    "fonts/NunitoSans-Variable.woff2",
+    "tokens.css"
+  ],
+  "libraries": [],
+  "components": [
+    {
+      "name": "Avatar",
+      "group": "Identity",
+      "summary": "Initials written in ink inside an ink outline on fresh paper."
+    },
+    {
+      "name": "BookServiceScreen",
+      "group": "Screens",
+      "summary": "Client · Book · service."
+    },
+    {
+      "name": "BookedScreen",
+      "group": "Screens",
+      "summary": "Client · Booked."
+    },
+    {
+      "name": "BookingPicker",
+      "group": "Patterns",
+      "summary": "The client's booking step: a week strip, the open start times for the chosen day, the place, and a summary."
+    },
+    {
+      "name": "Button",
+      "group": "Actions",
+      "summary": "Buttons are pressable paper labels: a solid fill, a 1.5px ink edge and a 2px ink edge underneath."
+    },
+    {
+      "name": "CalendarScreen",
+      "group": "Screens",
+      "summary": "Trainer · Calendar."
+    },
+    {
+      "name": "Card",
+      "group": "Containers",
+      "summary": "A card is a sheet of paper on the page: surface with a hairline border and 10px corners, flat."
+    },
+    {
+      "name": "Checkout",
+      "group": "Patterns",
+      "summary": "Pay a booking deposit without an account."
+    },
+    {
+      "name": "ClientHomeScreen",
+      "group": "Screens",
+      "summary": "Client · Home."
+    },
+    {
+      "name": "ClientProfile",
+      "group": "Patterns",
+      "summary": "Everything about one client and their dog."
+    },
+    {
+      "name": "ClientsScreen",
+      "group": "Screens",
+      "summary": "Trainer · Clients."
+    },
+    {
+      "name": "DateTimePicker",
+      "group": "Inputs",
+      "summary": "Pick a day, then a start time."
+    },
+    {
+      "name": "EmptyState",
+      "group": "Feedback",
+      "summary": "Say why a place is empty and what to do next: a small landscape or paper sketch, a short Fraunces title, one sentence, at most one button."
+    },
+    {
+      "name": "HomeworkCard",
+      "group": "Patterns",
+      "summary": "What the client practises between sessions."
+    },
+    {
+      "name": "Icons",
+      "group": "Foundations",
+      "summary": "A small, purpose-drawn line set: 24px grid, 1.75px stroke, round caps and joins, no fills, coloured with currentColor."
+    },
+    {
+      "name": "InboxScreen",
+      "group": "Screens",
+      "summary": "Trainer · Inbox."
+    },
+    {
+      "name": "Input",
+      "group": "Inputs",
+      "summary": "Fields are fresh paper (surface-raised) with a border-strong edge, 8px corners and a visible label above."
+    },
+    {
+      "name": "Invoice",
+      "group": "Patterns",
+      "summary": "An invoice is a receipt: who it's from, who it's billed to, line items, and a double ink rule above the balance."
+    },
+    {
+      "name": "ListRow",
+      "group": "Containers",
+      "summary": "Lists are written on the page, not boxed: a 1.5px ink ledger rule (ink-rule) across the top, a slightly uneven pen line (rule) between items, a hairline at the…"
+    },
+    {
+      "name": "MoneyScreen",
+      "group": "Screens",
+      "summary": "Trainer · Money."
+    },
+    {
+      "name": "PayScreen",
+      "group": "Screens",
+      "summary": "Client · Pay."
+    },
+    {
+      "name": "PenMarks",
+      "group": "Foundations",
+      "summary": "Pen marks are the trainer's hand on the page: a clay circle or squiggle drawn over the UI to say \"this one\"."
+    },
+    {
+      "name": "Segmented",
+      "group": "Containers",
+      "summary": "Two to four mutually exclusive choices in one paper label: an ink edge and under-edge around the whole control, ink lines between segments, and the chosen segm…"
+    },
+    {
+      "name": "Select",
+      "group": "Inputs",
+      "summary": "Choose one thing from a known list."
+    },
+    {
+      "name": "SessionNote",
+      "group": "Patterns",
+      "summary": "After a session Herder drafts the client note from Maya's voice memo."
+    },
+    {
+      "name": "Sheet",
+      "group": "Containers",
+      "summary": "Bottom sheets and modals put one short task or decision on top of the screen, on fresh paper (surface-raised) over a scrim."
+    },
+    {
+      "name": "SignedScreen",
+      "group": "Screens",
+      "summary": "Client · Waiver signed."
+    },
+    {
+      "name": "SmsThread",
+      "group": "Patterns",
+      "summary": "One text conversation with a client, as their phone shows it, plus what Herder did and what it suggests."
+    },
+    {
+      "name": "Stamp",
+      "group": "Feedback",
+      "summary": "Stamps say the status of a thing in a word or two, like a rubber stamp: an ink outline, no fill, a slightly worn ink texture."
+    },
+    {
+      "name": "StickyNote",
+      "group": "Paper",
+      "summary": "A sticky note is stuck on the page, not written in it."
+    },
+    {
+      "name": "Tabs",
+      "group": "Containers",
+      "summary": "Two kinds, each with one job, and both marked in pen because they show where you are."
+    },
+    {
+      "name": "Toast",
+      "group": "Feedback",
+      "summary": "Toasts confirm what just happened; banners explain a lasting condition in place."
+    },
+    {
+      "name": "TodayScreen",
+      "group": "Screens",
+      "summary": "Trainer · Today."
+    },
+    {
+      "name": "WaiverSigning",
+      "group": "Patterns",
+      "summary": "The client reads the waiver, agrees and signs."
+    }
+  ],
+  "assetGroups": [
+    {
+      "name": "Icons",
+      "tile": "xs",
+      "order": [
+        "sun.svg",
+        "inbox.svg",
+        "calendar.svg",
+        "calendar-check.svg",
+        "users.svg",
+        "user.svg",
+        "message.svg",
+        "message-auto.svg",
+        "send.svg",
+        "phone.svg",
+        "clock.svg",
+        "pin.svg",
+        "navigate.svg",
+        "check.svg",
+        "check-double.svg",
+        "x.svg",
+        "chevron-right.svg",
+        "chevron-left.svg",
+        "chevron-down.svg",
+        "plus.svg",
+        "search.svg",
+        "card.svg",
+        "receipt.svg",
+        "pen.svg",
+        "waiver.svg",
+        "homework.svg",
+        "draft.svg",
+        "bell.svg",
+        "alert.svg",
+        "info.svg",
+        "check-circle.svg",
+        "x-circle.svg",
+        "home.svg",
+        "tag.svg",
+        "dollar.svg",
+        "more.svg",
+        "attach.svg",
+        "mic.svg",
+        "play.svg",
+        "video.svg",
+        "mountain.svg",
+        "trash.svg",
+        "lock.svg",
+        "arrow-right.svg",
+        "repeat.svg",
+        "filter.svg",
+        "settings.svg"
+      ],
+      "files": [
+        {
+          "path": "assets/Icons/sun.svg",
+          "id": "fca8c6cbc31491a465fe31ad48b5b6d8"
+        },
+        {
+          "path": "assets/Icons/inbox.svg",
+          "id": "7e38cf282b567277b352bb3313793ab0"
+        },
+        {
+          "path": "assets/Icons/calendar.svg",
+          "id": "479b4bee69e3fcb5dd7d5e1cb0f2b211"
+        },
+        {
+          "path": "assets/Icons/calendar-check.svg",
+          "id": "f9e3a81078a9f253aab8069530f70454"
+        },
+        {
+          "path": "assets/Icons/users.svg",
+          "id": "ec38fb59398b7f5b1dcca04ee4fc0ae9"
+        },
+        {
+          "path": "assets/Icons/user.svg",
+          "id": "5a2bb5f185b4075c42ff30b1baa5e9e8"
+        },
+        {
+          "path": "assets/Icons/message.svg",
+          "id": "1b3d878458cdb5796f1e5523a4d2e638"
+        },
+        {
+          "path": "assets/Icons/message-auto.svg",
+          "id": "f431f34abd2801c40fd2b31277fe7e18"
+        },
+        {
+          "path": "assets/Icons/send.svg",
+          "id": "4a294bffd2ffcbe5d4d62d19a6bad48c"
+        },
+        {
+          "path": "assets/Icons/phone.svg",
+          "id": "dba972c704d77293ba8dc52292808499"
+        },
+        {
+          "path": "assets/Icons/clock.svg",
+          "id": "064aa222a896a618287f0f199501f193"
+        },
+        {
+          "path": "assets/Icons/pin.svg",
+          "id": "74c16be9929af003daef699fb3e365fe"
+        },
+        {
+          "path": "assets/Icons/navigate.svg",
+          "id": "f835984d53ef06a24eb11da79a0d83e2"
+        },
+        {
+          "path": "assets/Icons/check.svg",
+          "id": "80c2327957a2068c439f5ccb8e20f275"
+        },
+        {
+          "path": "assets/Icons/check-double.svg",
+          "id": "dd60972587c71cf47bcf03f5ea5f28ad"
+        },
+        {
+          "path": "assets/Icons/x.svg",
+          "id": "366d5e3914ba379a510f7b1a02bfb577"
+        },
+        {
+          "path": "assets/Icons/chevron-right.svg",
+          "id": "77bc29b52e7d194d63c7a0fbcc3a143c"
+        },
+        {
+          "path": "assets/Icons/chevron-left.svg",
+          "id": "4030aaac1346f9e993266ecf3b9edbb5"
+        },
+        {
+          "path": "assets/Icons/chevron-down.svg",
+          "id": "2940176dca2f26803f48e60164add071"
+        },
+        {
+          "path": "assets/Icons/plus.svg",
+          "id": "443abb04b71d8a21ebeeac363bbea5dc"
+        },
+        {
+          "path": "assets/Icons/search.svg",
+          "id": "de57452c4c580371c25a225a181f91b2"
+        },
+        {
+          "path": "assets/Icons/card.svg",
+          "id": "e532fe54d5210d3d5fd31c93a431b7cf"
+        },
+        {
+          "path": "assets/Icons/receipt.svg",
+          "id": "b119c6b44b872d0af3c565860066b783"
+        },
+        {
+          "path": "assets/Icons/pen.svg",
+          "id": "e12aea7c64b2f7be7180390cb2d4dc78"
+        },
+        {
+          "path": "assets/Icons/waiver.svg",
+          "id": "de8b3bbc423eb32533681575b41bc5c3"
+        },
+        {
+          "path": "assets/Icons/homework.svg",
+          "id": "106d3784dc7313479163ba7e85073334"
+        },
+        {
+          "path": "assets/Icons/draft.svg",
+          "id": "0ef370edc0cafe7a36f4a42abaaa2662"
+        },
+        {
+          "path": "assets/Icons/bell.svg",
+          "id": "899deeb2d308cd4dc339b0d030ca1eff"
+        },
+        {
+          "path": "assets/Icons/alert.svg",
+          "id": "bfe89becab6da5d7c3457ac8c3f2748b"
+        },
+        {
+          "path": "assets/Icons/info.svg",
+          "id": "316b9a011528b812637d4accec330615"
+        },
+        {
+          "path": "assets/Icons/check-circle.svg",
+          "id": "f07f1cc7dbd620c4ed73ae008d101141"
+        },
+        {
+          "path": "assets/Icons/x-circle.svg",
+          "id": "604fdf139693c3f1b7ecc358ad5e2d9e"
+        },
+        {
+          "path": "assets/Icons/home.svg",
+          "id": "2db905c1b58863f87ba10085e3f0b714"
+        },
+        {
+          "path": "assets/Icons/tag.svg",
+          "id": "9118182e6eff8834578b1c6d539f116d"
+        },
+        {
+          "path": "assets/Icons/dollar.svg",
+          "id": "b32fa4278a08813f3bef28c2ca59442e"
+        },
+        {
+          "path": "assets/Icons/more.svg",
+          "id": "490a3badbbeffe6656f8afdce74e7882"
+        },
+        {
+          "path": "assets/Icons/attach.svg",
+          "id": "9f81fb7e9d3f78a60c6676d34469ec8b"
+        },
+        {
+          "path": "assets/Icons/mic.svg",
+          "id": "f0e33d01c88173998a956803efbb1a16"
+        },
+        {
+          "path": "assets/Icons/play.svg",
+          "id": "c30b56eec4d3c264a10b704fe81edfe6"
+        },
+        {
+          "path": "assets/Icons/video.svg",
+          "id": "1450f1433a16517e527fa3de42ce54bd"
+        },
+        {
+          "path": "assets/Icons/mountain.svg",
+          "id": "f143435897905e4c124e3b0ff98b1399"
+        },
+        {
+          "path": "assets/Icons/trash.svg",
+          "id": "7e4bc592b33aae350ce35148a54d046f"
+        },
+        {
+          "path": "assets/Icons/lock.svg",
+          "id": "bca92fb4fefafb2639e5a6d74694b1a8"
+        },
+        {
+          "path": "assets/Icons/arrow-right.svg",
+          "id": "57e42d4a6c6fb3324c00d1422549e2df"
+        },
+        {
+          "path": "assets/Icons/repeat.svg",
+          "id": "09e15866ac6dc238ab1204e9e281af58"
+        },
+        {
+          "path": "assets/Icons/filter.svg",
+          "id": "d7e060d7be9dcdbf78f69b258d7d0003"
+        },
+        {
+          "path": "assets/Icons/settings.svg",
+          "id": "1e9cf761e60c933a82b325f3e6129bf6"
+        }
+      ]
+    }
+  ],
+  "storage": {
+    "files": {
+      "assets/Icons/alert.svg": {
+        "store": "blob",
+        "id": "bfe89becab6da5d7c3457ac8c3f2748b",
+        "bytes": 316,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/arrow-right.svg": {
+        "store": "blob",
+        "id": "57e42d4a6c6fb3324c00d1422549e2df",
+        "bytes": 219,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/attach.svg": {
+        "store": "blob",
+        "id": "9f81fb7e9d3f78a60c6676d34469ec8b",
+        "bytes": 289,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/bell.svg": {
+        "store": "blob",
+        "id": "899deeb2d308cd4dc339b0d030ca1eff",
+        "bytes": 268,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/calendar-check.svg": {
+        "store": "blob",
+        "id": "f9e3a81078a9f253aab8069530f70454",
+        "bytes": 281,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/calendar.svg": {
+        "store": "blob",
+        "id": "479b4bee69e3fcb5dd7d5e1cb0f2b211",
+        "bytes": 268,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/card.svg": {
+        "store": "blob",
+        "id": "e532fe54d5210d3d5fd31c93a431b7cf",
+        "bytes": 268,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/check-circle.svg": {
+        "store": "blob",
+        "id": "f07f1cc7dbd620c4ed73ae008d101141",
+        "bytes": 251,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/check-double.svg": {
+        "store": "blob",
+        "id": "dd60972587c71cf47bcf03f5ea5f28ad",
+        "bytes": 240,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/check.svg": {
+        "store": "blob",
+        "id": "80c2327957a2068c439f5ccb8e20f275",
+        "bytes": 219,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/chevron-down.svg": {
+        "store": "blob",
+        "id": "2940176dca2f26803f48e60164add071",
+        "bytes": 210,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/chevron-left.svg": {
+        "store": "blob",
+        "id": "4030aaac1346f9e993266ecf3b9edbb5",
+        "bytes": 212,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/chevron-right.svg": {
+        "store": "blob",
+        "id": "77bc29b52e7d194d63c7a0fbcc3a143c",
+        "bytes": 210,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/clock.svg": {
+        "store": "blob",
+        "id": "064aa222a896a618287f0f199501f193",
+        "bytes": 242,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/dollar.svg": {
+        "store": "blob",
+        "id": "b32fa4278a08813f3bef28c2ca59442e",
+        "bytes": 310,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/draft.svg": {
+        "store": "blob",
+        "id": "0ef370edc0cafe7a36f4a42abaaa2662",
+        "bytes": 277,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/filter.svg": {
+        "store": "blob",
+        "id": "d7e060d7be9dcdbf78f69b258d7d0003",
+        "bytes": 221,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/home.svg": {
+        "store": "blob",
+        "id": "2db905c1b58863f87ba10085e3f0b714",
+        "bytes": 247,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/homework.svg": {
+        "store": "blob",
+        "id": "106d3784dc7313479163ba7e85073334",
+        "bytes": 290,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/inbox.svg": {
+        "store": "blob",
+        "id": "7e38cf282b567277b352bb3313793ab0",
+        "bytes": 290,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/info.svg": {
+        "store": "blob",
+        "id": "316b9a011528b812637d4accec330615",
+        "bytes": 249,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/lock.svg": {
+        "store": "blob",
+        "id": "bca92fb4fefafb2639e5a6d74694b1a8",
+        "bytes": 277,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/message-auto.svg": {
+        "store": "blob",
+        "id": "f431f34abd2801c40fd2b31277fe7e18",
+        "bytes": 323,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/message.svg": {
+        "store": "blob",
+        "id": "1b3d878458cdb5796f1e5523a4d2e638",
+        "bytes": 284,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/mic.svg": {
+        "store": "blob",
+        "id": "f0e33d01c88173998a956803efbb1a16",
+        "bytes": 283,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/more.svg": {
+        "store": "blob",
+        "id": "490a3badbbeffe6656f8afdce74e7882",
+        "bytes": 284,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/mountain.svg": {
+        "store": "blob",
+        "id": "f143435897905e4c124e3b0ff98b1399",
+        "bytes": 228,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/navigate.svg": {
+        "store": "blob",
+        "id": "f835984d53ef06a24eb11da79a0d83e2",
+        "bytes": 227,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/pen.svg": {
+        "store": "blob",
+        "id": "e12aea7c64b2f7be7180390cb2d4dc78",
+        "bytes": 259,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/phone.svg": {
+        "store": "blob",
+        "id": "dba972c704d77293ba8dc52292808499",
+        "bytes": 318,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/pin.svg": {
+        "store": "blob",
+        "id": "74c16be9929af003daef699fb3e365fe",
+        "bytes": 288,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/play.svg": {
+        "store": "blob",
+        "id": "c30b56eec4d3c264a10b704fe81edfe6",
+        "bytes": 217,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/plus.svg": {
+        "store": "blob",
+        "id": "443abb04b71d8a21ebeeac363bbea5dc",
+        "bytes": 214,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/receipt.svg": {
+        "store": "blob",
+        "id": "b119c6b44b872d0af3c565860066b783",
+        "bytes": 258,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/repeat.svg": {
+        "store": "blob",
+        "id": "09e15866ac6dc238ab1204e9e281af58",
+        "bytes": 255,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/search.svg": {
+        "store": "blob",
+        "id": "de57452c4c580371c25a225a181f91b2",
+        "bytes": 246,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/send.svg": {
+        "store": "blob",
+        "id": "4a294bffd2ffcbe5d4d62d19a6bad48c",
+        "bytes": 239,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/settings.svg": {
+        "store": "blob",
+        "id": "1e9cf761e60c933a82b325f3e6129bf6",
+        "bytes": 340,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/sun.svg": {
+        "store": "blob",
+        "id": "fca8c6cbc31491a465fe31ad48b5b6d8",
+        "bytes": 320,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/tag.svg": {
+        "store": "blob",
+        "id": "9118182e6eff8834578b1c6d539f116d",
+        "bytes": 284,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/trash.svg": {
+        "store": "blob",
+        "id": "7e4bc592b33aae350ce35148a54d046f",
+        "bytes": 233,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/user.svg": {
+        "store": "blob",
+        "id": "5a2bb5f185b4075c42ff30b1baa5e9e8",
+        "bytes": 266,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/users.svg": {
+        "store": "blob",
+        "id": "ec38fb59398b7f5b1dcca04ee4fc0ae9",
+        "bytes": 331,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/video.svg": {
+        "store": "blob",
+        "id": "1450f1433a16517e527fa3de42ce54bd",
+        "bytes": 266,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/waiver.svg": {
+        "store": "blob",
+        "id": "de8b3bbc423eb32533681575b41bc5c3",
+        "bytes": 328,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/x-circle.svg": {
+        "store": "blob",
+        "id": "604fdf139693c3f1b7ecc358ad5e2d9e",
+        "bytes": 247,
+        "type": "image/svg+xml"
+      },
+      "assets/Icons/x.svg": {
+        "store": "blob",
+        "id": "366d5e3914ba379a510f7b1a02bfb577",
+        "bytes": 218,
+        "type": "image/svg+xml"
+      }
+    },
+    "blobBytesUsed": 12410
+  }
+}
