@@ -1,0 +1,9 @@
+{
+  "opencode": "/Users/jose/.opencode/bin/opencode",
+  "entry": "/Users/jose/.local/bin/browse",
+  "version": "0.0.16",
+  "agents": [],
+  "opencodeConfigs": [
+    "/Users/jose/.config/opencode/opencode.jsonc"
+  ]
+}

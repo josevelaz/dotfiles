@@ -1,6 +1,6 @@
 # Print an optspec for argparse to handle cmd's options that are independent of any subcommand.
 function __fish_grok_global_optspecs
-	string join \n v/version cwd= add-dir= leader-socket= debug debug-file= always-approve trust allow= deny= p/single= prompt-json= prompt-file= verbatim output-format= include-partial-messages json-schema= m/model= reasoning-effort= rules= compaction-mode= compaction-detail= system-prompt-override= r/resume= load= c/continue s/session-id= fork-session w/worktree= worktree-ref= restore-code no-plan no-subagents no-ask-user experimental-memory no-memory memory-flush agent= agents= tools= disallowed-tools= max-turns= permission-mode= disable-web-search no-wait-for-background background-wait-timeout= sandbox= storage-mode= client-identifier= hunk-tracker-mode= terminal fs-read fs-write no-auto-update todo-gate installer= no-alt-screen minimal fullscreen log-sampling force-login oauth leader no-leader h/help
+	string join \n v/version cwd= add-dir= leader-socket= debug debug-file= always-approve trust allow= deny= p/single= prompt-json= prompt-file= verbatim output-format= include-partial-messages json-schema= m/model= reasoning-effort= rules= compaction-mode= compaction-detail= system-prompt-override= r/resume= load= c/continue s/session-id= fork-session w/worktree= worktree-ref= restore-code no-plan no-subagents no-ask-user experimental-memory no-memory memory-flush agent= agents= tools= disallowed-tools= header= exclude-workspace-context endless-retries retry-all-inference-errors harness= conversation-history-file= mode= max-turns= permission-mode= disable-web-search no-wait-for-background background-wait-timeout= background-shell-timeout= sandbox= storage-mode= client-identifier= hunk-tracker-mode= terminal fs-read fs-write no-auto-update todo-gate installer= no-alt-screen minimal fullscreen log-sampling force-login oauth leader no-leader h/help
 end
 
 function __fish_grok_needs_command
@@ -53,6 +53,10 @@ complete -c grok -n "__fish_grok_needs_command" -l agent -d 'Agent name or defin
 complete -c grok -n "__fish_grok_needs_command" -l agents -d 'Inline subagent definitions as JSON' -r
 complete -c grok -n "__fish_grok_needs_command" -l tools -d 'Built-in tools to allow (comma-separated)' -r
 complete -c grok -n "__fish_grok_needs_command" -l disallowed-tools -d 'Built-in tools to remove (comma-separated)' -r
+complete -c grok -n "__fish_grok_needs_command" -l header -d 'Header to add to each turn\'s model requests, as \'Name: Value\' (headless, daemon sessions only). Repeatable' -r
+complete -c grok -n "__fish_grok_needs_command" -l harness -d 'Internal harness override for each turn (headless, daemon sessions only)' -r
+complete -c grok -n "__fish_grok_needs_command" -l conversation-history-file -d 'File of prior messages the first prompt carries (headless, daemon sessions only)' -r -F
+complete -c grok -n "__fish_grok_needs_command" -l mode -d 'Conversation mode the session starts in (headless, daemon sessions only)' -r -f -a "ask\t'Read-only questions and answers'"
 complete -c grok -n "__fish_grok_needs_command" -l max-turns -d 'Maximum number of agent turns' -r
 complete -c grok -n "__fish_grok_needs_command" -l permission-mode -d 'Permission mode' -r -f -a "default\t''
 acceptEdits\t''
@@ -60,7 +64,8 @@ auto\t''
 dontAsk\t''
 bypassPermissions\t''
 plan\t''"
-complete -c grok -n "__fish_grok_needs_command" -l background-wait-timeout -d 'Max seconds to wait for background work after the latest turn ends (headless only). Applies to bash/monitor `task_completed` and background subagents (`SubagentFinished`); a follow-up turn one of those completions starts runs to its end and restarts the clock. Work still running when the wait runs out is stopped and the run exits 1. Persistent `monitor(persistent:true)` never completes and always waits the full timeout. When given, this also bounds how long the run waits on an active goal. When unset, the run waits on an active goal until the goal ends' -r
+complete -c grok -n "__fish_grok_needs_command" -l background-wait-timeout -d 'Max seconds to wait for background work after the latest turn ends, or in daemon sessions after the prompt\'s turn ends (headless only). Applies to bash/monitor `task_completed` and background subagents (`SubagentFinished`); a follow-up turn one of those completions starts runs to its end and restarts the clock. In daemon sessions the clock keeps running through the turns the agent runs after the prompt. When the wait runs out with background work or such a turn still running, the run stops the background work and exits 1; exit stops the turn as well, unless the run shares Grok\'s background service with other windows. Persistent `monitor(persistent:true)` never completes and always waits the full timeout. When given, this also bounds how long the run waits on an active goal. When unset, the run waits on an active goal until the goal ends' -r
+complete -c grok -n "__fish_grok_needs_command" -l background-shell-timeout -d 'Max seconds background shells may run after the latest turn ends with no follow-up turn or background end since (headless, daemon sessions only). When it runs out, the shells are stopped without follow-up turns and the run keeps waiting on background subagents, with no limit. The run still succeeds. Unlike `--background-wait-timeout`, this sets no overall limit and does not bound an active goal' -r
 complete -c grok -n "__fish_grok_needs_command" -l sandbox -d 'Sandbox profile for filesystem and network access' -r
 complete -c grok -n "__fish_grok_needs_command" -l storage-mode -d 'Session storage mode: local or writeback' -r
 complete -c grok -n "__fish_grok_needs_command" -l client-identifier -d 'Override the client identifier sent to the agent' -r
@@ -81,6 +86,9 @@ complete -c grok -n "__fish_grok_needs_command" -l no-ask-user -d 'Disable struc
 complete -c grok -n "__fish_grok_needs_command" -l experimental-memory -d 'Legacy compatibility flag for enabling cross-session memory'
 complete -c grok -n "__fish_grok_needs_command" -l no-memory -d 'Legacy compatibility flag for disabling cross-session memory'
 complete -c grok -n "__fish_grok_needs_command" -l memory-flush -d 'Run a memory flush after the headless turn (or instead of a prompt when resuming). Calls `x.ai/memory/flush` and waits for capture of finished turns. Headless only: `/flush` as `-p` text is not a reliable flush trigger'
+complete -c grok -n "__fish_grok_needs_command" -l exclude-workspace-context -d 'Leave rules, skills, transcripts and notes out of each turn (headless, daemon sessions only)'
+complete -c grok -n "__fish_grok_needs_command" -l endless-retries -d 'Retry retriable errors without a limit (headless, daemon sessions only)'
+complete -c grok -n "__fish_grok_needs_command" -l retry-all-inference-errors -d 'Also retry inference errors the server marks non-retriable (headless, daemon sessions only)'
 complete -c grok -n "__fish_grok_needs_command" -l disable-web-search -d 'Disable web search and web fetch tools'
 complete -c grok -n "__fish_grok_needs_command" -l no-wait-for-background -d 'Exit as soon as the first agent turn ends, without waiting for pending background bash/monitor tasks, background subagents, or the follow-up turns their completions start (headless only). Use this for fast scripts that only need the first turn\'s text. The work this exit stops does not change the exit code'
 complete -c grok -n "__fish_grok_needs_command" -l terminal -d 'Enable terminal support for the agent'
@@ -93,7 +101,7 @@ complete -c grok -n "__fish_grok_needs_command" -l minimal -d 'Experimental: scr
 complete -c grok -n "__fish_grok_needs_command" -l fullscreen -d 'Open in the standard fullscreen TUI for this session'
 complete -c grok -n "__fish_grok_needs_command" -l log-sampling -d 'Write sampling events to ~/.grok/logs/sampling.jsonl'
 complete -c grok -n "__fish_grok_needs_command" -l force-login -d 'Show the login screen even when credentials are already available'
-complete -c grok -n "__fish_grok_needs_command" -l oauth -d 'Use OAuth when the welcome screen starts authentication'
+complete -c grok -n "__fish_grok_needs_command" -l oauth -d 'Force browser (loopback) login when the welcome screen authenticates'
 complete -c grok -n "__fish_grok_needs_command" -l leader -d 'Connect to a shared leader process'
 complete -c grok -n "__fish_grok_needs_command" -l no-leader -d 'Run standalone even when leader mode is configured'
 complete -c grok -n "__fish_grok_needs_command" -s h -l help -d 'Print help (see more with \'grok help\')'
@@ -108,7 +116,7 @@ complete -c grok -n "__fish_grok_needs_command" -a "plugin" -d 'Manage plugins a
 complete -c grok -n "__fish_grok_needs_command" -a "memory" -d 'Manage cross-session memory'
 complete -c grok -n "__fish_grok_needs_command" -a "models" -d 'List available models and exit'
 complete -c grok -n "__fish_grok_needs_command" -a "sessions" -d 'List, search, or restore sessions'
-complete -c grok -n "__fish_grok_needs_command" -a "usage" -d 'Print persisted token and cost usage for a session'
+complete -c grok -n "__fish_grok_needs_command" -a "usage" -d 'Print your plan\'s usage limit, or a session\'s persisted token and cost usage'
 complete -c grok -n "__fish_grok_needs_command" -a "setup" -d 'Fetch and install managed configuration'
 complete -c grok -n "__fish_grok_needs_command" -a "wrap" -d 'Run any command with local clipboard support'
 complete -c grok -n "__fish_grok_needs_command" -a "export" -d 'Export a session transcript as Markdown'
@@ -169,6 +177,20 @@ complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcomm
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-name -d 'Worker display name shown in Cursor' -r
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-dir -d 'Repository directory offered to Cursor Cloud Agents' -r -f -a "(__fish_complete_directories)"
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-max-agents -d 'Maximum concurrent Cloud Agent claims' -r
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-pool -d 'Team Self-Hosted Pool the worker joins (`grok worker --pool`)' -r
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-pool-name -d '`grok worker --pool-name`' -r
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-label -d 'Routing label for the worker, as `key=value`. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-labels-file -d 'JSON or TOML file of worker labels' -r -F
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-api-key -d 'Cursor API key the worker registers with (`grok worker --api-key`)' -r
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-auth-token-file -d 'File holding the worker\'s Cursor auth token (`grok worker --auth-token-file`)' -r -F
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-id -d 'Worker id a pool supervisor assigned (`grok worker --worker-id`)' -r
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-on-session-start -d 'Command run once a pool claim lands (`grok worker --on-session-start`)' -r
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-on-session-end -d 'Command run before a pool claim is torn down (`grok worker --on-session-end`)' -r
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-management-addr -d 'Worker health server address (`grok worker --management-addr`)' -r
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-mcp-tool-timeout -d 'Tool-call timeouts for claim stdio MCP servers (`grok worker --mcp-tool-timeout`)' -r
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-idle-release-timeout -d 'Seconds before Cursor releases an idle claim (`grok worker --idle-release-timeout`)' -r
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-data-dir -d 'Directory for the worker\'s state (`grok worker --data-dir`)' -r -F
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-wait -d 'Wait for a running leader to stop (`grok worker --wait`)' -r
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l grok-ws-origin -r
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l grok-ws-url -r
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
@@ -177,6 +199,12 @@ complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcomm
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l relay-on-demand -d 'Defer the grok.com relay WebSocket until the first headless IPC client registers'
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l no-auto-update -d 'Disable periodic auto-update checks for the leader'
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker -d 'Register this leader as a Cursor private worker once it is ready'
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-single-use -d '`grok worker --single-use`'
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-mint-github-token -d '`grok worker --mint-github-token`'
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-sync-dashboard-secrets -d '`grok worker --sync-dashboard-secrets`'
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-clone-git-repos -d '`grok worker --clone-git-repos`'
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-identity-socket -d 'Per-claim OIDC identity sockets (`grok worker --identity-socket`)'
+complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l cursor-worker-run-mcp-servers -d 'Run each Cloud Agent\'s stdio MCP servers on a pool worker (`grok worker --run-mcp-servers`)'
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -s h -l help -d 'Print help (see more with \'--help\')'
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from leader" -l debug -d 'Enable debug logging'
 complete -c grok -n "__fish_grok_using_subcommand agent; and __fish_seen_subcommand_from help" -f -a "stdio" -d 'Run the agent over stdio'
@@ -230,14 +258,35 @@ complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcom
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l name -d 'Worker display name shown in Cursor' -r
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l worker-dir -d 'Repository directory offered to Cursor Cloud Agents' -r -f -a "(__fish_complete_directories)"
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l max-agents -d 'Maximum concurrent Cloud Agent claims' -r
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l pool -d 'Join a team Self-Hosted Pool' -r
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l pool-name -d 'Deprecated alias for `--pool <NAME>`. Needs `--pool` or `--single-use`' -r
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l label -d 'Routing label for the worker, as `key=value`. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l labels-file -d 'JSON or TOML file of worker labels. Cannot be combined with `--label`' -r -F
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l api-key -d 'Cursor API key the worker registers with, in place of your linked Cursor account' -r
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l auth-token-file -d 'File holding the worker\'s Cursor auth token, re-read before every reconnect' -r -F
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l worker-id -d 'Worker id a pool supervisor claimed a request for, in place of the saved id. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l on-session-start -d 'Command run on this host once a pool claim lands. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l on-session-end -d 'Command run on this host once a pool claim is released. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l management-addr -d 'Serve worker health over HTTP for Kubernetes probes' -r
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l mcp-tool-timeout -d 'How long a tool call to a stdio MCP server this worker runs may take. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l idle-release-timeout -d 'Seconds a claim may sit idle before Cursor releases it. 0 turns this off' -r
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l data-dir -d 'Directory for this worker\'s state, served by its own leader' -r -f -a "(__fish_complete_directories)"
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l wait -d 'Wait for the leader already running on the worker\'s socket to stop, then start' -r
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l debug-file -d 'Write debug logs to FILE' -r -F
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l single-use -d 'Same as `--pool` (legacy alias)'
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l mint-github-token -d 'Let Cursor send the pool worker short-lived GitHub tokens during a claimed run'
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l sync-dashboard-secrets -d 'Let Cursor send the pool worker the team\'s dashboard secrets as env variables'
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l clone-git-repos -d 'Clone the claimed run\'s repository with the minted token'
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l identity-socket -d 'Give each Cloud Agent its own OIDC identity socket'
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l run-mcp-servers -d 'Run each Cloud Agent\'s stdio MCP servers on this pool worker'
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -s h -l help -d 'Print help (see more with \'grok help leader worker\')'
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -l debug -d 'Enable debug logging'
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -f -a "start" -d 'Run a leader in this terminal until Ctrl+C'
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -f -a "stop" -d 'Unregister from Cursor and release the claims (the leader keeps running)'
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -f -a "status" -d 'Show the current worker status and its Cloud Agent claims'
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -f -a "list" -d 'Show the current worker status and its Cloud Agent claims'
+complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -f -a "controller" -d 'Claim pending Cloud Agent requests for team pools and run a spawn hook for each'
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from worker" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from help" -f -a "list" -d 'List running leader processes'
 complete -c grok -n "__fish_grok_using_subcommand leader; and __fish_seen_subcommand_from help" -f -a "info" -d 'Show details for a leader process'
@@ -251,7 +300,7 @@ complete -c grok -n "__fish_grok_using_subcommand logout" -l debug -d 'Enable de
 complete -c grok -n "__fish_grok_using_subcommand login" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
 complete -c grok -n "__fish_grok_using_subcommand login" -l debug-file -d 'Write debug logs to FILE' -r -F
 complete -c grok -n "__fish_grok_using_subcommand login" -l legacy -d 'Ignored (kept for backwards compatibility). OAuth2 is now the only auth method'
-complete -c grok -n "__fish_grok_using_subcommand login" -l oauth -d 'Use Grok OAuth via auth.x.ai'
+complete -c grok -n "__fish_grok_using_subcommand login" -l oauth -d 'Force browser (loopback) login instead of device-code authentication'
 complete -c grok -n "__fish_grok_using_subcommand login" -l device-auth -l device-code -d 'Use device-code authentication for headless/remote environments'
 complete -c grok -n "__fish_grok_using_subcommand login" -l devbox -d 'Authenticate for remote development environments (hidden). Field is always present so match arms stay feature-unification-safe; clap registers `--devbox` only when that feature is enabled (`arg(skip)` otherwise → always false)'
 complete -c grok -n "__fish_grok_using_subcommand login" -s h -l help -d 'Print help (see more with \'--help\')'
@@ -461,6 +510,7 @@ complete -c grok -n "__fish_grok_using_subcommand sessions; and __fish_seen_subc
 complete -c grok -n "__fish_grok_using_subcommand sessions; and __fish_seen_subcommand_from help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
 complete -c grok -n "__fish_grok_using_subcommand usage" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
 complete -c grok -n "__fish_grok_using_subcommand usage" -l debug-file -d 'Write debug logs to FILE' -r -F
+complete -c grok -n "__fish_grok_using_subcommand usage" -l json -d 'Print the plan\'s usage limit as JSON'
 complete -c grok -n "__fish_grok_using_subcommand usage" -s h -l help -d 'Print help (see more with \'--help\')'
 complete -c grok -n "__fish_grok_using_subcommand usage" -l debug -d 'Enable debug logging'
 complete -c grok -n "__fish_grok_using_subcommand setup" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
@@ -485,7 +535,7 @@ complete -c grok -n "__fish_grok_using_subcommand trace" -l json -d 'Emit machin
 complete -c grok -n "__fish_grok_using_subcommand trace" -s h -l help -d 'Print help (see more with \'--help\')'
 complete -c grok -n "__fish_grok_using_subcommand trace" -l debug -d 'Enable debug logging'
 complete -c grok -n "__fish_grok_using_subcommand update" -l version -d 'Install a specific version (e.g. 0.1.150 or 0.1.151-alpha.2)' -r
-complete -c grok -n "__fish_grok_using_subcommand update" -l channel -d 'Switch to a custom channel managed config defines' -r
+complete -c grok -n "__fish_grok_using_subcommand update" -l channel -d 'Switch to a custom channel config defines' -r
 complete -c grok -n "__fish_grok_using_subcommand update" -l trigger -d 'Internal: what spawned this `grok update` (`user_command`, `auto_background`, `leader_converge`). Hidden' -r
 complete -c grok -n "__fish_grok_using_subcommand update" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
 complete -c grok -n "__fish_grok_using_subcommand update" -l debug-file -d 'Write debug logs to FILE' -r -F
@@ -495,6 +545,8 @@ complete -c grok -n "__fish_grok_using_subcommand update" -l force-reinstall -d 
 complete -c grok -n "__fish_grok_using_subcommand update" -l alpha -d 'Switch to the alpha release channel (faster updates, may have bugs)'
 complete -c grok -n "__fish_grok_using_subcommand update" -l stable -d 'Switch to the stable release channel (default, weekly releases)'
 complete -c grok -n "__fish_grok_using_subcommand update" -l enterprise -d 'Switch to the enterprise release channel'
+complete -c grok -n "__fish_grok_using_subcommand update" -l legacy-alpha -d 'Switch to the native alpha build and stay off the unified rollout'
+complete -c grok -n "__fish_grok_using_subcommand update" -l legacy-stable -d 'Switch to the native stable build and stay off the unified rollout'
 complete -c grok -n "__fish_grok_using_subcommand update" -l auto -d 'Internal compat alias for `--trigger=auto_background` (older parents still spawn children with it)'
 complete -c grok -n "__fish_grok_using_subcommand update" -s h -l help -d 'Print help (see more with \'--help\')'
 complete -c grok -n "__fish_grok_using_subcommand update" -l debug -d 'Enable debug logging'
@@ -746,55 +798,191 @@ complete -c grok -n "__fish_grok_using_subcommand cursor-worker; and __fish_seen
 complete -c grok -n "__fish_grok_using_subcommand cursor-worker; and __fish_seen_subcommand_from help" -f -a "stop" -d 'Unregister from Cursor and release the claims (the leader keeps running)'
 complete -c grok -n "__fish_grok_using_subcommand cursor-worker; and __fish_seen_subcommand_from help" -f -a "status" -d 'Show the current worker status and its Cloud Agent claims'
 complete -c grok -n "__fish_grok_using_subcommand cursor-worker; and __fish_seen_subcommand_from help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -l name -d 'Worker display name shown in Cursor' -r
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -l worker-dir -d 'Repository directory offered to Cursor Cloud Agents' -r -f -a "(__fish_complete_directories)"
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -l max-agents -d 'Maximum concurrent Cloud Agent claims' -r
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -l debug-file -d 'Write debug logs to FILE' -r -F
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -s h -l help -d 'Print help (see more with \'grok help worker\')'
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -l debug -d 'Enable debug logging'
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -f -a "start" -d 'Run a leader in this terminal until Ctrl+C'
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -f -a "stop" -d 'Unregister from Cursor and release the claims (the leader keeps running)'
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -f -a "status" -d 'Show the current worker status and its Cloud Agent claims'
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -f -a "list" -d 'Show the current worker status and its Cloud Agent claims'
-complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l name -d 'Worker display name shown in Cursor' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l worker-dir -d 'Repository directory offered to Cursor Cloud Agents' -r -f -a "(__fish_complete_directories)"
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l max-agents -d 'Maximum concurrent Cloud Agent claims' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l pool -d 'Join a team Self-Hosted Pool' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l pool-name -d 'Deprecated alias for `--pool <NAME>`. Needs `--pool` or `--single-use`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l label -d 'Routing label for the worker, as `key=value`. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l labels-file -d 'JSON or TOML file of worker labels. Cannot be combined with `--label`' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l api-key -d 'Cursor API key the worker registers with, in place of your linked Cursor account' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l auth-token-file -d 'File holding the worker\'s Cursor auth token, re-read before every reconnect' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l worker-id -d 'Worker id a pool supervisor claimed a request for, in place of the saved id. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l on-session-start -d 'Command run on this host once a pool claim lands. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l on-session-end -d 'Command run on this host once a pool claim is released. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l management-addr -d 'Serve worker health over HTTP for Kubernetes probes' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l mcp-tool-timeout -d 'How long a tool call to a stdio MCP server this worker runs may take. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l idle-release-timeout -d 'Seconds a claim may sit idle before Cursor releases it. 0 turns this off' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l data-dir -d 'Directory for this worker\'s state, served by its own leader' -r -f -a "(__fish_complete_directories)"
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l wait -d 'Wait for the leader already running on the worker\'s socket to stop, then start' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l debug-file -d 'Write debug logs to FILE' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l single-use -d 'Same as `--pool` (legacy alias)'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l mint-github-token -d 'Let Cursor send the pool worker short-lived GitHub tokens during a claimed run'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l sync-dashboard-secrets -d 'Let Cursor send the pool worker the team\'s dashboard secrets as env variables'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l clone-git-repos -d 'Clone the claimed run\'s repository with the minted token'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l identity-socket -d 'Give each Cloud Agent its own OIDC identity socket'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l run-mcp-servers -d 'Run each Cloud Agent\'s stdio MCP servers on this pool worker'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -s h -l help -d 'Print help (see more with \'grok help worker\')'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -l debug -d 'Enable debug logging'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -f -a "start" -d 'Run a leader in this terminal until Ctrl+C'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -f -a "stop" -d 'Unregister from Cursor and release the claims (the leader keeps running)'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -f -a "status" -d 'Show the current worker status and its Cloud Agent claims'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -f -a "list" -d 'Show the current worker status and its Cloud Agent claims'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -f -a "controller" -d 'Claim pending Cloud Agent requests for team pools and run a spawn hook for each'
+complete -c grok -n "__fish_grok_using_subcommand worker; and not __fish_seen_subcommand_from start stop status list controller help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l name -d 'Worker display name shown in Cursor' -r
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l worker-dir -d 'Repository directory offered to Cursor Cloud Agents' -r -f -a "(__fish_complete_directories)"
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l max-agents -d 'Maximum concurrent Cloud Agent claims' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l pool -d 'Join a team Self-Hosted Pool' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l pool-name -d 'Deprecated alias for `--pool <NAME>`. Needs `--pool` or `--single-use`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l label -d 'Routing label for the worker, as `key=value`. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l labels-file -d 'JSON or TOML file of worker labels. Cannot be combined with `--label`' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l api-key -d 'Cursor API key the worker registers with, in place of your linked Cursor account' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l auth-token-file -d 'File holding the worker\'s Cursor auth token, re-read before every reconnect' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l worker-id -d 'Worker id a pool supervisor claimed a request for, in place of the saved id. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l on-session-start -d 'Command run on this host once a pool claim lands. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l on-session-end -d 'Command run on this host once a pool claim is released. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l management-addr -d 'Serve worker health over HTTP for Kubernetes probes' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l mcp-tool-timeout -d 'How long a tool call to a stdio MCP server this worker runs may take. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l idle-release-timeout -d 'Seconds a claim may sit idle before Cursor releases it. 0 turns this off' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l data-dir -d 'Directory for this worker\'s state, served by its own leader' -r -f -a "(__fish_complete_directories)"
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l wait -d 'Wait for the leader already running on the worker\'s socket to stop, then start' -r
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l debug-file -d 'Write debug logs to FILE' -r -F
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -s h -l help -d 'Print help (see more with \'--help\')'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l single-use -d 'Same as `--pool` (legacy alias)'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l mint-github-token -d 'Let Cursor send the pool worker short-lived GitHub tokens during a claimed run'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l sync-dashboard-secrets -d 'Let Cursor send the pool worker the team\'s dashboard secrets as env variables'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l clone-git-repos -d 'Clone the claimed run\'s repository with the minted token'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l identity-socket -d 'Give each Cloud Agent its own OIDC identity socket'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l run-mcp-servers -d 'Run each Cloud Agent\'s stdio MCP servers on this pool worker'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from start" -l debug -d 'Enable debug logging'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l pid -d 'Leader process ID from `grok leader list`' -r
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l name -d 'Worker display name shown in Cursor' -r
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l worker-dir -d 'Repository directory offered to Cursor Cloud Agents' -r -f -a "(__fish_complete_directories)"
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l max-agents -d 'Maximum concurrent Cloud Agent claims' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l pool -d 'Join a team Self-Hosted Pool' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l pool-name -d 'Deprecated alias for `--pool <NAME>`. Needs `--pool` or `--single-use`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l label -d 'Routing label for the worker, as `key=value`. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l labels-file -d 'JSON or TOML file of worker labels. Cannot be combined with `--label`' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l api-key -d 'Cursor API key the worker registers with, in place of your linked Cursor account' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l auth-token-file -d 'File holding the worker\'s Cursor auth token, re-read before every reconnect' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l worker-id -d 'Worker id a pool supervisor claimed a request for, in place of the saved id. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l on-session-start -d 'Command run on this host once a pool claim lands. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l on-session-end -d 'Command run on this host once a pool claim is released. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l management-addr -d 'Serve worker health over HTTP for Kubernetes probes' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l mcp-tool-timeout -d 'How long a tool call to a stdio MCP server this worker runs may take. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l idle-release-timeout -d 'Seconds a claim may sit idle before Cursor releases it. 0 turns this off' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l data-dir -d 'Directory for this worker\'s state, served by its own leader' -r -f -a "(__fish_complete_directories)"
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l wait -d 'Wait for the leader already running on the worker\'s socket to stop, then start' -r
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l debug-file -d 'Write debug logs to FILE' -r -F
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l json -d 'Emit machine-readable JSON output'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -s h -l help -d 'Print help (see more with \'--help\')'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l single-use -d 'Same as `--pool` (legacy alias)'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l mint-github-token -d 'Let Cursor send the pool worker short-lived GitHub tokens during a claimed run'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l sync-dashboard-secrets -d 'Let Cursor send the pool worker the team\'s dashboard secrets as env variables'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l clone-git-repos -d 'Clone the claimed run\'s repository with the minted token'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l identity-socket -d 'Give each Cloud Agent its own OIDC identity socket'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l run-mcp-servers -d 'Run each Cloud Agent\'s stdio MCP servers on this pool worker'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from stop" -l debug -d 'Enable debug logging'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l pid -d 'Leader process ID from `grok leader list`' -r
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l name -d 'Worker display name shown in Cursor' -r
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l worker-dir -d 'Repository directory offered to Cursor Cloud Agents' -r -f -a "(__fish_complete_directories)"
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l max-agents -d 'Maximum concurrent Cloud Agent claims' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l pool -d 'Join a team Self-Hosted Pool' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l pool-name -d 'Deprecated alias for `--pool <NAME>`. Needs `--pool` or `--single-use`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l label -d 'Routing label for the worker, as `key=value`. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l labels-file -d 'JSON or TOML file of worker labels. Cannot be combined with `--label`' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l api-key -d 'Cursor API key the worker registers with, in place of your linked Cursor account' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l auth-token-file -d 'File holding the worker\'s Cursor auth token, re-read before every reconnect' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l worker-id -d 'Worker id a pool supervisor claimed a request for, in place of the saved id. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l on-session-start -d 'Command run on this host once a pool claim lands. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l on-session-end -d 'Command run on this host once a pool claim is released. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l management-addr -d 'Serve worker health over HTTP for Kubernetes probes' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l mcp-tool-timeout -d 'How long a tool call to a stdio MCP server this worker runs may take. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l idle-release-timeout -d 'Seconds a claim may sit idle before Cursor releases it. 0 turns this off' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l data-dir -d 'Directory for this worker\'s state, served by its own leader' -r -f -a "(__fish_complete_directories)"
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l wait -d 'Wait for the leader already running on the worker\'s socket to stop, then start' -r
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l debug-file -d 'Write debug logs to FILE' -r -F
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l json -d 'Emit machine-readable JSON output'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -s h -l help -d 'Print help (see more with \'--help\')'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l single-use -d 'Same as `--pool` (legacy alias)'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l mint-github-token -d 'Let Cursor send the pool worker short-lived GitHub tokens during a claimed run'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l sync-dashboard-secrets -d 'Let Cursor send the pool worker the team\'s dashboard secrets as env variables'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l clone-git-repos -d 'Clone the claimed run\'s repository with the minted token'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l identity-socket -d 'Give each Cloud Agent its own OIDC identity socket'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l run-mcp-servers -d 'Run each Cloud Agent\'s stdio MCP servers on this pool worker'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from status" -l debug -d 'Enable debug logging'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l pid -d 'Leader process ID from `grok leader list`' -r
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l name -d 'Worker display name shown in Cursor' -r
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l worker-dir -d 'Repository directory offered to Cursor Cloud Agents' -r -f -a "(__fish_complete_directories)"
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l max-agents -d 'Maximum concurrent Cloud Agent claims' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l pool -d 'Join a team Self-Hosted Pool' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l pool-name -d 'Deprecated alias for `--pool <NAME>`. Needs `--pool` or `--single-use`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l label -d 'Routing label for the worker, as `key=value`. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l labels-file -d 'JSON or TOML file of worker labels. Cannot be combined with `--label`' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l api-key -d 'Cursor API key the worker registers with, in place of your linked Cursor account' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l auth-token-file -d 'File holding the worker\'s Cursor auth token, re-read before every reconnect' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l worker-id -d 'Worker id a pool supervisor claimed a request for, in place of the saved id. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l on-session-start -d 'Command run on this host once a pool claim lands. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l on-session-end -d 'Command run on this host once a pool claim is released. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l management-addr -d 'Serve worker health over HTTP for Kubernetes probes' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l mcp-tool-timeout -d 'How long a tool call to a stdio MCP server this worker runs may take. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l idle-release-timeout -d 'Seconds a claim may sit idle before Cursor releases it. 0 turns this off' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l data-dir -d 'Directory for this worker\'s state, served by its own leader' -r -f -a "(__fish_complete_directories)"
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l wait -d 'Wait for the leader already running on the worker\'s socket to stop, then start' -r
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l debug-file -d 'Write debug logs to FILE' -r -F
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l json -d 'Emit machine-readable JSON output'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -s h -l help -d 'Print help (see more with \'--help\')'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l single-use -d 'Same as `--pool` (legacy alias)'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l mint-github-token -d 'Let Cursor send the pool worker short-lived GitHub tokens during a claimed run'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l sync-dashboard-secrets -d 'Let Cursor send the pool worker the team\'s dashboard secrets as env variables'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l clone-git-repos -d 'Clone the claimed run\'s repository with the minted token'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l identity-socket -d 'Give each Cloud Agent its own OIDC identity socket'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l run-mcp-servers -d 'Run each Cloud Agent\'s stdio MCP servers on this pool worker'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from list" -l debug -d 'Enable debug logging'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l spawn -d 'Hook to run once per claimed request or missing warm worker' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l pool -d 'Pool to watch, or to keep warm with `--warm-idle`. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l repository -d 'Only take requests for this repository URL. Required for repository-scoped keys' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l identity-audience -d 'Ask each claim for a signed identity token bound to this audience' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l warm-idle -d 'Keep this many idle workers connected in each `--pool`, without claiming' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l endpoint -d 'Cursor public API base for the claim calls and the hook\'s `CURSOR_API_URL`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l name -d 'Worker display name shown in Cursor' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l worker-dir -d 'Repository directory offered to Cursor Cloud Agents' -r -f -a "(__fish_complete_directories)"
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l max-agents -d 'Maximum concurrent Cloud Agent claims' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l pool-name -d 'Deprecated alias for `--pool <NAME>`. Needs `--pool` or `--single-use`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l label -d 'Routing label for the worker, as `key=value`. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l labels-file -d 'JSON or TOML file of worker labels. Cannot be combined with `--label`' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l api-key -d 'Cursor API key the worker registers with, in place of your linked Cursor account' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l auth-token-file -d 'File holding the worker\'s Cursor auth token, re-read before every reconnect' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l worker-id -d 'Worker id a pool supervisor claimed a request for, in place of the saved id. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l on-session-start -d 'Command run on this host once a pool claim lands. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l on-session-end -d 'Command run on this host once a pool claim is released. Needs `--pool`' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l management-addr -d 'Serve worker health over HTTP for Kubernetes probes' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l mcp-tool-timeout -d 'How long a tool call to a stdio MCP server this worker runs may take. Repeatable' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l idle-release-timeout -d 'Seconds a claim may sit idle before Cursor releases it. 0 turns this off' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l data-dir -d 'Directory for this worker\'s state, served by its own leader' -r -f -a "(__fish_complete_directories)"
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l wait -d 'Wait for the leader already running on the worker\'s socket to stop, then start' -r
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l debug-file -d 'Write debug logs to FILE' -r -F
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l all-pools -d 'Watch every pool of the team, without registering any'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l session-token -d 'Give the hook a token that serves only its claim, in place of the API key'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -s h -l help -d 'Print help (see more with \'--help\')'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l single-use -d 'Same as `--pool` (legacy alias)'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l mint-github-token -d 'Let Cursor send the pool worker short-lived GitHub tokens during a claimed run'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l sync-dashboard-secrets -d 'Let Cursor send the pool worker the team\'s dashboard secrets as env variables'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l clone-git-repos -d 'Clone the claimed run\'s repository with the minted token'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l identity-socket -d 'Give each Cloud Agent its own OIDC identity socket'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l run-mcp-servers -d 'Run each Cloud Agent\'s stdio MCP servers on this pool worker'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from controller" -l debug -d 'Enable debug logging'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from help" -f -a "start" -d 'Run a leader in this terminal until Ctrl+C'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from help" -f -a "stop" -d 'Unregister from Cursor and release the claims (the leader keeps running)'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from help" -f -a "status" -d 'Show the current worker status and its Cloud Agent claims'
+complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from help" -f -a "controller" -d 'Claim pending Cloud Agent requests for team pools and run a spawn hook for each'
 complete -c grok -n "__fish_grok_using_subcommand worker; and __fish_seen_subcommand_from help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
 complete -c grok -n "__fish_grok_using_subcommand dashboard" -l leader-socket -d 'Use a custom leader socket path instead of the default `~/.grok/leader.sock`' -r -F
 complete -c grok -n "__fish_grok_using_subcommand dashboard" -l debug-file -d 'Write debug logs to FILE' -r -F
@@ -811,7 +999,7 @@ complete -c grok -n "__fish_grok_using_subcommand help; and not __fish_seen_subc
 complete -c grok -n "__fish_grok_using_subcommand help; and not __fish_seen_subcommand_from agent inspect doctor leader logout login mcp plugin memory models sessions usage setup wrap export trace update version completions worktree clone du workspace cursor-worker worker dashboard help" -f -a "memory" -d 'Manage cross-session memory'
 complete -c grok -n "__fish_grok_using_subcommand help; and not __fish_seen_subcommand_from agent inspect doctor leader logout login mcp plugin memory models sessions usage setup wrap export trace update version completions worktree clone du workspace cursor-worker worker dashboard help" -f -a "models" -d 'List available models and exit'
 complete -c grok -n "__fish_grok_using_subcommand help; and not __fish_seen_subcommand_from agent inspect doctor leader logout login mcp plugin memory models sessions usage setup wrap export trace update version completions worktree clone du workspace cursor-worker worker dashboard help" -f -a "sessions" -d 'List, search, or restore sessions'
-complete -c grok -n "__fish_grok_using_subcommand help; and not __fish_seen_subcommand_from agent inspect doctor leader logout login mcp plugin memory models sessions usage setup wrap export trace update version completions worktree clone du workspace cursor-worker worker dashboard help" -f -a "usage" -d 'Print persisted token and cost usage for a session'
+complete -c grok -n "__fish_grok_using_subcommand help; and not __fish_seen_subcommand_from agent inspect doctor leader logout login mcp plugin memory models sessions usage setup wrap export trace update version completions worktree clone du workspace cursor-worker worker dashboard help" -f -a "usage" -d 'Print your plan\'s usage limit, or a session\'s persisted token and cost usage'
 complete -c grok -n "__fish_grok_using_subcommand help; and not __fish_seen_subcommand_from agent inspect doctor leader logout login mcp plugin memory models sessions usage setup wrap export trace update version completions worktree clone du workspace cursor-worker worker dashboard help" -f -a "setup" -d 'Fetch and install managed configuration'
 complete -c grok -n "__fish_grok_using_subcommand help; and not __fish_seen_subcommand_from agent inspect doctor leader logout login mcp plugin memory models sessions usage setup wrap export trace update version completions worktree clone du workspace cursor-worker worker dashboard help" -f -a "wrap" -d 'Run any command with local clipboard support'
 complete -c grok -n "__fish_grok_using_subcommand help; and not __fish_seen_subcommand_from agent inspect doctor leader logout login mcp plugin memory models sessions usage setup wrap export trace update version completions worktree clone du workspace cursor-worker worker dashboard help" -f -a "export" -d 'Export a session transcript as Markdown'
@@ -879,3 +1067,4 @@ complete -c grok -n "__fish_grok_using_subcommand help; and __fish_seen_subcomma
 complete -c grok -n "__fish_grok_using_subcommand help; and __fish_seen_subcommand_from worker" -f -a "start" -d 'Run a leader in this terminal until Ctrl+C'
 complete -c grok -n "__fish_grok_using_subcommand help; and __fish_seen_subcommand_from worker" -f -a "stop" -d 'Unregister from Cursor and release the claims (the leader keeps running)'
 complete -c grok -n "__fish_grok_using_subcommand help; and __fish_seen_subcommand_from worker" -f -a "status" -d 'Show the current worker status and its Cloud Agent claims'
+complete -c grok -n "__fish_grok_using_subcommand help; and __fish_seen_subcommand_from worker" -f -a "controller" -d 'Claim pending Cloud Agent requests for team pools and run a spawn hook for each'
