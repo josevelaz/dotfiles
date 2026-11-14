@@ -1,0 +1,19 @@
+{
+  "name": "local-build-instructions",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler --lib ES2022 --types node index.ts"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.11",
+    "typescript": "5.8.2"
+  }
+}
