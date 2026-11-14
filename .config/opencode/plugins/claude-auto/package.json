@@ -14,7 +14,7 @@
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.gui.json"
   },
   "dependencies": {
-    "@opencode/plugin": "2.2.7"
+    "@opencode/plugin": "2.3.0"
   },
   "devDependencies": {
     "@types/node": "22.15.0",
