@@ -11,9 +11,19 @@ OpenCode loads it from the global plugins directory.
   loads them with the core instructions on the first turn; when memory or the
   date changes, the model gets an update notice instead of a new system prompt,
   so the prompt cache survives.
+- The guide follows Anthropic's
+  [components of agent memory](https://www.anthropic.com/research/components-of-agent-memory):
+  it says what memory is for and leaves what to save to the model's judgment,
+  tells agents to read a topic file before working on anything the Index names,
+  and to save notes when they learn something rather than at the end.
 - Adds Code Mode tools in the `memory` namespace: `tools.memory.read`,
-  `search`, `write`, `edit`, and `delete`. Agents call them inside `execute`,
-  so one call can batch many reads. Each write makes one commit.
+  `search`, `flag`, `write`, `edit`, and `delete`. Agents call them inside
+  `execute`, so one call can batch many reads. Each write makes one commit.
+- `tools.memory.flag({ note })` marks a moment as worth remembering without
+  writing a note. Flags go to
+  `~/.local/state/agent-memory/flags/<session>.jsonl` (up to 50 per session,
+  removed after 30 days). The dream sees them at the top of each transcript
+  and a flag count in its session list.
 - Adds `/dream`, which lints the repos and asks the agent to add missing
   entries, merge duplicates, drop stale ones, and fix links.
 - Creates `~/agent-memory` with a starter `MEMORY.md` if the folder is missing
@@ -50,11 +60,12 @@ backlinks, and search. Its settings live in `.obsidian/`, which the repo's
 Edits made in Obsidian are not committed for you. Commit them with git, or the
 plugin will refuse memory writes until the repo is clean.
 
-## Nightly dream
+## Scheduled dream
 
 A launchd job, `com.jose.dotfiles.agent-memory-dream`, runs
-`~/dotfiles/.local/bin/agent-memory-dream` at 03:00. If the Mac is asleep, it
-runs when the Mac wakes. The script:
+`~/dotfiles/.local/bin/agent-memory-dream` every four hours: 03:00, 07:00,
+11:00, 15:00, 19:00, and 23:00. If the Mac is asleep, it runs when the Mac
+wakes. A run with no new sessions exits without calling a model. The script:
 
 1. Lists root sessions from every directory updated since the last successful
    run (the last 24 hours on the first run), oldest first, up to 30.
@@ -67,11 +78,11 @@ runs when the Mac wakes. The script:
    `~/Library/Logs/agent-memory-dream.log`, and records a mark in
    `~/.local/state/agent-memory-dream/last-success-ms`: the run time, or the
    last reviewed session's update time when more than 30 sessions were
-   waiting, so the rest are reviewed the next night. A failure shows a
+   waiting, so the rest are reviewed in the next run. A failure shows a
    notification and leaves the mark unchanged, so the next run covers the
    same sessions.
 4. After a successful run, compacts the dream session so it stays small
-   between nights. A failed compaction is logged but does not fail the run.
+   between runs. A failed compaction is logged but does not fail the run.
 
 The `memory-dream` agent, defined in `opencode.jsonc`, denies every permission
 except `execute`, `memory`, and `read` inside
@@ -89,15 +100,17 @@ limit to 250,000 bytes for sessions in that folder only:
 
 The memory repo's `.git/info/exclude` lists `.opencode/`, so the file stays out
 of git and the repo stays clean. On a new machine, create both by hand. The
-nightly prompt tells the agent to keep each `execute` result under 200,000
+scheduled prompt tells the agent to keep each `execute` result under 200,000
 bytes.
 
 `tools.memory.session_transcript` works only in dream sessions. It reads a
-session's title, directory, user and assistant text, tool call inputs, and
-shell commands. It leaves out tool and shell output.
+session's title, directory, flags, user and assistant text, tool calls with
+their inputs (up to 1,000 characters) and results (start and end, 600
+characters), and shell commands. Results let the dream check notes against
+what actually happened. Transcripts over 150,000 characters lose their middle.
 
 After you change the plugin, run `opencode reload` so the background service,
-which the nightly job uses, loads the new code.
+which the scheduled job uses, loads the new code.
 
 Run it now with:
 
