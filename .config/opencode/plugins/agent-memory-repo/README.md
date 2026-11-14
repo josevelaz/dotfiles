@@ -6,7 +6,11 @@ OpenCode loads it from the global plugins directory.
 
 ## What it does
 
-- Adds each repo's `MEMORY.md` and the spec's rules to every model call.
+- Adds the spec's rules and each repo's `MEMORY.md` to every session as two
+  session instruction entries, `agent-memory-guide` and `agent-memory`. OpenCode
+  loads them with the core instructions on the first turn; when memory or the
+  date changes, the model gets an update notice instead of a new system prompt,
+  so the prompt cache survives.
 - Adds Code Mode tools in the `memory` namespace: `tools.memory.read`,
   `search`, `write`, `edit`, and `delete`. Agents call them inside `execute`,
   so one call can batch many reads. Each write makes one commit.
