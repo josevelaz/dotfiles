@@ -344,6 +344,7 @@ ${CLEANUP_STEPS}
 Commit each logical change separately with a clear message. If nothing needs to change, make no commits. Finish with a short summary of what changed.`
 
 const NIGHTLY_METADATA_KEY = "agentMemoryDream"
+const CLAUDE_AGENT_INSTRUCTIONS_KEY = "claudeCodeInstructions"
 const MEMORY_NAMESPACE = "memory"
 const MAX_TRANSCRIPT_CHARS = 100_000
 const MAX_TOOL_INPUT_CHARS = 1_000
@@ -620,7 +621,12 @@ export default Plugin.define({
         }
       }
       const guide = MEMORY_GUIDE.replaceAll("SESSION_ID", event.sessionID).replaceAll("TODAY", today())
-      event.system.push({ type: "text", text: `${guide}\n\n${sections.join("\n\n")}` })
+      const text = `${guide}\n\n${sections.join("\n\n")}`
+      event.system.push({ type: "text", text })
+      const claudeInstructions = event.options[CLAUDE_AGENT_INSTRUCTIONS_KEY]
+      if (typeof claudeInstructions === "string" && !claudeInstructions.includes(text)) {
+        event.options[CLAUDE_AGENT_INSTRUCTIONS_KEY] = [claudeInstructions, text].filter(Boolean).join("\n")
+      }
     })
   },
 })
