@@ -655,11 +655,14 @@ export default Plugin.define({
         execute: async (raw, execution) => {
           const input = flagInput.parse(raw)
           if (await isNightlyDream(execution.sessionID)) throw new Error("Dream sessions write memory directly instead of flagging")
-          const flags = await readFlags(execution.sessionID)
+          let session = await ctx.session.get({ sessionID: execution.sessionID })
+          const origin = session.parentID ? `[subagent ${session.agent ?? "unknown"}: ${session.title || "untitled"}] ` : ""
+          while (session.parentID) session = await ctx.session.get({ sessionID: session.parentID })
+          const flags = await readFlags(session.id)
           if (flags.length >= MAX_FLAGS) throw new Error(`This session already has ${MAX_FLAGS} flags. Write a note with tools.memory.edit or tools.memory.write instead.`)
           await mkdir(FLAG_DIR, { recursive: true })
-          const flag: Flag = { time: new Date().toISOString(), note: input.note.replace(/\s+/g, " ").trim() }
-          await appendFile(flagPath(execution.sessionID), `${JSON.stringify(flag)}\n`)
+          const flag: Flag = { time: new Date().toISOString(), note: `${origin}${input.note.replace(/\s+/g, " ").trim()}` }
+          await appendFile(flagPath(session.id), `${JSON.stringify(flag)}\n`)
           return { content: "Flagged for the next dream." }
         },
       })
