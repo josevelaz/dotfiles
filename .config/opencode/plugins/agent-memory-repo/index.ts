@@ -141,7 +141,8 @@ async function pull(repo: Repo, mode: SyncMode): Promise<void> {
     return
   }
   try {
-    await git(repo.root, ["pull", "--ff-only", "--quiet"])
+    await git(repo.root, ["fetch", "--quiet"])
+    await git(repo.root, ["merge", "--ff-only", "--quiet", "@{u}"])
     warnings.delete(repo.root)
   } catch (error) {
     warnings.set(repo.root, `Pull failed; resolve it by hand: ${(error as Error).message}`)

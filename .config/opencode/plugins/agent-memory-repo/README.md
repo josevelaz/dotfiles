@@ -127,8 +127,11 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.jose.dotfiles.agent-
 
 ## Sync
 
-When the branch has an upstream, the plugin runs `git pull --ff-only` on load,
-before each write, and at most every five minutes during sessions. It pushes
+When the branch has an upstream, the plugin runs `git fetch` and
+`git merge --ff-only @{u}` on load, before each write, and at most every five
+minutes during sessions. It avoids `git pull`: the plugin loads once per
+project folder, and concurrent pulls corrupted `FETCH_HEAD` ("Cannot
+fast-forward to multiple branches"). It pushes
 after each commit. It never merges, resets, or force-pushes. Failures show as a
 sync warning in the agent's context.
 
