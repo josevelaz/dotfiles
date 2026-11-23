@@ -1,0 +1,45 @@
+
+[profiles]
+
+[profiles.default]
+center = ["media"]
+leading = ["apple-menu", "omniwm", "app-menu", "workspaces"]
+trailing = ["usage-limits", "wifi", "battery-details", "system-stats", "clock"]
+
+[profiles.default.hiddenBar]
+enabled = false
+
+[profiles.default.widgets]
+
+[profiles.default.widgets.active-window]
+display = "text_only"
+maxWidth = 100.0
+
+[profiles.default.widgets.workspaces]
+compact = false
+indicator = "underline"
+occupiedBackground = false
+
+[profiles.default.workspaceBar]
+autoHide = false
+backgroundOpacity = 0.0
+fullWidth = true
+fullWidthNotchMode = "leftOfNotch"
+hideInNativeFullscreen = true
+inactiveIconOpacity = 0.5
+notificationBadges = "text"
+position = "overlappingMenuBar"
+revealModifier = "off"
+showAccentHighlights = true
+showFloatingWindows = false
+showItemBackgrounds = true
+showLabels = false
+transparentBackground = true
+windowLevel = "status"
+yOffset = -10.0
+
+[profiles.default.workspaceBar.accentColor]
+alpha = 1.0
+blue = 0.0
+green = 0.48408693075180054
+red = 0.9999403357505798

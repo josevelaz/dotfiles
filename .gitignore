@@ -169,6 +169,7 @@ mutagen.yml.lock
 .config/herdr/herdr.sock*
 .config/herdr/session-snapshots/
 .config/omniwm/*.default-*
+.config/omniwm/settings.toml.pre-v5
 .config/opencode/opencode.jsonc.*.backup*
 .config/opencode/opengo/
 .config/opengo-browser/

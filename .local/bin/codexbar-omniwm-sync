@@ -1,0 +1,41 @@
+#!/bin/zsh
+set -eu
+
+snapshot="$HOME/Library/Group Containers/Y5PE65HELJ.com.steipete.codexbar/widget-snapshot.json"
+[[ -r $snapshot ]] || { print -u2 "codexbar snapshot not readable: $snapshot"; exit 1; }
+
+cache_dir="$HOME/Library/Caches/codexbar-omniwm-sync"
+claude_cache="$cache_dir/claude.json"
+mkdir -p "$cache_dir"
+if [[ ! -s $claude_cache || -n $(find "$claude_cache" -mmin +5) ]]; then
+  if fresh=$(/opt/homebrew/bin/codexbar usage --provider claude --json 2>/dev/null) \
+    && print -r -- "$fresh" | /usr/bin/jq -e 'type == "array"' >/dev/null; then
+    print -r -- "$fresh" > "$claude_cache"
+  else
+    print -u2 "codexbar claude usage failed; keeping previous cache"
+  fi
+fi
+claude_extras=$(/usr/bin/jq -c '[.[0].usage.extraRateWindows[]?]' "$claude_cache" 2>/dev/null || print '[]')
+
+payload=$(/usr/bin/jq -c --argjson claudeExtras "$claude_extras" '
+  def epoch: if . then sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601 else null end;
+  [.entries[] | . as $entry | {
+    provider,
+    rows: (
+      [.usageRows[] | {
+        title,
+        left: .percentLeft,
+        windowMinutes: (.window.windowMinutes // $entry[.id].windowMinutes // null),
+        resetsAt: (.window.resetsAt // $entry[.id].resetsAt // null | epoch)
+      }]
+      + (if .provider == "claude" then [$claudeExtras[] | {
+        title: (.title | sub(" only$"; "")),
+        left: (100 - .window.usedPercent),
+        windowMinutes: .window.windowMinutes,
+        resetsAt: (.window.resetsAt | epoch),
+        extra: true
+      }] else [] end)
+    )
+  }]' "$snapshot")
+
+/opt/homebrew/bin/omniwmctl shell trigger usage-limits update "$payload" >/dev/null
