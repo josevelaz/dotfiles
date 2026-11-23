@@ -1,6 +1,6 @@
 {{ if eq .chezmoi.os "darwin" -}}
 #!/bin/bash
-{{ range (glob (joinPath .chezmoi.sourceDir "Library/LaunchAgents/*.plist.tmpl")) -}}
+{{ range (glob (joinPath .chezmoi.sourceDir "private_Library/LaunchAgents/*.plist.tmpl")) -}}
 # {{ base . }} {{ include . | sha256sum }}
 {{ end -}}
 set -euo pipefail
