@@ -1,6 +1,7 @@
 ---
 name: show-me
 description: Help the user understand the current topic visually with concise diagrams, code-shape sketches, and focused HTML artifacts.
+disable-model-invocation: true
 ---
 
 Help the user understand the current topic of conversation visually. Skip the preamble and keep prose brief. Pick the smallest view that makes the key point clear.
@@ -38,9 +39,9 @@ submitForm
 
 ```text
 src/
-|-- commands/       # parses user actions
-|-- sessions/       # owns session state
-`-- transport/      # sends API requests
+├── commands/       # parses user actions
+├── sessions/       # owns session state
+└── transport/      # sends API requests
 ```
 
 - Show component interaction, control flow, or data flow with Mermaid:
@@ -72,13 +73,13 @@ For a file-layout change:
 
 ```diff
  src/
- |-- commands/
-+|   `-- show-me.ts       # expands the slash command
- |-- sessions/
--`-- transport.ts
-+`-- transport/
-+    |-- client.ts
-+    `-- stream.ts
+ ├── commands/
++│   └── show-me.ts       # expands the slash command
+ ├── sessions/
+-└── transport.ts
++└── transport/
++    ├── client.ts
++    └── stream.ts
 ```
 
 For a call-tree or call-stack change:
@@ -120,6 +121,8 @@ function expandSkill(command: string): string {
 Bash(open path/to/show-me-{description}.html)
 ```
 
-- Place each visual next to the short text it supports. Keep only the calls, files, props, states, and boundaries needed to answer the user's current question.
+### guidance
+
+Place each visual next to the short text it supports. Keep only the calls, files, props, states, and boundaries needed to answer the user's current question or the options to resolve the current discussion point.
 
 You may use one of these, you may use several, it is unlikely you will use all of them. Use your judgement and don't overwhelm the user.
