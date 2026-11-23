@@ -194,3 +194,5 @@ mutagen.yml.lock
 .local/bin/browse
 .config/configstore/
 .config/opencode/*.bak-*
+.config/e2e/
+.config/exact/
