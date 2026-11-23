@@ -12,6 +12,10 @@ rm -f "$HOME/Library/LaunchAgents/com.jose.dotfiles.sync-skills.plist"
 for plist in "$HOME"/Library/LaunchAgents/com.jose.dotfiles.*.plist; do
 	label=$(basename "$plist" .plist)
 	launchctl bootout "$domain/$label" 2>/dev/null || true
+	if launchctl print-disabled "$domain" | grep -q "\"$label\" => disabled"; then
+		echo "chezmoi: $label is disabled in launchd; left unloaded" >&2
+		continue
+	fi
 	launchctl bootstrap "$domain" "$plist"
 done
 {{ end -}}
