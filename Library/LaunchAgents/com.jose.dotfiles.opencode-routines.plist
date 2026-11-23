@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.jose.dotfiles.opencode-routines</string>
+
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/jose/.volta/bin/bun</string>
+		<string>/Users/jose/dotfiles/.config/opencode/plugins/routines/tick.ts</string>
+	</array>
+
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>VOLTA_HOME</key>
+		<string>/Users/jose/.volta</string>
+		<key>PATH</key>
+		<string>/Users/jose/.opencode/bin:/Users/jose/.volta/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
+
+	<key>StartInterval</key>
+	<integer>60</integer>
+	<key>RunAtLoad</key>
+	<true/>
+
+	<key>StandardOutPath</key>
+	<string>/Users/jose/Library/Logs/opencode-routines.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/jose/Library/Logs/opencode-routines.log</string>
+</dict>
+</plist>

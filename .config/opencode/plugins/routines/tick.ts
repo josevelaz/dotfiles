@@ -1,0 +1,28 @@
+import { execFile } from "node:child_process"
+
+import { tick } from "./runner"
+
+function notify(title: string, message: string): void {
+  execFile("osascript", [
+    "-e", "on run argv",
+    "-e", "display notification (item 2 of argv) with title (item 1 of argv)",
+    "-e", "end run",
+    "--", title, message,
+  ], () => {})
+}
+
+const stamp = () => new Date().toISOString()
+
+try {
+  const report = await tick()
+  for (const line of report.fired) console.log(`${stamp()} fired ${line}`)
+  for (const line of report.failed) console.log(`${stamp()} failed ${line}`)
+  if (report.newFailures.length > 0) {
+    notify("OpenCode routine failed", `${report.newFailures.join(", ")}. See ~/Library/Logs/opencode-routines.log`)
+  }
+  process.exitCode = report.failed.length > 0 ? 1 : 0
+} catch (error) {
+  console.log(`${stamp()} tick failed: ${(error as Error).stack ?? error}`)
+  notify("OpenCode routines tick failed", "See ~/Library/Logs/opencode-routines.log")
+  process.exitCode = 1
+}
