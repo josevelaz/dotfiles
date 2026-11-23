@@ -6,7 +6,7 @@ export PATH="/Users/jose/.opencode/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin
 
 MODEL_PROVIDER="claude-agent"
 MODEL_ID="opus"
-MODEL_VARIANT="high"
+MODEL_VARIANT="xhigh"
 AGENT="memory-dream"
 MEMORY_DIR="${AGENT_MEMORY_DIR:-$HOME/agent-memory}"
 STATE_DIR="$HOME/.local/state/agent-memory-dream"

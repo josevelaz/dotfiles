@@ -1,9 +1,10 @@
 {
   "opencode": "/Users/jose/.opencode/bin/opencode",
   "entry": "/Users/jose/.local/bin/browse",
-  "version": "0.0.16",
+  "version": "0.1.0",
   "agents": [],
   "opencodeConfigs": [
     "/Users/jose/.config/opencode/opencode.jsonc"
-  ]
+  ],
+  "method": "binary"
 }
