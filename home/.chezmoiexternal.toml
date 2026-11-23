@@ -1,0 +1,16 @@
+# Third-party code chezmoi fetches into place on every machine.
+
+[".local/share/TokenEconomizer"]
+    type = "git-repo"
+    url = "https://github.com/microsoft/TokenEconomizer.git"
+    refreshPeriod = "168h"
+
+[".tmux/plugins/tpm"]
+    type = "git-repo"
+    url = "https://github.com/tmux-plugins/tpm.git"
+    refreshPeriod = "168h"
+
+# Notify when a long-running command finishes (replaces zsh-auto-notify).
+[".config/fish/conf.d/done.fish"]
+    type = "file"
+    url = "https://raw.githubusercontent.com/franciscolourenco/done/1.21.1/conf.d/done.fish"

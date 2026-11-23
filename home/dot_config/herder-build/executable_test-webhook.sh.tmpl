@@ -1,0 +1,10 @@
+#!/bin/bash
+# Sends ONE test POST to the Herder webhook and prints only the HTTP status code.
+# Reads ~/.config/herder-build/webhook.env without printing it; the auth header is
+# passed to curl through a file descriptor, never on the command line.
+f="$HOME/.config/herder-build/webhook.env"
+get() { sed -n "s/^[[:space:]]*\(export[[:space:]]\{1,\}\)\{0,1\}$1=//p" "$f" | tail -1 | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/"; }
+url=$(get HERDER_WEBHOOK_URL); auth=$(get HERDER_WEBHOOK_AUTH)
+if [ -z "$url" ] || [ -z "$auth" ]; then echo "skipped-no-config"; exit 1; fi
+body=$(printf '{"event":"test","sessionId":"test","directory":"{{ .chezmoi.homeDir }}/projects/herder","time":"%s"}' "$(date -u +%Y-%m-%dT%H:%M:%SZ)")
+curl -s -o /dev/null -w '%{http_code}\n' -m 5 -X POST -H 'content-type: application/json' -H @<(printf 'authorization: %s\n' "$auth") --data "$body" --url "$url"

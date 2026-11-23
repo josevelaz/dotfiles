@@ -1,0 +1,4 @@
+{{- /* Asked once per machine by `chezmoi init`; leave empty to skip the secret. */ -}}
+{{- $tokenRef := promptStringOnce . "onepassword.serviceAccountTokenRef" "1Password reference for OP_SERVICE_ACCOUNT_TOKEN (op://vault/item/field, empty to skip)" "" -}}
+[data.onepassword]
+    serviceAccountTokenRef = {{ $tokenRef | quote }}

@@ -1,7 +1,4 @@
 {
-  "plugin": [
-    "./herdr-tui-session.js"
-  ],
   "plugins": [
     "@cortexkit/aft-opencode@0.57.0"
   ],

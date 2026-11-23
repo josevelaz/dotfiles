@@ -1,0 +1,8 @@
+[Unit]
+Description=Run due OpenCode routines (Linux counterpart of com.jose.dotfiles.opencode-routines)
+
+[Service]
+Type=oneshot
+Environment=PATH=%h/.local/share/mise/shims:%h/.local/bin:/usr/bin:/bin
+WorkingDirectory=%h/.config/opencode/plugins/routines
+ExecStart=%h/.local/share/mise/shims/bun %h/.config/opencode/plugins/routines/tick.ts

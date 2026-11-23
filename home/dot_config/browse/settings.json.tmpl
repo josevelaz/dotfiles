@@ -1,0 +1,10 @@
+{
+  "opencode": "{{ if eq .chezmoi.os "darwin" }}{{ .chezmoi.homeDir }}/.opencode/bin/opencode{{ else }}{{ .chezmoi.homeDir }}/.local/share/mise/shims/opencode{{ end }}",
+  "entry": "{{ .chezmoi.homeDir }}/.local/bin/browse",
+  "version": "0.1.0",
+  "agents": [],
+  "opencodeConfigs": [
+    "{{ .chezmoi.homeDir }}/.config/opencode/opencode.jsonc"
+  ],
+  "method": "binary"
+}

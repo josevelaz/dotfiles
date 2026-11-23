@@ -23,7 +23,6 @@
     "sound": true
   },
   "plugins": [
-    "./herdr-opencode",
     {
       "package": "./project-notes",
       "options": {

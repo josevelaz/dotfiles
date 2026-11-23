@@ -1,0 +1,19 @@
+{{ if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+# Reload and enable the user timers when their units change.
+# opencode-routines.service {{ include "dot_config/systemd/user/opencode-routines.service" | sha256sum }}
+# opencode-routines.timer   {{ include "dot_config/systemd/user/opencode-routines.timer" | sha256sum }}
+# agent-memory-dream.service {{ include "dot_config/systemd/user/agent-memory-dream.service" | sha256sum }}
+# agent-memory-dream.timer   {{ include "dot_config/systemd/user/agent-memory-dream.timer" | sha256sum }}
+set -euo pipefail
+
+systemctl --user daemon-reload
+systemctl --user enable --now opencode-routines.timer
+
+# The dream reviews sessions into ~/agent-memory; without that repo it can only fail.
+if git -C "$HOME/agent-memory" rev-parse --git-dir >/dev/null 2>&1; then
+	systemctl --user enable --now agent-memory-dream.timer
+else
+	echo "chezmoi: ~/agent-memory is not a git repository; agent-memory-dream.timer stays disabled" >&2
+fi
+{{ end -}}

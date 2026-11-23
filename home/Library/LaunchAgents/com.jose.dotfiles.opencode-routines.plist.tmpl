@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.jose.dotfiles.opencode-routines</string>
+
+	<key>ProgramArguments</key>
+	<array>
+		<string>{{ .chezmoi.homeDir }}/.volta/bin/bun</string>
+		<string>{{ .chezmoi.homeDir }}/.config/opencode/plugins/routines/tick.ts</string>
+	</array>
+
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>VOLTA_HOME</key>
+		<string>{{ .chezmoi.homeDir }}/.volta</string>
+		<key>PATH</key>
+		<string>{{ .chezmoi.homeDir }}/.opencode/bin:{{ .chezmoi.homeDir }}/.volta/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
+
+	<key>StartInterval</key>
+	<integer>60</integer>
+	<key>RunAtLoad</key>
+	<true/>
+
+	<key>StandardOutPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/opencode-routines.log</string>
+	<key>StandardErrorPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/opencode-routines.log</string>
+</dict>
+</plist>

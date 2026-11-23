@@ -1,0 +1,6 @@
+[Unit]
+Description=Agent memory dream (Linux counterpart of com.jose.dotfiles.agent-memory-dream)
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/agent-memory-dream

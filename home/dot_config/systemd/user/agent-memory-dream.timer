@@ -1,0 +1,9 @@
+[Unit]
+Description=Run the agent memory dream every four hours
+
+[Timer]
+OnCalendar=*-*-* 03,07,11,15,19,23:00:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target

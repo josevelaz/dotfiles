@@ -13,6 +13,12 @@ Code style:
 - Naming: snake_case for files and functions (shell/python), camelCase only where existing C code uses it; constants UPPER_SNAKE.
 - Error handling: check and propagate errors; return non-zero exit codes for CLI tools; prefer exceptions in Python with clear messages.
 
+Layout (chezmoi):
+- This repo is a chezmoi source tree. Everything under `home/` (see `.chezmoiroot`) is applied to `~` with `chezmoi apply`; files at the repo root are repo-only and never deployed.
+- Source names encode target attributes: `dot_` for a leading dot, `executable_`, `private_`, `symlink_`, and a `.tmpl` suffix for templates.
+- Configs are the same on every machine. Branch only for macOS-only software or OS mechanisms, with `{{ if eq .chezmoi.os "darwin" }}` in templates or `home/.chezmoiignore`.
+- Edit with `chezmoi edit <target>`, or edit the target and run `chezmoi re-add`. Preview with `chezmoi diff` before `chezmoi apply`.
+
 Repo-specific rules:
 - Respect .gitignore and submodule configs.
 - If .cursor/rules or .cursorrules exist, follow them; if .github/copilot-instructions.md exists, follow its guidance.
