@@ -14,7 +14,7 @@
     "npm:@cortexkit/aft-pi"
   ],
   "hideThinkingBlock": false,
-  "theme": "orng",
+  "theme": "{{ if eq .chezmoi.os "linux" }}omarchy-system{{ else }}orng{{ end }}",
   "doubleEscapeAction": "tree",
   "showCacheMissNotices": true,
   "warnings": {
