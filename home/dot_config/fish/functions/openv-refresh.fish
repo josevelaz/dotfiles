@@ -1,4 +1,3 @@
-# Re-read a 1Password environment into the cache and export it.
 function openv-refresh -a environment
     test -n "$environment"; or set environment $OP_DEFAULT_ENVIRONMENT
     set -l file (__openv_cache_file $environment); or return 1

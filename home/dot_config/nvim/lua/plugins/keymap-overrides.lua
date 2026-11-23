@@ -1,8 +1,4 @@
--- Keys carried over from the old macOS config that collide with keys LazyVim
--- defines in plugin specs or as buffer-local LSP/treesitter maps. Those
--- LazyVim keys are disabled here so the carried-over ones win.
 
----@param keys string[]
 local function disabled(keys)
   return vim.tbl_map(function(lhs)
     return { lhs, false }
@@ -10,7 +6,6 @@ local function disabled(keys)
 end
 
 return {
-  -- Pickers, as on macOS
   {
     "folke/snacks.nvim",
     keys = {
@@ -45,12 +40,10 @@ return {
     },
   },
 
-  -- <leader>sr is "resume" above, <leader>sn is "Neovim files", <leader>q is "quit".
   { "MagicDuck/grug-far.nvim", keys = disabled({ "<leader>sr" }) },
   { "folke/noice.nvim", keys = disabled({ "<leader>sn", "<leader>snl", "<leader>snh", "<leader>sna", "<leader>snd", "<leader>snt" }) },
   { "folke/persistence.nvim", keys = disabled({ "<leader>qs", "<leader>qS", "<leader>ql", "<leader>qd" }) },
 
-  -- Buffer-local LSP keys: <leader>ss is the picker list, <M-n>/<M-p> walk quickfix.
   {
     "neovim/nvim-lspconfig",
     opts = {
@@ -62,7 +55,6 @@ return {
     },
   },
 
-  -- ]c / [c jump between git hunks instead of classes.
   {
     "nvim-treesitter/nvim-treesitter-textobjects",
     opts = function(_, opts)
@@ -85,7 +77,6 @@ return {
         end
         local gs = package.loaded.gitsigns
         vim.keymap.set("n", "<leader>ph", gs.preview_hunk, { buffer = buffer, desc = "[P]review git [H]unk" })
-        -- Keep the built-in ]c/[c in diff mode.
         vim.keymap.set({ "n", "v" }, "]c", function()
           if vim.wo.diff then
             return "]c"

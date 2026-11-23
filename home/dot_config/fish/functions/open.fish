@@ -1,4 +1,3 @@
-# macOS has a native open; elsewhere open with the desktop's default app.
 function open
     if test (uname) = Darwin
         command open $argv

@@ -1,4 +1,3 @@
-# Replace the default environment's cache with the current values of VARIABLE...
 function openv-cache-current
     if test (count $argv) -eq 0
         echo "Usage: openv-cache-current VARIABLE..." >&2

@@ -1,14 +1,11 @@
 {{ if eq .chezmoi.os "darwin" -}}
 #!/bin/bash
-# Reload the LaunchAgents when their plists change. chezmoi writes copies, so
-# launchd needs a bootout/bootstrap to pick up edits.
 {{ range (glob (joinPath .chezmoi.sourceDir "Library/LaunchAgents/*.plist.tmpl")) -}}
 # {{ base . }} {{ include . | sha256sum }}
 {{ end -}}
 set -euo pipefail
 domain="gui/$(id -u)"
 
-# Retired with the move to chezmoi (it assumed the stow repo layout).
 launchctl bootout "$domain/com.jose.dotfiles.sync-skills" 2>/dev/null || true
 rm -f "$HOME/Library/LaunchAgents/com.jose.dotfiles.sync-skills.plist"
 

@@ -1,5 +1,3 @@
-# OpenChamber Desktop probes the login shell with `env -0`. Point only that
-# probe at the shared OpenCode service; never export its password to normal shells.
 if test (uname) = Darwin; and not status is-interactive
     set -l ppid (ps -o ppid= -p $fish_pid 2>/dev/null | string trim)
     if test -n "$ppid"; and test "$(ps -o comm= -p $ppid 2>/dev/null)" = /Applications/OpenChamber.app/Contents/MacOS/OpenChamber

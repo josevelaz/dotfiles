@@ -26,7 +26,6 @@ notify_failure() {
 		-e 'end run' -- "See $LOG" >/dev/null 2>&1 || true
 }
 {{- else -}}
-# systemd keeps this script's output in the journal.
 LOG="journalctl --user -u agent-memory-dream"
 
 notify_failure() {

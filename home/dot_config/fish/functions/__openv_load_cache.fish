@@ -1,4 +1,3 @@
-# Export every KEY=VALUE line of a cache file, dropping one layer of quotes.
 function __openv_load_cache -a environment
     set -l file (__openv_cache_file $environment); or return 1
     test -r $file; or return 1

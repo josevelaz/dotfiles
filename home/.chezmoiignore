@@ -1,9 +1,5 @@
-# Target paths chezmoi leaves alone. Repository-only files live outside home/
-# (see .chezmoiroot), so they never reach a machine.
-
 {{- if ne .chezmoi.os "darwin" }}
 
-# macOS-only software and its state
 .config/aegis
 .config/karabiner
 .config/omniwm
@@ -21,7 +17,6 @@ mutagen.yml
 .local/bin/push-dotfile-changes.sh
 .config/nvim/lua/plugins/orng-theme.lua
 
-# Skills that drive macOS apps (and the harness links to them)
 .agents/skills/agent-desktop
 .agents/skills/rex
 .agents/skills/tldraw-offline
@@ -33,6 +28,5 @@ mutagen.yml
 
 {{- if ne .chezmoi.os "linux" }}
 
-# systemd user units (macOS uses the LaunchAgents above)
 .config/systemd
 {{- end }}

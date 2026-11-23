@@ -1,4 +1,3 @@
-# tmux dev square: editor, hunk diff watch, terminal and opencode.
 function tds
     test (count $argv) -eq 0; or begin; echo "Usage: tds"; return 1; end
     set -q TMUX; or begin; echo "You must start tmux to use tds."; return 1; end

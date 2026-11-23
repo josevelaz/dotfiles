@@ -1,4 +1,3 @@
-# Tiled tmux swarm running the same command in each pane. Usage: tsl <count> <command>
 function tsl -a count_ cmd
     test -n "$count_" -a -n "$cmd"; or begin; echo "Usage: tsl <pane_count> <command>"; return 1; end
     set -q TMUX; or begin; echo "You must start tmux to use tsl."; return 1; end

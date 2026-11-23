@@ -1,4 +1,3 @@
-# One tdl window per subdirectory. Usage: tdlm <ai> [<second_ai>]
 function tdlm -a ai ai2
     test -n "$ai"; or begin; echo "Usage: tdlm <c|cx|codex|other_ai> [<second_ai>]"; return 1; end
     set -q TMUX; or begin; echo "You must start tmux to use tdlm."; return 1; end

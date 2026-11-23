@@ -1,4 +1,3 @@
-# Kill whatever listens on a TCP port.
 function killport -a port
     if test -z "$port"
         echo "Usage: killport <port>" >&2

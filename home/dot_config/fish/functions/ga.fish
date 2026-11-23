@@ -1,4 +1,3 @@
-# Create a worktree and branch next to the current repository and cd into it.
 function ga -a branch
     if test -z "$branch"
         echo "Usage: ga [branch name]"

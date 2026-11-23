@@ -1,5 +1,3 @@
--- oil.nvim, carried over from the old macOS config (minus its grapple keymap,
--- since grapple did not come along).
 return {
   {
     "stevearc/oil.nvim",

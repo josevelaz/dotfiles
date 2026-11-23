@@ -1,4 +1,3 @@
-# One hdl tab per subdirectory. Usage: hdlm <ai> [<second_ai>]
 function hdlm -a ai ai2
     test -n "$ai"; or begin; echo "Usage: hdlm <c|cx|codex|other_ai> [<second_ai>]"; return 1; end
     set -q HERDR_PANE_ID; or begin; echo "You must start herdr to use hdlm."; return 1; end

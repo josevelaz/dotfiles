@@ -130,7 +130,6 @@
   "shell": "/bin/bash",
   "default_agent": "build",
 {{- if eq .chezmoi.os "linux" }}
-  // OpenCode is installed and updated by mise on Linux.
   "update": "disable",
 {{- end }}
   "plugins": [

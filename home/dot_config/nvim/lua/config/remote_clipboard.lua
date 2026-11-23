@@ -1,8 +1,3 @@
--- Copies reach the local Wayland clipboard and attached terminals. Reads use
--- Wayland or tmux's buffer, falling back to this Neovim's last copy. Never query
--- the terminal with OSC 52: support for writes does not imply permission to read,
--- and an unanswered query blocks ordinary paste for ten seconds. To insert new
--- text from the host when no readable clipboard exists, use terminal paste.
 local M = {}
 
 local function proc_lines(pid, file)
@@ -40,7 +35,6 @@ local function ancestor_process_named(name)
 end
 
 function M.setup()
-  -- macOS: the native pbcopy/pbpaste provider already works inside tmux and herdr.
   if vim.fn.has("mac") == 1 then
     return
   end
@@ -82,15 +76,10 @@ function M.setup()
 
       if vim.g.omarchy_remote_clipboard_osc52 ~= false then
         if has_tmux and register == "+" then
-          -- tmux ignores zero-byte loads. Record the current buffer's identity
-          -- instead: all Neovim instances see empty until a new buffer arrives,
-          -- without deleting the user's shared tmux clipboard history.
           if #lines == 0 or (#lines == 1 and lines[1] == "") then
             vim.fn.system({ "tmux", "set-option", "-sF", "@omarchy-nvim-cleared-buffer", "#{buffer_name}" })
             return
           end
-          -- Let tmux emit OSC 52, avoiding its input parser's payload size limit.
-          -- Explicit -w bypasses set-clipboard, so honor the user's policy first.
           local cmd = { "tmux", "load-buffer" }
           if tmux_export_enabled() then
             cmd[#cmd + 1] = "-w"
@@ -109,8 +98,6 @@ function M.setup()
   local function paste(register)
     return function()
       local cmd
-      -- tmux's buffer is shared between Neovim instances on the server. Over
-      -- SSH, prefer it to the remote machine's unrelated graphical clipboard.
       if has_tmux and register == "+" and (in_ssh or not has_wayland)
         and vim.g.omarchy_remote_clipboard_osc52 ~= false then
         local buffers = vim.fn.systemlist({ "tmux", "display-message", "-p",
@@ -121,8 +108,6 @@ function M.setup()
         if not buffers[1] or buffers[1] == "" or buffers[1] == buffers[2] then
           return { {}, "v" }
         end
-        -- Pin the buffer selected above: a concurrent copy must not change
-        -- which payload we read after checking its identity against the marker.
         cmd = { "tmux", "save-buffer", "-b", buffers[1], "-" }
       elseif has_wayland then
         cmd = { "wl-paste", "--no-newline" }
@@ -134,7 +119,6 @@ function M.setup()
       if cmd then
         local lines = vim.fn.systemlist(cmd, "", 1)
         if vim.v.shell_error == 0 then
-          -- An empty clipboard is valid; only failed reads use the fallback.
           if last_copy[register] and vim.deep_equal(lines, last_copy[register][1]) then
             return vim.deepcopy(last_copy[register])
           end
@@ -153,8 +137,6 @@ function M.setup()
     cache_enabled = 0,
   }
 
-  -- LazyVim clears this over SSH. Users can opt out before setup or override
-  -- the option afterward in config/options.lua.
   if vim.g.omarchy_remote_clipboard_sync ~= false then
     vim.opt.clipboard:append("unnamedplus")
   end

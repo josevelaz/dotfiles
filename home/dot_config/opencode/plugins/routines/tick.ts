@@ -4,7 +4,6 @@ import { tick } from "./runner"
 
 const darwin = process.platform === "darwin"
 
-// launchd appends to this file on macOS; systemd keeps the output in the journal on Linux.
 const logHint = darwin
   ? "See ~/Library/Logs/opencode-routines.log"
   : "See journalctl --user -u opencode-routines"

@@ -1,5 +1,3 @@
--- macOS colorscheme: rose-pine with the orng palette from the old macOS config.
--- On Linux, theme.lua (a link to Omarchy's current theme) sets the colorscheme instead.
 return {
 	{
 		"rose-pine/neovim",

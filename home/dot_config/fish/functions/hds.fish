@@ -1,4 +1,3 @@
-# herdr dev square: editor, hunk diff watch, terminal and opencode.
 function hds
     test (count $argv) -eq 0; or begin; echo "Usage: hds"; return 1; end
     set -q HERDR_PANE_ID; or begin; echo "You must start herdr to use hds."; return 1; end
