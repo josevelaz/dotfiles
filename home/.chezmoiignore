@@ -1,13 +1,9 @@
 {{- if ne .chezmoi.os "darwin" }}
 
 .config/aegis
-.config/karabiner
 .config/omniwm
 .config/raycast
-.config/sketchybar
 .config/skhd
-.config/yabai
-.config/yabai-backup-2026-10-17
 .config/agentfs/agentfs-receipt.json
 Library
 mutagen.yml

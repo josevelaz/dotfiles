@@ -1,13 +1,10 @@
 {{ if eq .chezmoi.os "linux" -}}
 #!/bin/bash
-# opencode-routines.service {{ include "dot_config/systemd/user/opencode-routines.service" | sha256sum }}
-# opencode-routines.timer   {{ include "dot_config/systemd/user/opencode-routines.timer" | sha256sum }}
 # agent-memory-dream.service {{ include "dot_config/systemd/user/agent-memory-dream.service" | sha256sum }}
 # agent-memory-dream.timer   {{ include "dot_config/systemd/user/agent-memory-dream.timer" | sha256sum }}
 set -euo pipefail
 
 systemctl --user daemon-reload
-systemctl --user enable --now opencode-routines.timer
 
 if git -C "$HOME/agent-memory" rev-parse --git-dir >/dev/null 2>&1; then
 	systemctl --user enable --now agent-memory-dream.timer
