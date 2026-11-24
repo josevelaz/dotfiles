@@ -4,7 +4,7 @@
 [profiles.default]
 center = ["media"]
 leading = ["apple-menu", "omniwm", "app-menu", "workspaces"]
-trailing = ["system-stats", "clock"]
+trailing = ["system-stats"]
 
 [profiles.default.hiddenBar]
 enabled = true
