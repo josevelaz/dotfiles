@@ -1,0 +1,34 @@
+{
+  "peerName": "jose",
+  "baseUrl": "http://honcho/",
+  "hosts": {
+    "opencode": {
+      "workspace": "software_development",
+      "aiPeer": "opencode",
+      "recallMode": "hybrid",
+      "sessionStrategy": "per-repo",
+      "removeUserPrefix": true,
+      "observationMode": "unified"
+    },
+    "pi": {
+      "workspace": "software_development",
+      "aiPeer": "pi",
+      "recallMode": "hybrid",
+      "sessionStrategy": "repo",
+      "endpoint": "http://honcho/"
+    },
+    "hermes": {
+      "aiPeer": "hermes",
+      "workspace": "software_development",
+      "observationMode": "directional",
+      "writeFrequency": "async",
+      "recallMode": "hybrid",
+      "dialecticCadence": 2,
+      "dialecticReasoningLevel": "high",
+      "sessionStrategy": "global",
+      "enabled": true,
+      "saveMessages": true
+    }
+  },
+  "apiKey": ""
+}
