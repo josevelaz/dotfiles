@@ -1252,6 +1252,10 @@ id = "toggleSystemStats"
 
 [[hotkeys]]
 binding = "Unassigned"
+id = "toggleShellWidget.Test"
+
+[[hotkeys]]
+binding = "Unassigned"
 id = "toggleShellWidget.hidden-bar"
 
 [[hotkeys]]

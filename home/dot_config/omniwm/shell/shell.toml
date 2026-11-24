@@ -6,6 +6,12 @@ center = ["media"]
 leading = ["apple-menu", "omniwm", "app-menu", "workspaces"]
 trailing = ["system-stats"]
 
+[profiles.default.drawer]
+
+[profiles.default.drawer.Test]
+edge = "left"
+widgets = ["usage-limits"]
+
 [profiles.default.hiddenBar]
 enabled = true
 
