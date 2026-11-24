@@ -20,7 +20,7 @@
 		<key>DOTFILES_SYNC_PEERS</key>
 		<string>{{ .sync.peers | join "," }}</string>
 		<key>CHEZMOI_BIN</key>
-		<string>/opt/homebrew/bin/chezmoi</string>
+		<string>{{ .chezmoi.homeDir }}/.local/share/mise/shims/chezmoi</string>
 	</dict>
 	<key>RunAtLoad</key>
 	<true/>
