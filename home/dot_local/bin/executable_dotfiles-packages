@@ -4,6 +4,7 @@ set -euo pipefail
 mode="${1:-install}"
 
 if [ "$(uname -s)" = Darwin ]; then
+	export PATH="/opt/homebrew/bin:$PATH"
 	brewfile="$HOME/.config/homebrew/Brewfile"
 	if [ "$mode" = --check ]; then
 		brew bundle check --file "$brewfile" --no-upgrade --verbose
