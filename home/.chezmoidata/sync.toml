@@ -1,0 +1,6 @@
+[sync]
+port = 7357
+peers = [
+    "devbox.tail4c22db.ts.net",
+    "joses-apple-macbook-pro.tail4c22db.ts.net",
+]

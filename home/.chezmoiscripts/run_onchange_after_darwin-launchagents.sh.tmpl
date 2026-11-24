@@ -3,6 +3,7 @@
 {{ range (glob (joinPath .chezmoi.sourceDir "private_Library/LaunchAgents/*.plist.tmpl")) -}}
 # {{ base . }} {{ include . | sha256sum }}
 {{ end -}}
+# sync {{ .sync | toJson | sha256sum }}
 set -euo pipefail
 domain="gui/$(id -u)"
 

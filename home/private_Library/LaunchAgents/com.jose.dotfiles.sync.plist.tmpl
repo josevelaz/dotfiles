@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.jose.dotfiles.sync</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>{{ .chezmoi.homeDir }}/.volta/bin/bun</string>
+		<string>{{ .chezmoi.homeDir }}/.local/lib/dotfiles-sync/sync.ts</string>
+	</array>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:{{ .chezmoi.homeDir }}/.volta/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>VOLTA_HOME</key>
+		<string>{{ .chezmoi.homeDir }}/.volta</string>
+		<key>DOTFILES_REPO</key>
+		<string>{{ .chezmoi.workingTree }}</string>
+		<key>DOTFILES_SYNC_PORT</key>
+		<string>{{ .sync.port }}</string>
+		<key>DOTFILES_SYNC_PEERS</key>
+		<string>{{ .sync.peers | join "," }}</string>
+		<key>CHEZMOI_BIN</key>
+		<string>/opt/homebrew/bin/chezmoi</string>
+		<key>TAILSCALE_BIN</key>
+		<string>/Applications/Tailscale.app/Contents/MacOS/Tailscale</string>
+	</dict>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>AbandonProcessGroup</key>
+	<true/>
+	<key>ThrottleInterval</key>
+	<integer>5</integer>
+	<key>StandardOutPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/dotfiles-sync.log</string>
+	<key>StandardErrorPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/dotfiles-sync.log</string>
+</dict>
+</plist>

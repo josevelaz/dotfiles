@@ -4,11 +4,14 @@
 # agent-memory-dream.timer   {{ include "dot_config/systemd/user/agent-memory-dream.timer" | sha256sum }}
 # sync-skills.service {{ include "dot_config/systemd/user/sync-skills.service.tmpl" | sha256sum }}
 # sync-skills.path {{ include "dot_config/systemd/user/sync-skills.path.tmpl" | sha256sum }}
+# dotfiles-sync.service {{ include "dot_config/systemd/user/dotfiles-sync.service.tmpl" | sha256sum }} {{ .sync | toJson | sha256sum }}
 set -euo pipefail
 
 systemctl --user daemon-reload
 systemctl --user enable --now sync-skills.path
 systemctl --user start sync-skills.service
+systemctl --user enable dotfiles-sync.service
+systemctl --user --no-block restart dotfiles-sync.service
 
 if git -C "$HOME/agent-memory" rev-parse --git-dir >/dev/null 2>&1; then
 	systemctl --user enable --now agent-memory-dream.timer
