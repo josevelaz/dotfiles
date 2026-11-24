@@ -1,0 +1,18 @@
+#!/bin/bash
+{{ if eq .chezmoi.os "darwin" -}}
+# {{ include "dot_config/homebrew/Brewfile" | sha256sum }}
+{{- else -}}
+# {{ include "dot_config/packages/arch.txt" | sha256sum }} {{ include "dot_config/packages/ubuntu.txt" | sha256sum }}
+{{- end }}
+set -euo pipefail
+helper="$HOME/.local/bin/dotfiles-packages"
+{{ if eq .chezmoi.os "darwin" -}}
+"$helper"
+{{- else -}}
+if ! missing=$("$helper" --check); then
+	echo "chezmoi: packages missing ($missing); run dotfiles-packages" >&2
+	if command -v notify-send >/dev/null; then
+		notify-send --app-name=dotfiles "Packages missing" "Run dotfiles-packages to install: $missing" || true
+	fi
+fi
+{{- end }}

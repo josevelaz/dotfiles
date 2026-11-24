@@ -1,0 +1,5 @@
+#!/bin/bash
+# {{ include "dot_config/mise/config.toml" | sha256sum }}
+set -euo pipefail
+export PATH="/opt/homebrew/bin:$HOME/.local/share/mise/shims:$PATH"
+mise install

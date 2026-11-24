@@ -1,0 +1,81 @@
+[tools]
+claude = { version = "latest", auto_update = "4h", minimum_release_age = "0s" }
+codex = { version = "latest", auto_update = "4h", minimum_release_age = "0s" }
+opencode = { version = "latest", auto_update = "4h", minimum_release_age = "0s" }
+crush = { version = "latest", auto_update = "4h", minimum_release_age = "0s" }
+cursor-agent = { version = "latest", auto_update = "4h", minimum_release_age = "0s" }
+grok = { version = "latest", auto_update = "4h", minimum_release_age = "0s" }
+pi = { version = "latest", auto_update = "4h", minimum_release_age = "0s" }
+muse = { version = "latest", auto_update = "4h", minimum_release_age = "0s" }
+hunk = { version = "latest", minimum_release_age = "0s" }
+gh = { version = "latest", minimum_release_age = "0s" }
+
+node = "latest"
+bun = "latest"
+pnpm = "latest"
+uv = "latest"
+go = "latest"
+zig = "latest"
+rust = "latest"
+
+ripgrep = "latest"
+fd = "latest"
+fzf = "latest"
+bat = "latest"
+eza = "latest"
+zoxide = "latest"
+jq = "latest"
+lazygit = "latest"
+neovim = "latest"
+yazi = "latest"
+oh-my-posh = "latest"
+chezmoi = "latest"
+gum = "latest"
+glow = "latest"
+just = "latest"
+task = "latest"
+tree-sitter = "latest"
+7zip = "latest"
+herdr = "latest"
+shellcheck = "latest"
+
+gitleaks = "latest"
+actionlint = "latest"
+pre-commit = "latest"
+helm = "latest"
+kubectl = "latest"
+terraform = "latest"
+stripe = "latest"
+doppler = "latest"
+infisical = "latest"
+turso = "latest"
+mkcert = "latest"
+pandoc = "latest"
+cargo-nextest = "latest"
+cmake = "latest"
+"cargo:resvg" = "latest"
+"github:tursodatabase/agentfs" = "latest"
+"cargo:wasm-bindgen-cli" = "latest"
+"pipx:tavily-cli" = "latest"
+
+golangci-lint = "latest"
+gofumpt = "latest"
+gotestsum = "latest"
+ginkgo = "latest"
+"go:golang.org/x/tools/gopls" = "latest"
+"go:golang.org/x/tools/cmd/goimports" = "latest"
+"go:golang.org/x/vuln/cmd/govulncheck" = "latest"
+"go:github.com/go-delve/delve/cmd/dlv" = "latest"
+"go:go.uber.org/mock/mockgen" = "latest"
+"go:github.com/cweill/gotests/gotests" = "latest"
+"go:github.com/fatih/gomodifytags" = "latest"
+"go:github.com/josharian/impl" = "latest"
+"go:github.com/koron/iferr" = "latest"
+
+"npm:vercel" = "latest"
+"npm:greptile" = "latest"
+"npm:agent-browser" = "latest"
+"npm:@playwright/cli" = "latest"
+"npm:@tailwindcss/cli" = "latest"
+"npm:tsup" = "latest"
+"npm:obsidian-headless" = "latest"

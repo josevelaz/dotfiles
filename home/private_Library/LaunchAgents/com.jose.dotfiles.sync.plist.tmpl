@@ -6,15 +6,13 @@
 	<string>com.jose.dotfiles.sync</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>{{ .chezmoi.homeDir }}/.volta/bin/bun</string>
+		<string>{{ .chezmoi.homeDir }}/.local/share/mise/shims/bun</string>
 		<string>{{ .chezmoi.homeDir }}/.local/lib/dotfiles-sync/sync.ts</string>
 	</array>
 	<key>EnvironmentVariables</key>
 	<dict>
 		<key>PATH</key>
-		<string>/opt/homebrew/bin:{{ .chezmoi.homeDir }}/.volta/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
-		<key>VOLTA_HOME</key>
-		<string>{{ .chezmoi.homeDir }}/.volta</string>
+		<string>{{ .chezmoi.homeDir }}/.local/share/mise/shims:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
 		<key>DOTFILES_REPO</key>
 		<string>{{ .chezmoi.workingTree }}</string>
 		<key>DOTFILES_SYNC_PORT</key>

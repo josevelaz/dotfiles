@@ -18,7 +18,7 @@ set -gx PNPM_HOME $HOME/.local/share/pnpm
 set -gx BUN_INSTALL $HOME/.bun
 fish_add_path -g $PNPM_HOME/bin $BUN_INSTALL/bin $HOME/.deno/bin $HOME/.cargo/bin \
     $HOME/.opencode/bin $HOME/.pi/agent/bin $HOME/.grok/bin
-fish_add_path -g -a $HOME/.local/bin $HOME/go/bin /snap/bin
+fish_add_path -g -a $HOME/.local/bin $HOME/.local/share/mise/shims $HOME/go/bin /snap/bin
 
 if test $os = Linux
     set -q OMARCHY_PATH; or set -gx OMARCHY_PATH /usr/share/omarchy

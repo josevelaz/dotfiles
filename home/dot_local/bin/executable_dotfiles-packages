@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mode="${1:-install}"
+
+if [ "$(uname -s)" = Darwin ]; then
+	brewfile="$HOME/.config/homebrew/Brewfile"
+	if [ "$mode" = --check ]; then
+		brew bundle check --file "$brewfile" --verbose
+	else
+		brew bundle install --file "$brewfile" --no-upgrade
+	fi
+	exit
+fi
+
+. /etc/os-release
+case "${ID_LIKE:-$ID}" in
+*arch*) list="$HOME/.config/packages/arch.txt"; installed=$(pacman -Qq) ;;
+*debian*|*ubuntu*) list="$HOME/.config/packages/ubuntu.txt"; installed=$(dpkg-query -W -f '${Package}\n') ;;
+*) echo "dotfiles-packages: no package list for $ID" >&2; exit 1 ;;
+esac
+
+missing=$(grep -v '^[[:space:]]*$' "$list" | sort -u | comm -23 - <(sort -u <<<"$installed") | tr '\n' ' ')
+if [ -z "${missing// }" ]; then
+	echo "dotfiles-packages: nothing missing"
+	exit 0
+fi
+if [ "$mode" = --check ]; then
+	echo "$missing"
+	exit 1
+fi
+
+case "${ID_LIKE:-$ID}" in
+*arch*)
+	if command -v yay >/dev/null; then
+		yay -S --needed $missing
+	else
+		sudo pacman -S --needed $missing
+	fi
+	;;
+*) sudo apt-get install -y $missing ;;
+esac
