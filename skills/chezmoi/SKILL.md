@@ -1,6 +1,6 @@
 ---
 name: chezmoi
-description: Dotfiles edits through chezmoi. Use when changing, adding, or removing any config under ~ (shell, editor, OpenCode, terminal, skills, scheduled jobs), making a config OS-specific, or when dotfiles sync fails.
+description: Dotfiles edits through chezmoi. Use when changing, adding, or removing any config under ~ (shell, editor, OpenCode, terminal, skills, scheduled jobs), installing a CLI tool or package on every machine, making a config OS-specific, or when dotfiles sync fails.
 ---
 
 # chezmoi
@@ -23,6 +23,12 @@ Done when `chezmoi status` prints nothing on this machine, the sync log shows `p
 ## Remove a config
 
 Removing the source stops management and leaves the target on every machine. `chezmoi destroy <target>` removes source and target here; delete the target on each other machine yourself. Stop a service or agent before you delete its unit.
+
+## Tools
+
+CLI tools live in `~/.config/mise/config.toml`, one list for every machine: `mise use -g <tool>` installs a tool everywhere and `mise unuse -g <tool>` drops it. A tool needs a build for linux-arm64, linux-x64 and macos-arm64; when its prebuilt release lacks one, use its `cargo:` or `go:` backend.
+
+System packages, daemons and apps go in the per-OS lists: `~/.config/homebrew/Brewfile` on macOS, which installs on change, and `~/.config/packages/arch.txt` or `ubuntu.txt` on Linux, which need sudo, so run `dotfiles-packages` when it notifies you. Mac-only software goes in the Brewfile alone.
 
 ## Skills
 
