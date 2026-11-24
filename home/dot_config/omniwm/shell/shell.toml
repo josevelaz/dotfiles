@@ -46,9 +46,3 @@ alpha = 1.0
 blue = 0.0
 green = 0.48408693075180054
 red = 0.9999403357505798
-
-[[profiles.default.monitorBarOverrides]]
-id = "9A140BB5-AB55-4288-B2C5-F5B10A6EE75F"
-monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
-monitorName = "Built-in Retina Display"
-notchMode = "off"
