@@ -129,9 +129,24 @@ async function rev(ref: string): Promise<string> {
   return (await run(["git", "rev-parse", ref])).stdout
 }
 
+async function editedTargets(): Promise<string[]> {
+  const status = await run([chezmoi, "status", "--path-style", "absolute", "--exclude", "scripts,externals"], process.env.HOME)
+  if (status.code !== 0) {
+    fail("Dotfiles status failed", status.stderr)
+    return []
+  }
+  return status.stdout
+    .split("\n")
+    .filter((line) => line[0] === "M")
+    .map((line) => line.slice(3))
+}
+
 async function sync(batch: string[]): Promise<void> {
-  const readd = await run([chezmoi, "re-add", "--no-tty"], process.env.HOME)
-  if (readd.code !== 0) fail("Dotfiles re-add failed", readd.stderr)
+  const edited = await editedTargets()
+  if (edited.length > 0) {
+    const readd = await run([chezmoi, "re-add", "--no-tty", ...edited], process.env.HOME)
+    if (readd.code !== 0) fail("Dotfiles re-add failed", readd.stderr)
+  }
 
   await run(["git", "add", "-A"])
   const staged = (await run(["git", "diff", "--cached", "--name-only"])).stdout.split("\n").filter(Boolean)
@@ -187,7 +202,13 @@ async function notifyPeers(): Promise<void> {
 async function tailnet(): Promise<{ ip: string; name: string } | undefined> {
   const status = await run([tailscale, "status", "--json"], process.env.HOME)
   if (status.code !== 0) return undefined
-  const self = JSON.parse(status.stdout).Self
+  let self
+  try {
+    self = JSON.parse(status.stdout).Self
+  } catch {
+    log(`tailscale status was not JSON: ${status.stdout.split("\n")[0]}`)
+    return undefined
+  }
   const ip = (self?.TailscaleIPs ?? []).find((addr: string) => addr.includes("."))
   if (!ip || !self.Online) return undefined
   return { ip, name: String(self.DNSName).replace(/\.$/, "") }
