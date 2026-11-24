@@ -95,7 +95,7 @@ workspaceSwipeFingerCount = 3
 
 [hiddenBar]
 enabled = true
-hiddenBundleIDs = ["com.tinyspeck.slackmacgap", "com.grammarly.ProjectLlama", "org.hammerspoon.Hammerspoon", "com.knollsoft.Hyperkey", "dev.kdrag0n.MacVirt", "com.superlogical.rex"]
+hiddenBundleIDs = ["com.tinyspeck.slackmacgap", "com.grammarly.ProjectLlama", "org.hammerspoon.Hammerspoon", "com.knollsoft.Hyperkey", "dev.kdrag0n.MacVirt", "com.superlogical.rex", "us.zoom.xos"]
 rehideIntervalSeconds = 5.0
 
 [island]
