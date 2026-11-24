@@ -3,7 +3,7 @@
 set -euo pipefail
 
 {{ if eq .chezmoi.os "darwin" -}}
-export PATH="{{ .chezmoi.homeDir }}/.opencode/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+export PATH="{{ .chezmoi.homeDir }}/.opencode/bin:{{ .chezmoi.homeDir }}/.local/share/mise/shims:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 {{- else -}}
 export PATH="{{ .chezmoi.homeDir }}/.local/share/mise/shims:{{ .chezmoi.homeDir }}/.local/bin:/usr/bin:/bin"
 {{- end }}
