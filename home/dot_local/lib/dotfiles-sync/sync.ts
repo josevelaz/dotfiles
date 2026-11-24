@@ -135,10 +135,13 @@ async function editedTargets(): Promise<string[]> {
     fail("Dotfiles status failed", status.stderr)
     return []
   }
+  const templates = await run([chezmoi, "managed", "--include", "templates", "--path-style", "absolute"], process.env.HOME)
+  const skip = new Set(templates.stdout.split("\n"))
   return status.stdout
     .split("\n")
     .filter((line) => line[0] === "M")
     .map((line) => line.slice(3))
+    .filter((path) => !skip.has(path))
 }
 
 async function sync(batch: string[]): Promise<void> {
