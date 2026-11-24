@@ -30,7 +30,7 @@ Do not add tests by default. Create or modify tests only when the user explicitl
 
 # Commits
 
-Create commits only when the user asks.
+Always commit your work in logical chunks.
 
 - Inspect `git status --short` and the relevant diffs before staging. Preserve unrelated work.
 - Stage explicit paths. Review the staged diff with `git diff --cached` before committing.
