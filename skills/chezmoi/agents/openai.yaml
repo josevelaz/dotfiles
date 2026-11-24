@@ -1,0 +1,3 @@
+interface:
+  display_name: "chezmoi"
+  short_description: "Edit dotfiles through chezmoi on every machine"
