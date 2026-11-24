@@ -99,7 +99,7 @@ hiddenBundleIDs = []
 rehideIntervalSeconds = 5.0
 
 [island]
-enabled = true
+enabled = false
 
 [keyboardModes]
 
