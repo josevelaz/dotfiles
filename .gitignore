@@ -196,3 +196,7 @@ mutagen.yml.lock
 .config/opencode/*.bak-*
 .config/e2e/
 .config/exact/
+
+.agents/skills/omarchy
+.agents/skills/omarchy-app
+.agents/skills/diagnose-crash

@@ -6,9 +6,6 @@
 set -euo pipefail
 domain="gui/$(id -u)"
 
-launchctl bootout "$domain/com.jose.dotfiles.sync-skills" 2>/dev/null || true
-rm -f "$HOME/Library/LaunchAgents/com.jose.dotfiles.sync-skills.plist"
-
 for plist in "$HOME"/Library/LaunchAgents/com.jose.dotfiles.*.plist; do
 	label=$(basename "$plist" .plist)
 	launchctl bootout "$domain/$label" 2>/dev/null || true

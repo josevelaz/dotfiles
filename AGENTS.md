@@ -18,6 +18,7 @@ Layout (chezmoi):
 - Source names encode target attributes: `dot_` for a leading dot, `executable_`, `private_`, `symlink_`, and a `.tmpl` suffix for templates.
 - Configs are the same on every machine. Branch only for macOS-only software or OS mechanisms, with `{{ if eq .chezmoi.os "darwin" }}` in templates or `home/.chezmoiignore`.
 - Edit with `chezmoi edit <target>`, or edit the target and run `chezmoi re-add`. Preview with `chezmoi diff` before `chezmoi apply`.
+- Skills are the exception: `~/.agents` is a symlink to this repo's `.agents/`, so skills.sh installs and updates land here directly and are tracked by `.agents/.skill-lock.json`. Personal skills live in `skills/` and are linked into `.agents/skills/` by `sync-skills`, which also links every skill into each agent harness. Never copy a personal skill into `.agents/skills/` by hand.
 
 Repo-specific rules:
 - Respect .gitignore and submodule configs.

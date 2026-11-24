@@ -13,12 +13,6 @@ mutagen.yml
 .local/bin/push-dotfile-changes.sh
 .config/nvim/lua/plugins/orng-theme.lua
 
-.agents/skills/agent-desktop
-.agents/skills/rex
-.agents/skills/tldraw-offline
-.config/*/skills/agent-desktop
-.config/*/skills/rex
-.config/*/skills/tldraw-offline
 .pi/agent/skills/tldraw-offline
 {{- end }}
 

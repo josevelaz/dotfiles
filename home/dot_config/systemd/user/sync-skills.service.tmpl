@@ -1,0 +1,6 @@
+[Unit]
+Description=Sort personal and skills.sh skills and link them into each agent harness
+
+[Service]
+Type=oneshot
+ExecStart={{ .chezmoi.homeDir }}/.local/bin/sync-skills

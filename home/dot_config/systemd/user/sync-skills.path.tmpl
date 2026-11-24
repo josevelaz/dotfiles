@@ -1,0 +1,11 @@
+[Unit]
+Description=Run sync-skills when a skill or the skills.sh lock changes
+
+[Path]
+PathChanged={{ .chezmoi.workingTree }}/skills
+PathChanged={{ .chezmoi.workingTree }}/.agents/skills
+PathChanged={{ .chezmoi.workingTree }}/.agents/.skill-lock.json
+Unit=sync-skills.service
+
+[Install]
+WantedBy=default.target
