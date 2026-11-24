@@ -79,4 +79,4 @@ ginkgo = "latest"
 "npm:@tailwindcss/cli" = "latest"
 "npm:tsup" = "latest"
 "npm:obsidian-headless" = "latest"
-"npm:screen-relay" = "0.1.5"
+"npm:screen-relay" = { version = "0.1.5", allow_low_downloads = true }
