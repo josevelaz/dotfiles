@@ -25,6 +25,7 @@ To retire a job, unload it on each machine (`launchctl bootout`, or `systemctl -
 2. Install chezmoi, git, mise and fish, and give it an SSH key that GitHub accepts. On Ubuntu, add Docker's and Tailscale's apt repositories and install both; `ubuntu.txt` leaves them out because they need those repositories.
 3. Run `chezmoi init --apply git@github.com:josevelaz/dotfiles.git`. It asks for the 1Password reference, installs the mise tools, and starts `dotfiles-sync` and `sync-skills`.
 4. Run `dotfiles-packages` for the packages that need sudo.
+5. On macOS, set OrbStack up without an admin password: `orbctl config set setup.use_admin false`, then `orbctl start`. It links `docker` and its plugins into `~/.orbstack/bin`.
 
 Done when `chezmoi status` prints nothing and the sync log shows `listening on 100.x.x.x:7357`.
 

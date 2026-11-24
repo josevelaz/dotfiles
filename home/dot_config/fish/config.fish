@@ -4,6 +4,7 @@ set -l os (uname)
 if test $os = Darwin
     test -x /opt/homebrew/bin/brew; and /opt/homebrew/bin/brew shellenv fish | source
     fish_add_path -g /opt/homebrew/opt/mysql-client/bin /usr/local/opt/mysql-client/bin
+    fish_add_path -g -a $HOME/.orbstack/bin
     set -gx VOLTA_HOME $HOME/.volta
     fish_add_path -g $VOLTA_HOME/bin
     if test -f $HOME/.java-env

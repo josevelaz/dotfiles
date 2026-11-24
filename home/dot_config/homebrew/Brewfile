@@ -11,10 +11,6 @@ brew "fish"
 brew "tmux"
 brew "tpm"
 brew "gnupg"
-brew "colima", restart_service: :changed
-brew "docker"
-brew "docker-buildx"
-brew "docker-compose"
 brew "ffmpeg-full", link: true
 brew "imagemagick-full", link: true
 brew "poppler"
@@ -40,6 +36,7 @@ brew "terminal-notifier"
 brew "container"
 
 cask "ghostty"
+cask "orbstack"
 cask "1password-cli@beta"
 cask "font-symbols-only-nerd-font"
 cask "steipete/tap/codexbar"
