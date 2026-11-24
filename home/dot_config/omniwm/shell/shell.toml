@@ -23,7 +23,7 @@ occupiedBackground = false
 [profiles.default.workspaceBar]
 autoHide = false
 backgroundOpacity = 0.0
-fullWidth = true
+fullWidth = false
 fullWidthNotchMode = "leftOfNotch"
 hideInNativeFullscreen = true
 inactiveIconOpacity = 0.5
