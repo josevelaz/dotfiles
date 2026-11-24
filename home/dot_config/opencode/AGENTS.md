@@ -28,6 +28,15 @@ Do not add tests by default. Create or modify tests only when the user explicitl
 - Highly prefer E2E tests as the sole testing mechanism. Use them to verify complex features work. At the end of E2E tests, produce a verifiable and repeatable artifact.
 - If you must test a system in isolation, FIRST write all the ways it could fail, THEN write the code.
 
+# Presenting web work
+
+When an HTML artifact or a web app change is ready to show, serve it and give two URLs:
+
+- `http://localhost:<port>/<path>`
+- `http://<magicdns-name>:<port>/<path>`, where `<magicdns-name>` is this machine's `Self.DNSName` from `tailscale status --json`, without the trailing dot.
+
+Bind the server to `0.0.0.0` so both URLs reach it, and request each one before you share it. For a static artifact, run `python3 -m http.server <port> --bind 0.0.0.0 --directory <folder>` in the background. The direct bind is the only tailnet path: leave `tailscale serve` and `tailscale funnel` alone.
+
 # Commits
 
 Always commit your work in logical chunks.
