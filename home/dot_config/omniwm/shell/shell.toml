@@ -49,3 +49,9 @@ alpha = 1.0
 blue = 0.0
 green = 0.48408693075180054
 red = 0.9999403357505798
+
+[[profiles.default.monitorBarOverrides]]
+height = 24.0
+id = "354D37F3-D5FB-40E2-BDB7-077227F0CA99"
+monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
+monitorName = "Built-in Retina Display"
