@@ -1,19 +1,34 @@
 {{ if eq .chezmoi.os "darwin" -}}
 #!/bin/bash
-{{ range (glob (joinPath .chezmoi.sourceDir "private_Library/LaunchAgents/*.plist.tmpl")) -}}
+{{ $plists := glob (joinPath .chezmoi.sourceDir "private_Library/LaunchAgents/*.plist*") -}}
+{{ range $plists -}}
 # {{ base . }} {{ include . | sha256sum }}
 {{ end -}}
 # sync {{ .sync | toJson | sha256sum }}
 set -euo pipefail
 domain="gui/$(id -u)"
+state="$HOME/.local/state/chezmoi-launchagents"
+seeding=false
+[ -d "$state" ] || seeding=true
+mkdir -p "$state"
 
-for plist in "$HOME"/Library/LaunchAgents/com.jose.dotfiles.*.plist; do
-	label=$(basename "$plist" .plist)
-	launchctl bootout "$domain/$label" 2>/dev/null || true
+for label in {{ range $plists }}{{ base . | trimSuffix ".tmpl" | trimSuffix ".plist" }} {{ end }}; do
+	plist="$HOME/Library/LaunchAgents/$label.plist"
+	sum=$(shasum -a 256 "$plist" | cut -d' ' -f1)
+	previous=$(cat "$state/$label" 2>/dev/null || true)
+	echo "$sum" >"$state/$label"
+	if $seeding || [ "$sum" = "$previous" ]; then
+		continue
+	fi
 	if launchctl print-disabled "$domain" | grep -q "\"$label\" => disabled"; then
 		echo "chezmoi: $label is disabled in launchd; left unloaded" >&2
 		continue
 	fi
-	launchctl bootstrap "$domain" "$plist"
+	if launchctl print "$domain/$label" >/dev/null 2>&1; then
+		launchctl bootout "$domain/$label" 2>/dev/null || true
+		launchctl bootstrap "$domain" "$plist"
+	elif [ -z "$previous" ]; then
+		launchctl bootstrap "$domain" "$plist"
+	fi
 done
 {{ end -}}

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>actions.runner.josevelaz-arc-gpui.jose-mac</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>{{ .chezmoi.homeDir }}/actions-runner/arc-gpui/runsvc.sh</string>
+    </array>
+    <key>UserName</key>
+    <string>jose</string>
+    <key>WorkingDirectory</key>
+    <string>{{ .chezmoi.homeDir }}/actions-runner/arc-gpui</string>
+    <key>RunAtLoad</key>
+    <true/>    
+    <key>StandardOutPath</key>
+    <string>{{ .chezmoi.homeDir }}/Library/Logs/actions.runner.josevelaz-arc-gpui.jose-mac/stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{ .chezmoi.homeDir }}/Library/Logs/actions.runner.josevelaz-arc-gpui.jose-mac/stderr.log</string>
+    <key>EnvironmentVariables</key>
+    <dict> 
+      <key>ACTIONS_RUNNER_SVC</key>
+      <string>1</string>
+    </dict>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    <key>SessionCreate</key>
+    <true/>
+  </dict>
+</plist>

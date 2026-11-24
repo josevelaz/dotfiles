@@ -29,6 +29,15 @@ To retire a job, unload it on each machine (`launchctl bootout`, or `systemctl -
 
 Done when `chezmoi status` prints nothing and the sync log shows `listening on 100.x.x.x:7357`.
 
+## Outside the lists
+
+These update themselves or belong to another manager, so no list tracks them; install them by hand on a new machine:
+
+- Self-updating installers: browse, hex (Linux; a cask on macOS), T3 Code's `t3` runtime, librepods (Linux, Qt build).
+- Owned by Omarchy on Linux: its agent CLIs in `/etc/mise/conf.d/omarchy-tools.toml`, omacast, Hyprland and the desktop configs.
+- Owned by apps on macOS: LaunchAgents the apps rewrite on update (sleev gateway, T3 Code service, tmux-continuum's Tmux.Start), App Store apps, and Tailscale.
+- volta on macOS: per-project node, npm and pnpm. mise installs node and pnpm on Linux only, so volta's shims win on macOS.
+
 ## When sync or apply fails
 
 Logs: `journalctl --user -u dotfiles-sync` on Linux, `~/Library/Logs/dotfiles-sync.log` on macOS. Failures also raise a desktop notification.

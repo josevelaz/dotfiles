@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.jose.opengo-metro</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>{{ .chezmoi.homeDir }}/.volta/bin/node</string>
+		<string>node_modules/expo/bin/cli</string>
+		<string>start</string>
+		<string>--dev-client</string>
+		<string>--port</string>
+		<string>8081</string>
+	</array>
+	<key>WorkingDirectory</key>
+	<string>{{ .chezmoi.homeDir }}/projects/opengo</string>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>HOME</key>
+		<string>{{ .chezmoi.homeDir }}</string>
+		<key>VOLTA_HOME</key>
+		<string>{{ .chezmoi.homeDir }}/.volta</string>
+		<key>PATH</key>
+		<string>{{ .chezmoi.homeDir }}/.volta/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>REACT_NATIVE_PACKAGER_HOSTNAME</key>
+		<string>100.91.156.55</string>
+	</dict>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>ThrottleInterval</key>
+	<integer>10</integer>
+	<key>StandardOutPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/opengo-metro.log</string>
+	<key>StandardErrorPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/opengo-metro.log</string>
+</dict>
+</plist>

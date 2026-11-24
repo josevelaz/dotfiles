@@ -10,9 +10,9 @@ muse = { version = "latest", auto_update = "4h", minimum_release_age = "0s" }
 hunk = { version = "latest", minimum_release_age = "0s" }
 gh = { version = "latest", minimum_release_age = "0s" }
 
-node = "latest"
+node = { version = "latest", os = ["linux"] }
 bun = "latest"
-pnpm = "latest"
+pnpm = { version = "latest", os = ["linux"] }
 uv = "latest"
 go = "latest"
 zig = "latest"
