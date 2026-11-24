@@ -22,7 +22,7 @@ occupiedBackground = false
 
 [profiles.default.workspaceBar]
 autoHide = false
-backgroundOpacity = 0.5
+backgroundOpacity = 0.0
 fullWidth = false
 fullWidthNotchMode = "leftOfNotch"
 height = 36.0
