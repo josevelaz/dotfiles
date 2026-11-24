@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+dir="$HOME/.local/share/screen-relay/tls"
+mkdir -p "$dir"
+chmod 700 "$dir"
+before=$(shasum -a 256 "$dir/cert.pem" 2>/dev/null | cut -d' ' -f1 || true)
+/Applications/Tailscale.app/Contents/MacOS/tailscale cert --cert-file "$dir/cert.pem" --key-file "$dir/key.pem" {{ .screen_relay.host }}
+after=$(shasum -a 256 "$dir/cert.pem" | cut -d' ' -f1)
+if [ "$before" != "$after" ]; then
+	echo "$(date): certificate changed; restarting screen-relay"
+	launchctl kickstart -k "gui/$(id -u)/com.jose.dotfiles.screen-relay"
+fi

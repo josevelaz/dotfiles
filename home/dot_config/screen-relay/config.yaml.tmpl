@@ -1,0 +1,6 @@
+server:
+  port: {{ .screen_relay.port }}
+  bind: {{ .screen_relay.bind }}
+  public: https://{{ .screen_relay.host }}:{{ .screen_relay.port }}
+  tls_cert: {{ .chezmoi.homeDir }}/.local/share/screen-relay/tls/cert.pem
+  tls_key: {{ .chezmoi.homeDir }}/.local/share/screen-relay/tls/key.pem
