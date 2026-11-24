@@ -1252,10 +1252,6 @@ id = "toggleSystemStats"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "toggleShellWidget.battery-details"
-
-[[hotkeys]]
-binding = "Unassigned"
 id = "toggleShellWidget.clock"
 
 [[hotkeys]]
@@ -1273,10 +1269,6 @@ id = "toggleShellWidget.system-stats"
 [[hotkeys]]
 binding = "Unassigned"
 id = "toggleShellWidget.usage-limits"
-
-[[hotkeys]]
-binding = "Unassigned"
-id = "toggleShellWidget.wifi"
 
 [[hotkeys]]
 binding = "Unassigned"
