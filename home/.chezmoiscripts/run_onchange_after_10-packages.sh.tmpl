@@ -7,7 +7,10 @@
 set -euo pipefail
 helper="$HOME/.local/bin/dotfiles-packages"
 {{ if eq .chezmoi.os "darwin" -}}
-"$helper"
+if ! "$helper"; then
+	echo "chezmoi: brew bundle could not finish; run dotfiles-packages in a terminal" >&2
+	osascript -e 'display notification "Run dotfiles-packages in a terminal to finish installing." with title "Packages need you"' || true
+fi
 {{- else -}}
 if ! missing=$("$helper" --check); then
 	echo "chezmoi: packages missing ($missing); run dotfiles-packages" >&2
