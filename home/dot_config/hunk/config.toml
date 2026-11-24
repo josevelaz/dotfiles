@@ -10,5 +10,3 @@ hunk_headers = true
 menu_bar = true
 agent_notes = true
 transparent_background = true
-
-# sync-probe
