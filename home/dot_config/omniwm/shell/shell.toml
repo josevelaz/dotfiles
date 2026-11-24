@@ -38,7 +38,7 @@ showFloatingWindows = false
 showItemBackgrounds = true
 showLabels = false
 transparentBackground = true
-windowLevel = "status"
+windowLevel = "floating"
 yOffset = -10.0
 
 [profiles.default.workspaceBar.accentColor]
