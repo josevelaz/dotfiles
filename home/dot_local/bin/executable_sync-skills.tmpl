@@ -219,6 +219,8 @@ def main() -> None:
         if path.name in installed:
             continue
         if path.is_symlink():
+            if Path(os.readlink(path)) != expected_custom_target(path.name):
+                continue
             custom_path = SKILLS_DIR / path.name
             if not custom_path.is_dir() or custom_path.is_symlink():
                 path.unlink()
