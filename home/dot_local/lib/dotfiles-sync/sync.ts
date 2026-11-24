@@ -18,6 +18,7 @@ let managed = new Set<string>()
 let watchers: FSWatcher[] = []
 let peers: string[] = []
 let running = false
+let announced = ""
 let timer: ReturnType<typeof setTimeout> | undefined
 const reasons = new Set<string>()
 const noticeTimes = new Map<string, number>()
@@ -185,7 +186,11 @@ async function sync(batch: string[]): Promise<void> {
   if (apply.code !== 0) fail("Dotfiles apply needs you", `${apply.stderr}\nRun chezmoi diff, then chezmoi edit or chezmoi apply.`)
 
   if (staged.length > 0 || pulled) await rewatch()
-  if (pushed) await notifyPeers()
+  const head = await rev("HEAD")
+  if (head !== announced && head === (await rev("@{u}"))) {
+    if (pushed || !pulled) await notifyPeers()
+    announced = head
+  }
   log(`sync (${batch.join(", ")}): committed ${staged.length}, pulled ${pulled}, pushed ${pushed}`)
 }
 
