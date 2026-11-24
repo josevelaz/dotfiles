@@ -1,0 +1,85 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+set -euo pipefail
+version={{ .screen_relay.version | quote }}
+src="$HOME/.local/share/mise/installs/npm-screen-relay/$version/node_modules/.mise/screen-relay@$version/node_modules/screen-relay/dist/viewer"
+parent="$HOME/.local/share/screen-relay/viewer"
+dest="$parent/$version"
+mkdir -p "$parent"
+tmp=$(mktemp -d "$parent/.build.XXXXXX")
+trap 'rm -rf "$tmp"' EXIT
+cp "$src/index.html" "$src/viewer.js" "$tmp/"
+/usr/bin/python3 - "$tmp" <<'PY'
+import pathlib
+import sys
+
+root = pathlib.Path(sys.argv[1])
+
+
+def patch(name, edits):
+    path = root / name
+    text = path.read_text()
+    for old, new in edits:
+        if text.count(old) != 1:
+            sys.exit(f"screen-relay viewer patch: {name}: target not found: {old[:70]!r}")
+        text = text.replace(old, new)
+    path.write_text(text)
+
+
+patch("viewer.js", [
+    (
+        '      if (validToken(fragmentToken) && trustedPage) accessToken = document.querySelector("#access-token").value = fragmentToken;\n'
+        '    }\n'
+        '  }\n',
+        '      if (validToken(fragmentToken) && trustedPage) {\n'
+        '        accessToken = document.querySelector("#access-token").value = fragmentToken;\n'
+        '        if (access === "owner") store("relay.token", fragmentToken);\n'
+        '      }\n'
+        '    }\n'
+        '    const savedToken = stored("relay.token");\n'
+        '    if (!accessToken && access === "owner" && trustedPage && validToken(savedToken)) accessToken = document.querySelector("#access-token").value = savedToken;\n'
+        '  }\n',
+    ),
+    (
+        '    const value = document.querySelector("#access-token").value.trim();\n',
+        '    const value = document.querySelector("#access-token").value.trim().replace(/^.*[#&]token=([0-9a-f]{64}).*$/, "$1");\n',
+    ),
+    (
+        '    replaceAccess(value, "owner");\n',
+        '    store("relay.token", value);\n'
+        '    replaceAccess(value, "owner");\n',
+    ),
+    (
+        '    const px = clamp(Math.floor((e.clientX - r.left) * canvas.width / r.width), 0, canvas.width - 1);\n'
+        '    const py = clamp(Math.floor((e.clientY - r.top) * canvas.height / r.height), 0, canvas.height - 1);\n',
+        '    const rotated = document.body.classList.contains("rotated");\n'
+        '    const u = rotated ? (e.clientY - r.top) / r.height : (e.clientX - r.left) / r.width;\n'
+        '    const v = rotated ? (r.right - e.clientX) / r.width : (e.clientY - r.top) / r.height;\n'
+        '    const px = clamp(Math.floor(u * canvas.width), 0, canvas.width - 1);\n'
+        '    const py = clamp(Math.floor(v * canvas.height), 0, canvas.height - 1);\n',
+    ),
+    (
+        'p.pointerType === "touch" ||',
+        'p.pointerType === "touch" || document.body.classList.contains("rotated") ||',
+    ),
+    (
+        '  function syncSize() {\n',
+        '  function syncSize() {\n'
+        '    document.body.classList.toggle("rotated", scaleMode !== "actual" && canvas.width > canvas.height && innerHeight > innerWidth && matchMedia("(pointer: coarse)").matches);\n',
+    ),
+])
+
+patch("index.html", [
+    (
+        'body.actual #stage{overflow:auto}\n',
+        'body.rotated #screen{position:fixed;left:50%;top:50%;margin:0;transform:translate(-50%,-50%) rotate(90deg);\n'
+        '  width:min(100vh,calc(100vw*var(--w)/var(--h)));height:min(100vw,calc(100vh*var(--h)/var(--w)));\n'
+        '  width:min(100dvh,calc(100vw*var(--w)/var(--h)));height:min(100vw,calc(100dvh*var(--h)/var(--w)))}\n'
+        'body.actual #stage{overflow:auto}\n',
+    ),
+])
+PY
+chmod 755 "$tmp"
+rm -rf "$dest"
+mv "$tmp" "$dest"
+{{ end -}}
