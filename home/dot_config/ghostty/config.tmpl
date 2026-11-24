@@ -1,4 +1,8 @@
+{{ if and (eq .chezmoi.os "linux") (lookPath "omarchy-font-current") -}}
+font-family = "{{ output "omarchy-font-current" | trim }}"
+{{ else -}}
 font-family = "Iosevka Nerd Font"
+{{ end -}}
 
 font-family-bold = 
 font-family-italic = 
@@ -12,7 +16,7 @@ font-synthetic-style = bold,italic,bold-italic
 
 font-feature = 
 
-font-size = {{ if eq .chezmoi.os "darwin" }}16{{ else }}8{{ end }}
+font-size = {{ if eq .chezmoi.os "darwin" }}16{{ else }}9{{ end }}
 
 font-variation = 
 
@@ -34,7 +38,6 @@ adjust-strikethrough-thickness =
 adjust-cursor-thickness = 
 grapheme-width-method = unicode
 
-freetype-load-flags = hinting,force-autohint,monochrome,autohint
 
 theme = orng
 
