@@ -39,7 +39,7 @@ showItemBackgrounds = true
 showLabels = false
 transparentBackground = true
 windowLevel = "status"
-yOffset = -10.0
+yOffset = 0.0
 
 [profiles.default.workspaceBar.accentColor]
 alpha = 1.0
