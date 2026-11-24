@@ -6,7 +6,7 @@ mode="${1:-install}"
 if [ "$(uname -s)" = Darwin ]; then
 	brewfile="$HOME/.config/homebrew/Brewfile"
 	if [ "$mode" = --check ]; then
-		brew bundle check --file "$brewfile" --verbose
+		brew bundle check --file "$brewfile" --no-upgrade --verbose
 	else
 		brew bundle install --file "$brewfile" --no-upgrade
 	fi
