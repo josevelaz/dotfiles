@@ -6,15 +6,24 @@
 	<string>com.jose.dotfiles.screen-relay</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>{{ .chezmoi.homeDir }}/.local/share/mise/shims/screen-relay</string>
-		<string>up</string>
-		<string>--yes</string>
+		<string>{{ .chezmoi.homeDir }}/.local/share/screen-relay/engine/{{ .screen_relay.version }}/relay-engine</string>
+		<string>--backend</string>
+		<string>macos</string>
+		<string>--bind</string>
+		<string>{{ .screen_relay.bind }}</string>
+		<string>--port</string>
+		<string>{{ .screen_relay.port }}</string>
+		<string>--viewer-dir</string>
+		<string>{{ .chezmoi.homeDir }}/.local/share/mise/installs/npm-screen-relay/{{ .screen_relay.version }}/node_modules/.mise/screen-relay@{{ .screen_relay.version }}/node_modules/screen-relay/dist/viewer</string>
+		<string>--token-file</string>
+		<string>{{ .chezmoi.homeDir }}/.local/state/screen-relay/token</string>
+		<string>--public-origin</string>
+		<string>https://{{ .screen_relay.host }}:{{ .screen_relay.port }}</string>
+		<string>--tls-cert</string>
+		<string>{{ .chezmoi.homeDir }}/.local/share/screen-relay/tls/cert.pem</string>
+		<string>--tls-key</string>
+		<string>{{ .chezmoi.homeDir }}/.local/share/screen-relay/tls/key.pem</string>
 	</array>
-	<key>EnvironmentVariables</key>
-	<dict>
-		<key>PATH</key>
-		<string>{{ .chezmoi.homeDir }}/.local/share/mise/shims:{{ .chezmoi.homeDir }}/.volta/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
-	</dict>
 	<key>RunAtLoad</key>
 	<true/>
 	<key>KeepAlive</key>

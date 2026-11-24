@@ -3,3 +3,4 @@ host = "joses-apple-macbook-pro.tail4c22db.ts.net"
 bind = "100.91.156.55"
 port = 8080
 ssh = "jose@joses-apple-macbook-pro"
+version = "0.1.5"

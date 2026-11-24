@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+if [ "$(uname -s)" = Darwin ]; then
+	token=$(cat "$HOME/.local/state/screen-relay/token")
+else
+	token=$(ssh -o BatchMode=yes {{ .screen_relay.ssh }} cat .local/state/screen-relay/token)
+fi
+echo "https://{{ .screen_relay.host }}:{{ .screen_relay.port }}/#token=$token"

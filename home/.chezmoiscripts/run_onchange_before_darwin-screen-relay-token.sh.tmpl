@@ -1,0 +1,10 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+set -euo pipefail
+dir="$HOME/.local/state/screen-relay"
+mkdir -p "$dir"
+chmod 700 "$dir"
+if [ ! -s "$dir/token" ]; then
+	(umask 077; openssl rand -hex 32 >"$dir/token")
+fi
+{{ end -}}
