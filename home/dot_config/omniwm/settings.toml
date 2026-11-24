@@ -95,7 +95,7 @@ workspaceSwipeFingerCount = 3
 
 [hiddenBar]
 enabled = true
-hiddenBundleIDs = []
+hiddenBundleIDs = ["com.tinyspeck.slackmacgap"]
 rehideIntervalSeconds = 5.0
 
 [island]
