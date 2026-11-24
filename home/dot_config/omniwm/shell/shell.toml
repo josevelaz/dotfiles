@@ -7,7 +7,7 @@ leading = ["apple-menu", "omniwm", "app-menu", "workspaces"]
 trailing = ["usage-limits", "wifi", "battery-details", "system-stats", "clock"]
 
 [profiles.default.hiddenBar]
-enabled = false
+enabled = true
 
 [profiles.default.widgets]
 
