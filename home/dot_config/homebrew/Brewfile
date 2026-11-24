@@ -25,6 +25,7 @@ brew "libwebsockets"
 brew "onnxruntime"
 brew "coreutils"
 brew "nmap"
+brew "qrencode"
 brew "rizin"
 brew "mailpit"
 brew "cliproxyapi", restart_service: :changed

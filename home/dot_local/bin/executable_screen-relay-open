@@ -1,0 +1,13 @@
+#!/bin/bash
+set -euo pipefail
+link=$(screen-relay-link)
+if [ "$(uname -s)" = Darwin ]; then
+	exec open -a "Google Chrome" --args --app="$link"
+fi
+for browser in google-chrome-stable chromium; do
+	if command -v "$browser" >/dev/null; then
+		exec "$browser" --app="$link"
+	fi
+done
+echo "screen-relay-open: no Chrome or Chromium found" >&2
+exit 1

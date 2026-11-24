@@ -20,6 +20,7 @@ mutagen.yml
 {{- end }}
 
 {{- if ne .chezmoi.os "linux" }}
+.local/share/applications/screen-relay.desktop
 .config/packages
 
 .config/systemd

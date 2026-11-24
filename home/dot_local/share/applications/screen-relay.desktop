@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Mac Screen
+Comment=View and control the MacBook Pro through screen-relay
+Exec=screen-relay-open
+Icon=video-display
+Terminal=false
+Categories=Network;RemoteAccess;
