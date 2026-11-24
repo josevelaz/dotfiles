@@ -12,23 +12,37 @@ seeding=false
 [ -d "$state" ] || seeding=true
 mkdir -p "$state"
 
+load() {
+	for _ in $(seq 1 10); do
+		launchctl bootstrap "$domain" "$1" 2>/dev/null && return 0
+		sleep 1
+	done
+	launchctl bootstrap "$domain" "$1"
+}
+
 for label in {{ range $plists }}{{ base . | trimSuffix ".tmpl" | trimSuffix ".plist" }} {{ end }}; do
 	plist="$HOME/Library/LaunchAgents/$label.plist"
 	sum=$(shasum -a 256 "$plist" | cut -d' ' -f1)
 	previous=$(cat "$state/$label" 2>/dev/null || true)
-	echo "$sum" >"$state/$label"
 	if $seeding || [ "$sum" = "$previous" ]; then
+		echo "$sum" >"$state/$label"
 		continue
 	fi
 	if launchctl print-disabled "$domain" | grep -q "\"$label\" => disabled"; then
 		echo "chezmoi: $label is disabled in launchd; left unloaded" >&2
+		echo "$sum" >"$state/$label"
 		continue
 	fi
 	if launchctl print "$domain/$label" >/dev/null 2>&1; then
 		launchctl bootout "$domain/$label" 2>/dev/null || true
-		launchctl bootstrap "$domain" "$plist"
+		for _ in $(seq 1 30); do
+			launchctl print "$domain/$label" >/dev/null 2>&1 || break
+			sleep 0.5
+		done
+		load "$plist"
 	elif [ -z "$previous" ]; then
-		launchctl bootstrap "$domain" "$plist"
+		load "$plist"
 	fi
+	echo "$sum" >"$state/$label"
 done
 {{ end -}}
