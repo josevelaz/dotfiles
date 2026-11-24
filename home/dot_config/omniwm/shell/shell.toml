@@ -9,6 +9,9 @@ trailing = ["system-stats"]
 [profiles.default.hiddenBar]
 enabled = true
 
+[profiles.default.island]
+displays = "notch"
+
 [profiles.default.widgets]
 
 [profiles.default.widgets.active-window]
