@@ -22,8 +22,9 @@ To retire a job, unload it on each machine (`launchctl bootout`, or `systemctl -
 ## Add a machine
 
 1. Join the tailnet. Add the machine's MagicDNS name to `peers` in `home/.chezmoidata/sync.toml`.
-2. Install chezmoi, git, bun and fish, and give it an SSH key that GitHub accepts.
-3. Run `chezmoi init --apply git@github.com:josevelaz/dotfiles.git`. It asks for the 1Password reference and starts `dotfiles-sync` and `sync-skills`.
+2. Install chezmoi, git, mise and fish, and give it an SSH key that GitHub accepts. On Ubuntu, add Docker's and Tailscale's apt repositories and install both; `ubuntu.txt` leaves them out because they need those repositories.
+3. Run `chezmoi init --apply git@github.com:josevelaz/dotfiles.git`. It asks for the 1Password reference, installs the mise tools, and starts `dotfiles-sync` and `sync-skills`.
+4. Run `dotfiles-packages` for the packages that need sudo.
 
 Done when `chezmoi status` prints nothing and the sync log shows `listening on 100.x.x.x:7357`.
 

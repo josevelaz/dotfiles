@@ -26,9 +26,14 @@ Removing the source stops management and leaves the target on every machine. `ch
 
 ## Tools
 
-CLI tools live in `~/.config/mise/config.toml`, one list for every machine: `mise use -g <tool>` installs a tool everywhere and `mise unuse -g <tool>` drops it. A tool needs a build for linux-arm64, linux-x64 and macos-arm64; when its prebuilt release lacks one, use its `cargo:` or `go:` backend.
+CLI tools live in `~/.config/mise/config.toml`, one list for every machine: `mise use -g <tool>` installs a tool everywhere. `mise unuse -g <tool>` drops it from the list and prunes it on this machine; run `mise prune` on the others. A tool needs a build for linux-arm64, linux-x64 and macos-arm64; when its prebuilt release lacks one, use its `cargo:` or `go:` backend.
 
-System packages, daemons and apps go in the per-OS lists: `~/.config/homebrew/Brewfile` on macOS, which installs on change, and `~/.config/packages/arch.txt` or `ubuntu.txt` on Linux, which need sudo, so run `dotfiles-packages` when it notifies you. Mac-only software goes in the Brewfile alone.
+System packages, daemons and apps go in the per-OS lists:
+
+- `~/.config/homebrew/Brewfile` on macOS installs on change. Mac-only software goes here alone. A cask that asks for an admin password fails there, so run `dotfiles-packages` in a terminal.
+- `~/.config/packages/arch.txt` holds only what you add on top of Omarchy; `ubuntu.txt` is the headless server. Installing needs sudo, so sync only checks and notifies; then run `dotfiles-packages`.
+
+`dotfiles-packages --check` lists what is missing without installing. Deleting a line stops tracking the package and leaves it installed everywhere; uninstall it on each machine (`brew uninstall`, `yay -R`, `apt remove`).
 
 ## Skills
 
