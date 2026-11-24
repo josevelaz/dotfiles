@@ -1,13 +1,13 @@
 import { createHash } from "node:crypto"
 import { readFileSync, watch, type FSWatcher } from "node:fs"
-import { hostname } from "node:os"
+import { lookup } from "node:dns/promises"
+import { hostname, networkInterfaces } from "node:os"
 import { dirname, join, sep } from "node:path"
 
 const repo = required("DOTFILES_REPO")
 const port = Number(required("DOTFILES_SYNC_PORT"))
 const configuredPeers = required("DOTFILES_SYNC_PEERS").split(",").filter(Boolean)
 const chezmoi = required("CHEZMOI_BIN")
-const tailscale = required("TAILSCALE_BIN")
 const host = hostname().split(".")[0]
 const debounceMs = 2000
 const catchUpMs = 30 * 60 * 1000
@@ -199,31 +199,36 @@ async function notifyPeers(): Promise<void> {
   )
 }
 
-async function tailnet(): Promise<{ ip: string; name: string } | undefined> {
-  const status = await run([tailscale, "status", "--json"], process.env.HOME)
-  if (status.code !== 0) return undefined
-  let self
-  try {
-    self = JSON.parse(status.stdout).Self
-  } catch {
-    log(`tailscale status was not JSON: ${status.stdout.split("\n")[0]}`)
-    return undefined
+function tailnetIp(): string | undefined {
+  for (const addresses of Object.values(networkInterfaces())) {
+    for (const address of addresses ?? []) {
+      if (address.family !== "IPv4") continue
+      const [first, second] = address.address.split(".").map(Number)
+      if (first === 100 && second >= 64 && second <= 127) return address.address
+    }
   }
-  const ip = (self?.TailscaleIPs ?? []).find((addr: string) => addr.includes("."))
-  if (!ip || !self.Online) return undefined
-  return { ip, name: String(self.DNSName).replace(/\.$/, "") }
+  return undefined
+}
+
+async function otherPeers(ip: string): Promise<string[]> {
+  const others: string[] = []
+  for (const peer of configuredPeers) {
+    const address = await lookup(peer, { family: 4 }).then((result) => result.address).catch(() => undefined)
+    if (address !== ip) others.push(peer)
+  }
+  return others
 }
 
 async function listen(): Promise<void> {
-  const self = await tailnet()
-  if (!self) {
-    log("tailscale is not up yet; retrying in 15s")
+  const ip = tailnetIp()
+  if (!ip) {
+    log("no tailscale address yet; retrying in 15s")
     setTimeout(listen, 15000)
     return
   }
-  peers = configuredPeers.filter((peer) => peer !== self.name)
+  peers = await otherPeers(ip)
   Bun.serve({
-    hostname: self.ip,
+    hostname: ip,
     port,
     fetch(request) {
       if (request.method === "POST" && new URL(request.url).pathname === "/sync") {
@@ -233,7 +238,7 @@ async function listen(): Promise<void> {
       return new Response("not found\n", { status: 404 })
     },
   })
-  log(`listening on ${self.ip}:${port} as ${self.name}; peers: ${peers.join(", ") || "none"}`)
+  log(`listening on ${ip}:${port}; peers: ${peers.join(", ") || "none"}`)
 }
 
 await rewatch()

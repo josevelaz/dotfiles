@@ -9,7 +9,6 @@ Environment=DOTFILES_REPO={{ .chezmoi.workingTree }}
 Environment=DOTFILES_SYNC_PORT={{ .sync.port }}
 Environment=DOTFILES_SYNC_PEERS={{ .sync.peers | join "," }}
 Environment=CHEZMOI_BIN={{ .chezmoi.homeDir }}/.local/share/mise/shims/chezmoi
-Environment=TAILSCALE_BIN=/usr/bin/tailscale
 ExecStart={{ .chezmoi.homeDir }}/.local/share/mise/shims/bun {{ .chezmoi.homeDir }}/.local/lib/dotfiles-sync/sync.ts
 Restart=always
 RestartSec=5
