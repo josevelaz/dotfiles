@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+fail() {
+	printf 'Software updates: %s\n' "$1" >&2
+	exit "${2:-1}"
+}
+
+require() {
+	command -v "$1" >/dev/null 2>&1 || fail "$1 is required but not installed."
+}
+
+require checkupdates
+require fzf
+require omarchy-update
+require timeout
+
+db="$(mktemp -d "${TMPDIR:-/tmp}/software-updates.XXXXXX")" || fail "Could not create a temporary database."
+trap 'rm -rf "$db"' EXIT
+
+printf 'Checking configured repositories for updates...\n'
+
+output="$(CHECKUPDATES_DB="$db" timeout --kill-after=5 60 checkupdates --nocolor 2>"$db/stderr")"
+status=$?
+
+case $status in
+	0)
+		if [[ -z $output ]]; then
+			printf 'No updates available.\n'
+			exit 0
+		fi
+		;;
+	2)
+		printf 'No updates available.\n'
+		exit 0
+		;;
+	124|137)
+		fail "The update check timed out after 60 seconds. Check your network and try again." 3
+		;;
+	*)
+		detail="$(tr '\n' ' ' <"$db/stderr")"
+		fail "The update check failed (exit $status). ${detail:-checkupdates printed no error text.}" 4
+		;;
+esac
+
+count="$(printf '%s\n' "$output" | wc -l)"
+if (( count == 1 )); then
+	printf '1 update available.\n'
+else
+	printf '%s updates available.\n' "$count"
+fi
+
+header='Enter runs the full Omarchy update (it asks first); Esc cancels'
+selection="$(printf '%s\n' "$output" | FZF_DEFAULT_OPTS='' FZF_DEFAULT_OPTS_FILE='' fzf --prompt='Updates> ' --header="$header")"
+fzf_status=$?
+
+case $fzf_status in
+	0) ;;
+	1)
+		printf 'No update matched your search. Nothing changed.\n'
+		exit 130
+		;;
+	130)
+		printf 'Canceled. Nothing changed.\n'
+		exit 130
+		;;
+	*)
+		fail "The picker closed unexpectedly (exit $fzf_status). Nothing changed." 5
+		;;
+esac
+
+printf 'Selected: %s\n' "$selection"
+printf 'Starting the full Omarchy update. Its own confirmation comes next; declining changes nothing.\n'
+omarchy-update

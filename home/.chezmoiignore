@@ -25,3 +25,8 @@ mutagen.yml
 
 .config/systemd
 {{- end }}
+
+{{- if not (and (eq .chezmoi.os "linux") (or (eq .chezmoi.osRelease.id "arch") (eq .chezmoi.osRelease.id "archarm") (eq .chezmoi.osRelease.idLike "arch"))) }}
+.config/omarchy/plugins/jose.software-updates
+.local/bin/software-updates-picker
+{{- end }}

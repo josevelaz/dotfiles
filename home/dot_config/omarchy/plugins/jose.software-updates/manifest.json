@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "jose.software-updates",
+  "name": "Software Updates",
+  "version": "1.0.0",
+  "author": "jose",
+  "license": "MIT",
+  "description": "Checks the configured repositories and opens a fuzzy picker for pending updates.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "SoftwareUpdates.qml"
+  },
+  "barWidget": {
+    "displayName": "Software Updates",
+    "description": "Fuzzy picker for pending package updates. Selecting one starts the full Omarchy update with its normal confirmation.",
+    "category": "System",
+    "aliases": [
+      "updates",
+      "checkupdates"
+    ],
+    "allowMultiple": false
+  }
+}
