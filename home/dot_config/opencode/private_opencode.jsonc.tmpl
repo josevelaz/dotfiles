@@ -92,7 +92,7 @@
           "OPENCODE_BROWSER_RUNTIME": "auto-update",
           "OPENCODE_BROWSER_FILE_ROOTS": "{{ .chezmoi.homeDir }}/.cache/herder-build/proof"
         },
-        "cwd": "~",
+        "cwd": "{{ .chezmoi.homeDir }}",
         "pool": true
       },
 {{- if eq .chezmoi.os "darwin" }}
@@ -136,6 +136,7 @@
     "./plugins/tokeneconomizer",
     "opencode-mobile-notifications",
     "@honcho-ai/opencode-honcho",
+    "opencode-settle",
     "-local.agent-memory-repo"
   ]
 }
