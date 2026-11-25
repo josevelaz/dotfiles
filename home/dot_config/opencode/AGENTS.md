@@ -13,6 +13,10 @@ Follow George Orwell's writing rules in all user-facing prose, including convers
 
 Choose the simplest approach that meets current requirements. Add abstractions, layers, dependencies, or extension points only to resolve a concrete current constraint.
 
+# Authentication
+
+Prefer OIDC or workload identity federation over long-lived API keys wherever the service supports it. Mint short-lived credentials from the platform's identity provider, and store a long-lived secret only when no federation path exists.
+
 # Code Style - Comments
 
 NEVER write code comments. This bans all `//`, `#`, `/* */`, `<!-- -->`, JSDoc, docstrings, and commented-out code. Write clear names and plain code instead. If code needs an explanation, rewrite the code. Delete comments in code you touch.
