@@ -413,7 +413,7 @@ export default Plugin.define({
         name: "classify",
         description:
           "Classify text or JSON data with OpenCode's free Jev 1.13 decision model (opencode/jev-1.13-free). Evaluates multiple predicate (yes/no), choice (one of a set), and score (ordered rubric) questions in parallel in one call. Returns typed answers with calibrated probabilities as an ordered answers array and a results object keyed by question name.",
-        options: { codemode: true, pinned: true },
+        options: { codemode: { pinned: true } },
         input: inputSchema,
         output: outputSchema,
         async execute(raw, context) {
