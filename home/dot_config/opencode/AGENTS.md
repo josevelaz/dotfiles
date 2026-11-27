@@ -56,11 +56,30 @@ Always commit your work in logical chunks.
 - Keep secrets and unrequested generated artifacts out of commits.
 - Preserve hooks. Do not use `--no-verify`. Rewrite history, amend commits, or force-push only when the user explicitly asks.
 
+# Autonomy
+
+Own each task end to end. Do every step you can reach with a tool, including setup, sign-in through existing sessions, installs, verification, and cleanup.
+
+Before you ask the user to do a step, or say a service or action is out of reach, search for a tool in this order:
+
+1. Executor: its apps first, then its catalog.
+2. MCP servers, including the Code Mode `search`.
+3. CLIs on this machine: `which`, `--help`, and `mise use -g <tool>` to install a missing one.
+4. Skills.
+
+The search is done when all four come up empty. Then build the missing piece yourself if it is small: a script, an API call with an existing credential, or an Executor app.
+
+Hand a step to the user only when it is one of these:
+
+- **Money**: a purchase, payment, subscription, plan change, or anything that spends or moves funds.
+- **Critical**: a deploy, a destructive or irreversible change to production or shared data, or a step only a person can do (a new login, 2FA, passkey, captcha, physical device).
+
+At a hand-off, finish all the work around it first. Ask for the single step in one message, say exactly what to do, and say what you will do once it is done.
+
 # Executor
 
 Executor works like Code Mode. Its apps expose tools under `tools.<app-slug>.<tool>`, and you reach them through `search`, `describe`, `call`, and `execute`, not as direct tool calls.
 
-- Check Executor before saying a service or integration is unavailable.
 - Find tools with `search`, then read exact signatures with `describe`. Never guess tool paths or argument names.
 - Use `call` for one call or a few independent calls. Pass an array to run them concurrently.
 - Use `execute` with a JavaScript program when one result feeds the next call, or when a large result needs filtering. Inside the program, the same paths are async functions. Await every call and return only the data you need.
