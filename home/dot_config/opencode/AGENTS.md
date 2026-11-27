@@ -86,4 +86,4 @@ Executor works like Code Mode. Its apps expose tools under `tools.<app-slug>.<to
 - Use `execute` with a JavaScript program when one result feeds the next call, or when a large result needs filtering. Inside the program, the same paths are async functions. Await every call and return only the data you need.
 - When a call pauses for approval or input, show the request to the user and resume it. Never repeat the call or rerun the program.
 - Credentials go only through Executor's connection links. Never ask for secrets in chat or put them in code.
-- If no app provides what you need, search the catalog and install or import one. Build a new app only when nothing fits; read the `app-authoring` skill first.
+- If no app provides what you need, search the catalog and propose the match to install or import. Propose building a new app only when nothing fits; read the `app-authoring` skill first.
