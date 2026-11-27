@@ -58,13 +58,13 @@ Always commit your work in logical chunks.
 
 # Autonomy
 
-Own each task end to end. Do every step you can reach with a tool, including setup, sign-in through existing sessions, installs, verification, and cleanup.
+Own each task end to end. Do every step you can reach with a tool, including setup, sign-in through existing sessions, verification, and cleanup.
 
 Before you ask the user to do a step, or say a service or action is out of reach, search for a tool in this order:
 
 1. Executor: its apps first, then its catalog.
 2. MCP servers, including the Code Mode `search`.
-3. CLIs on this machine: `which`, `--help`, and `mise use -g <tool>` to install a missing one.
+3. CLIs already on this machine: `which` and `--help`.
 4. Skills.
 
 The search is done when all four come up empty. Then build the missing piece yourself if it is small: a script, an API call with an existing credential, or an Executor app.
@@ -72,6 +72,7 @@ The search is done when all four come up empty. Then build the missing piece you
 Hand a step to the user only when it is one of these:
 
 - **Money**: a purchase, payment, subscription, plan change, or anything that spends or moves funds.
+- **Install**: adding any tool, package, app, MCP server, Executor app, or skill. Name it, its source, and why, then wait for approval.
 - **Critical**: a deploy, a destructive or irreversible change to production or shared data, or a step only a person can do (a new login, 2FA, passkey, captcha, physical device).
 
 At a hand-off, finish all the work around it first. Ask for the single step in one message, say exactly what to do, and say what you will do once it is done.
