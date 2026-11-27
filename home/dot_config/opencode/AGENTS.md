@@ -67,7 +67,7 @@ Before you ask the user to do a step, or say a service or action is out of reach
 3. CLIs already on this machine: `which` and `--help`.
 4. Skills.
 
-The search is done when all four come up empty. Then build the missing piece yourself if it is small: a script, an API call with an existing credential, or an Executor app.
+The search is done when all four come up empty. Then build the missing piece yourself if it is small: a script or an API call with an existing credential.
 
 Hand a step to the user only when it is one of these:
 
